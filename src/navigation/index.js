@@ -71,6 +71,7 @@ export default function () {
         lng: languageCode,
         fallbackLng: languageCode,
       });
+
       Utils.enableExperimental();
       rootNavigation.dispatch(StackActions.replace('ProjectMenu'));
     };

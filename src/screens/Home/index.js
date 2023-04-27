@@ -98,7 +98,6 @@ const Home = props => {
               title={item.title}
               description={item.description}
               days={item.days}
-              members={item.members}
               progress={item.progress}
               onPress={goProjectDetail(item)}
               style={{

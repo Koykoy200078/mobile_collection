@@ -9,7 +9,7 @@ import App from './src/navigation';
 
 import * as Utils from './src/app/utils';
 
-// LogBox.ignoreAllLogs();
+LogBox.ignoreAllLogs();
 Utils.setupLayoutAnimation();
 
 export default function () {
