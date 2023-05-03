@@ -1,11 +1,11 @@
 import * as actionTypes from './../actions/actionTypes';
 
 const initialState = {
-  theme: 'pink',
+  theme: 'blue',
   font: null,
   force_dark: null,
   language: null,
-  menu: 'eCommerce',
+  menu: 'ProjectMenu',
   intro: true,
 };
 

@@ -18,6 +18,7 @@ import {AllScreens, ModalScreens} from './config';
 import {ApplicationActions} from '../app/actions';
 
 import * as Utils from '../app/utils';
+import Login from '../screens/Auth/Login';
 
 const RootStack = createStackNavigator();
 const MainStack = createStackNavigator();
@@ -73,7 +74,7 @@ export default function () {
       });
 
       Utils.enableExperimental();
-      rootNavigation.dispatch(StackActions.replace('ProjectMenu'));
+      rootNavigation.dispatch(StackActions.replace('Login'));
     };
     onProcess();
   }, []);

@@ -89,7 +89,7 @@ const Home = props => {
           tab={tab}
           onChange={tabData => setTab(tabData)}
         />
-        <FlatList
+        {/* <FlatList
           contentContainerStyle={styles.paddingFlatList}
           data={projects}
           keyExtractor={(_item, index) => index.toString()}
@@ -105,7 +105,7 @@ const Home = props => {
               }}
             />
           )}
-        />
+        /> */}
       </View>
     );
   };

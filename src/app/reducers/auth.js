@@ -2,7 +2,7 @@ import * as actionTypes from './../actions/actionTypes';
 
 const initialState = {
   login: {
-    success: true,
+    success: false,
   },
   user: {
     lang: 'en',

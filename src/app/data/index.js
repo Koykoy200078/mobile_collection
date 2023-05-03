@@ -10,3 +10,5 @@ export {PTeamMembersInCreate, PAttachments} from './pProjectCreate';
 export {PTaskStatus, PTaskType, PTaskPriority} from './pTaskCreate';
 export {PTasks} from './pTask';
 export {PAttachmentsInTaskView} from './pTaskView';
+
+export {EReviewsData} from './eReviews';
