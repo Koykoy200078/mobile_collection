@@ -20,7 +20,7 @@ const Home = props => {
   const tabs = [
     {
       id: 'all',
-      title: t('all_project'),
+      title: t('all_clients'),
     },
     {
       id: 'on_going',

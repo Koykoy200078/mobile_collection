@@ -20,8 +20,6 @@ import {PTaskStatus, PTaskType, PTaskPriority, FFriends} from '../../app/data';
 import ChooseFile from './ChooseFile';
 import styles from './styles';
 
-const assignee = FFriends[0];
-
 const TaskCreate = () => {
   const {t} = useTranslation();
   const {colors} = useTheme();
@@ -93,7 +91,7 @@ const TaskCreate = () => {
             style={[BaseStyle.textInput]}
             onChangeText={text => setTitle(text)}
             autoCorrect={false}
-            placeholder={'App Design and Development'}
+            placeholder={'Enter title'}
             placeholderTextColor={BaseColor.grayColor}
             value={title}
           />
@@ -139,26 +137,6 @@ const TaskCreate = () => {
             textRight={type.text}
             onPress={() => setOpenType(true)}
           />
-          <Text headline style={styles.title}>
-            {t('assignee')}
-          </Text>
-          <View style={{flexDirection: 'row', alignItems: 'center'}}>
-            <View style={{flex: 1}}>
-              <ProfileAuthor
-                image={assignee.image}
-                name={assignee.name}
-                description={assignee.total}
-                onPress={() => {}}
-              />
-            </View>
-            <PButtonAddUser
-              onPress={() =>
-                navigation.navigate('SelectAssignee', {
-                  members: [assignee],
-                })
-              }
-            />
-          </View>
         </View>
         <ChooseFile />
       </ScrollView>

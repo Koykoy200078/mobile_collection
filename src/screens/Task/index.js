@@ -169,7 +169,7 @@ const Task = () => {
       <FlatList
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
-        data={tasks}
+        // data={tasks}
         keyExtractor={(_item, index) => index.toString()}
         renderItem={({item}) => (
           <Ticket
