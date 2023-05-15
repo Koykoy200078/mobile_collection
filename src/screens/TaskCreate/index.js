@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {useNavigation, useRoute} from '@react-navigation/core';
 import {useTranslation} from 'react-i18next';
-import {ScrollView, View} from 'react-native';
+import {Alert, ScrollView, View} from 'react-native';
 import {
   FormDoubleSelectOption,
   Header,
@@ -19,13 +19,18 @@ import {BaseColor, BaseStyle, useTheme} from '../../app/config';
 import {PTaskStatus, PTaskType, PTaskPriority, FFriends} from '../../app/data';
 import ChooseFile from './ChooseFile';
 import styles from './styles';
-
+import Realm from 'realm';
+import {
+  CollectorList,
+  collectorList,
+  insertNewData,
+} from '../../app/database/allSchema';
 const TaskCreate = () => {
   const {t} = useTranslation();
   const {colors} = useTheme();
   const [headerName, setHeaderName] = useState(t('create_task'));
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  // const [title, setTitle] = useState('');
+  // const [description, setDescription] = useState('');
   const navigation = useNavigation();
   const route = useRoute();
   const [openStatus, setOpenStatus] = useState(false);
@@ -35,6 +40,12 @@ const TaskCreate = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [sort, setSort] = useState(PTaskPriority[0]);
   const [sortChose, setSortChose] = useState(PTaskPriority[0]);
+
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [principal, setPrincipal] = useState('');
+  const [interest, setInterest] = useState('');
+  const [penalty, setPenalty] = useState('');
 
   useEffect(() => {
     if (route?.params?.item) {
@@ -48,6 +59,36 @@ const TaskCreate = () => {
   const onApply = () => {
     setSortChose(sort);
     setModalVisible(false);
+  };
+
+  const onAdd = async () => {
+    try {
+      const realm = await Realm.open({schema: [collectorList]});
+      const lastCollectorList = realm
+        .objects(CollectorList)
+        .sorted('id', true)[0];
+      const highestId = lastCollectorList ? lastCollectorList.id + 1 : 1;
+      realm.write(() => {
+        realm.create(CollectorList, {
+          id: highestId,
+          name: name,
+          description: description,
+          principal: principal,
+          interest: interest,
+          penalty: penalty,
+        });
+      });
+      console.log('Successfully Added');
+      setName('');
+      setDescription('');
+      setPrincipal('');
+      setInterest('');
+      setPenalty('');
+      navigation.goBack();
+      realm.close();
+    } catch (error) {
+      Alert.alert('ERROR: ', error);
+    }
   };
 
   return (
@@ -76,24 +117,22 @@ const TaskCreate = () => {
             </Text>
           );
         }}
-        onPressRight={() => {
-          navigation.goBack();
-        }}
+        onPressRight={() => onAdd()}
       />
       <ScrollView
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}>
         <View style={styles.contain}>
           <Text headline style={styles.title}>
-            {t('title')}
+            {t('name')}
           </Text>
           <TextInput
             style={[BaseStyle.textInput]}
-            onChangeText={text => setTitle(text)}
+            onChangeText={text => setName(text)}
             autoCorrect={false}
-            placeholder={'Enter title'}
+            placeholder={t('name')}
             placeholderTextColor={BaseColor.grayColor}
-            value={title}
+            value={name}
           />
 
           <Text headline style={styles.title}>
@@ -105,76 +144,51 @@ const TaskCreate = () => {
             textAlignVertical="top"
             multiline={true}
             autoCorrect={false}
-            placeholder={'Enter some brief about task'}
+            placeholder={t('description')}
             placeholderTextColor={BaseColor.grayColor}
             value={description}
           />
+
           <Text headline style={styles.title}>
-            {t('schedule')}
+            {t('principal')}
           </Text>
-          <FormDoubleSelectOption
-            titleLeft={t('start_date')}
-            titleRight={t('end_date')}
+          <TextInput
+            style={[BaseStyle.textInput]}
+            onChangeText={text => setPrincipal(text)}
+            autoCorrect={false}
+            placeholder={t('principal')}
+            placeholderTextColor={BaseColor.grayColor}
+            value={principal}
+            keyboardType="numeric"
           />
+
           <Text headline style={styles.title}>
-            {t('status')}
+            {t('interest')}
           </Text>
-          <ListOptionSelected
-            style={{marginTop: 20}}
-            textLeft={t('priority')}
-            textRight={t(sortChose.text)}
-            onPress={() => setModalVisible(true)}
+          <TextInput
+            style={[BaseStyle.textInput]}
+            onChangeText={text => setInterest(text)}
+            autoCorrect={false}
+            placeholder={t('interest')}
+            placeholderTextColor={BaseColor.grayColor}
+            value={interest}
+            keyboardType="numeric"
           />
-          <ListOptionSelected
-            style={{marginTop: 20}}
-            textLeft={t('status')}
-            textRight={status.text}
-            onPress={() => setOpenStatus(true)}
-          />
-          <ListOptionSelected
-            style={{marginTop: 20}}
-            textLeft={t('type')}
-            textRight={type.text}
-            onPress={() => setOpenType(true)}
+
+          <Text headline style={styles.title}>
+            {t('penalty')}
+          </Text>
+          <TextInput
+            style={[BaseStyle.textInput]}
+            onChangeText={text => setPenalty(text)}
+            autoCorrect={false}
+            placeholder={t('penalty')}
+            placeholderTextColor={BaseColor.grayColor}
+            value={penalty}
+            keyboardType="numeric"
           />
         </View>
-        <ChooseFile />
       </ScrollView>
-      <ModalOption
-        options={PTaskStatus}
-        isVisible={openStatus}
-        onSwipeComplete={() => {
-          setOpenStatus(false);
-        }}
-        onPress={item => {
-          setStatus(item);
-          setOpenStatus(false);
-        }}
-      />
-      <ModalOption
-        options={PTaskType}
-        isVisible={openType}
-        onSwipeComplete={() => {
-          setOpenType(false);
-        }}
-        onPress={item => {
-          setType(item);
-          setOpenType(false);
-        }}
-      />
-      <ModalFilter
-        options={PTaskPriority.map(item => ({
-          ...item,
-          checked: item.value === sort.value,
-        }))}
-        isVisible={modalVisible}
-        onSwipeComplete={() => {
-          setSort(sortChose);
-          setModalVisible(false);
-        }}
-        onApply={onApply}
-        onSelectFilter={item => setSort(item)}
-      />
     </SafeAreaView>
   );
 };

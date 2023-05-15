@@ -38,18 +38,18 @@ const Project02 = ({
             <Text caption2 light style={styles.description}>
               {description}
             </Text>
-            <Avatars
+            {/* <Avatars
               styleThumb={{width: 30, height: 30}}
               users={members}
               limit={3}
-            />
+            /> */}
           </View>
-          <View style={styles.viewRight}>
+          {/* <View style={styles.viewRight}>
             <ProgressCircle style={{marginBottom: 10}} percent={progress} />
             <Text footnote light>
               {days}
             </Text>
-          </View>
+          </View> */}
         </View>
       </View>
     </TouchableOpacity>

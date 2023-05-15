@@ -1,10 +1,12 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {useTranslation} from 'react-i18next';
-import {FlatList, View} from 'react-native';
+import {Alert, FlatList, TouchableOpacity, View} from 'react-native';
 import {PProjectHome} from '../../app/data';
 import {BaseColor, BaseStyle, useTheme} from '../../app/config';
 import * as Utils from '../../app/utils';
 import {
+  Header,
+  Icon,
   PieChart,
   Project02,
   SafeAreaView,
@@ -12,6 +14,7 @@ import {
   Text,
 } from '../../app/components';
 import styles from './styles';
+import {CollectorList, collectorList} from '../../app/database/allSchema';
 
 const Home = props => {
   const {navigation} = props;
@@ -36,27 +39,21 @@ const Home = props => {
     },
   ];
 
-  const data = [
-    {
-      name: t('pending'),
-      population: 70,
-      color: colors.primaryLight,
-      legendFontColor: '#7F7F7F',
-    },
-    {
-      name: t('todo'),
-      population: 20,
-      color: BaseColor.kashmir,
-      legendFontColor: '#7F7F7F',
-    },
-    {
-      name: t('completed'),
-      population: 10,
-      color: colors.accent,
-      legendFontColor: '#7F7F7F',
-    },
-  ];
   const [tab, setTab] = useState(tabs[0]);
+  const [data, setData] = useState([]);
+
+  const onReload = async () => {
+    try {
+      const realm = await Realm.open({
+        schema: [collectorList],
+      });
+      const data = realm.objects(CollectorList);
+      setData(data);
+      Alert.alert('data reloaded');
+    } catch (error) {
+      console.log('Error fetching data:', error);
+    }
+  };
 
   const projects = useMemo(() => {
     Utils.enableExperimental();
@@ -74,38 +71,38 @@ const Home = props => {
   const renderContent = () => {
     return (
       <View style={{flex: 1}}>
-        {/* <View style={{ paddingHorizontal: 20, paddingBottom: 10 }}>
-                    <Text header bold>
-                        {t("overview")}
-                    </Text>
-                    <Text subhead grayColor style={{ marginTop: 5 }}>
-                        {t("discover_last_news_today")}
-                    </Text>
-                </View> */}
-        <PieChart data={data} />
+        <Header
+          title={'Collector List'}
+          renderRight={() => {
+            return (
+              <TouchableOpacity onPress={() => onReload()}>
+                <Icon name="sync" size={20} color={colors.text} />
+              </TouchableOpacity>
+            );
+          }}
+          onPressRight={() => onAdd()}
+        />
         <TabTag
-          style={{paddingHorizontal: 10, paddingBottom: 20}}
+          style={{paddingHorizontal: 10, paddingBottom: 20, marginTop: 10}}
           tabs={tabs}
           tab={tab}
           onChange={tabData => setTab(tabData)}
         />
-        {/* <FlatList
+        <FlatList
           contentContainerStyle={styles.paddingFlatList}
-          data={projects}
+          data={data}
           keyExtractor={(_item, index) => index.toString()}
           renderItem={({item}) => (
             <Project02
-              title={item.title}
+              title={item.name}
               description={item.description}
-              days={item.days}
-              progress={item.progress}
               onPress={goProjectDetail(item)}
               style={{
                 marginBottom: 20,
               }}
             />
           )}
-        /> */}
+        />
       </View>
     );
   };

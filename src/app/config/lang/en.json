@@ -1,8 +1,10 @@
 {
+  "login": "Login",
+
   "all_clients": "All Clients",
-  "on_going": "On Going",
-  "completed": "Completed",
-  "on_hold": "On Hold",
+  "on_going": "SL",
+  "completed": "GL",
+  "on_hold": "Loan",
 
   "sort": "Sort",
   "filter": "Filter",
@@ -10,14 +12,19 @@
   "priority": "Priority",
   "status": "Status",
 
-  "title": "Title",
-  "description": "Description",
-  "schedule": "Schedule",
-  "start_date": "Start Date",
-  "end_date": "End Date",
+  "tasks": "Tasks",
+  "home": "Home",
+
+  "name": "Name",
+  "description": "Loan Description",
+  "principal": "Principal (Amount)",
+  "interest": "Interest (Amount)",
+  "penalty": "Penalty (Amount)",
   "upload_your_files": "Upload Your Files",
   "description_upload_file": "Try to more files and see them here",
   "save": "Save",
 
-  "apply": "Apply"
+  "apply": "Apply",
+  "create": "Create",
+  "edit": "Edit"
 }

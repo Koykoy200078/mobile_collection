@@ -11,6 +11,9 @@ import TaskView from '../../screens/TaskView';
 import Task from '../../screens/Task';
 import Filter from '../../screens/Filter';
 import Login from '../../screens/Auth/Login';
+import ProjectView from '../../screens/ProjectView';
+import Profile from '../../screens/Profile';
+import ProjectCreate from '../../screens/ProjectCreate';
 
 export const NewsTabScreens = {
   Home: {
@@ -25,6 +28,13 @@ export const NewsTabScreens = {
     options: {
       title: 'tasks',
       tabBarIcon: ({color}) => tabBarIconHaveNoty({color, name: 'tasks'}),
+    },
+  },
+  Profile: {
+    component: Profile,
+    options: {
+      title: 'profile',
+      tabBarIcon: ({color}) => tabBarIcon({color, name: 'user'}),
     },
   },
 };
@@ -44,6 +54,12 @@ export default {
       title: 'home',
     },
   },
+  ProjectView: {
+    component: ProjectView,
+  },
+  ProjectCreate: {
+    component: ProjectCreate,
+  },
   TaskCreate: {
     component: TaskCreate,
     options: {
@@ -60,6 +76,12 @@ export default {
     component: TaskView,
     options: {
       title: 'task_view',
+    },
+  },
+  Profile: {
+    component: Profile,
+    options: {
+      title: 'profile',
     },
   },
 };

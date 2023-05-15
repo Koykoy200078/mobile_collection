@@ -1,7 +1,7 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
-import {FlatList, ScrollView, View} from 'react-native';
+import {Alert, FlatList, ScrollView, View} from 'react-native';
 import {PTasks, PTaskPriority, PTaskStatus, PTaskType} from '../../app/data';
 import {
   Header,
@@ -15,6 +15,12 @@ import {
 import {BaseColor, BaseStyle, useTheme} from '../../app/config';
 import * as Utils from '../../app//utils';
 import styles from './styles';
+import {
+  CollectorList,
+  collectorList,
+  queryAllTodoList,
+} from '../../app/database/allSchema';
+import Realm from 'realm';
 
 const Task = () => {
   const navigation = useNavigation();
@@ -25,6 +31,7 @@ const Task = () => {
   const [type, setType] = useState([]);
   const [status, setStatus] = useState([]);
   const [priority, setPriority] = useState([]);
+  const [data, setData] = useState([]);
 
   const handleSort = () => {
     const tasksInline = [...PTasks];
@@ -44,27 +51,27 @@ const Task = () => {
   };
 
   const onSort = () => {
-    Utils.enableExperimental();
-    switch (sort) {
-      case 'sort':
-        setTasks(handleSort());
-        setSort('caret-down');
-        break;
-      case 'caret-down':
-        setTasks(handleSort());
-        setSort('caret-up');
-        break;
-      case 'caret-up':
-        setTasks(PTasks);
-        setSort('sort');
-        break;
-      default:
-        setTasks(PTasks);
-        setSort('sort');
-        break;
-    }
+    // Utils.enableExperimental();
+    // switch (sort) {
+    //   case 'sort':
+    //     setTasks(handleSort());
+    //     setSort('caret-down');
+    //     break;
+    //   case 'caret-down':
+    //     setTasks(handleSort());
+    //     setSort('caret-up');
+    //     break;
+    //   case 'caret-up':
+    //     setTasks(PTasks);
+    //     setSort('sort');
+    //     break;
+    //   default:
+    //     setTasks(PTasks);
+    //     setSort('sort');
+    //     break;
+    // }
+    onShow();
   };
-
   const goTaskDetail = item => {
     navigation.navigate('TaskView', {item: item});
   };
@@ -90,6 +97,23 @@ const Task = () => {
     setStatus(typeInline);
   };
 
+  useEffect(() => {
+    const onShow = async () => {
+      try {
+        const realm = await Realm.open({
+          schema: [collectorList],
+        });
+        const data = realm.objects(CollectorList);
+        setData(data);
+      } catch (error) {
+        console.log('Error fetching data:', error);
+      }
+    };
+
+    onShow();
+  }, []);
+
+  console.log('data: ', data);
   return (
     <SafeAreaView
       style={BaseStyle.safeAreaView}
@@ -169,7 +193,7 @@ const Task = () => {
       <FlatList
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
-        // data={tasks}
+        data={data}
         keyExtractor={(_item, index) => index.toString()}
         renderItem={({item}) => (
           <Ticket
