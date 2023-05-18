@@ -66,30 +66,37 @@ const Profile = props => {
           <ScrollView
             showsHorizontalScrollIndicator={false}
             showsVerticalScrollIndicator={false}>
-            {login && (
-              <ProfileDetail
-                // image={userData.image}
-                // textFirst={userData.name}
-                // point={userData.point}
-                // textSecond={userData.address}
-                // textThird={userData.id}
-                onPress={() => {}}
-              />
-            )}
-            {login && (
-              <View style={styles.viewFollow}>
-                <View style={{flex: 3}}>
-                  <Tag primary style={styles.follow} styleText={{}}>
-                    + {t('follow')}
-                  </Tag>
-                </View>
-
-                <View style={{flex: 5}}>
-                  <ProfilePerformance data={userData.performance} />
-                </View>
-              </View>
-            )}
             <View style={{width: '100%'}}>
+              <TouchableOpacity
+                style={styleItem}
+                onPress={() => {
+                  // navigation.navigate('ProfileEdit');
+                }}>
+                <Text body1>{t('upload_data')}</Text>
+                <Icon
+                  name="angle-right"
+                  size={18}
+                  color={colors.primary}
+                  style={{marginLeft: 5}}
+                  enableRTL={true}
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styleItem}
+                onPress={() => {
+                  // navigation.navigate('ProfileEdit');
+                }}>
+                <Text body1>{t('download_data')}</Text>
+                <Icon
+                  name="angle-right"
+                  size={18}
+                  color={colors.primary}
+                  style={{marginLeft: 5}}
+                  enableRTL={true}
+                />
+              </TouchableOpacity>
+
               <TouchableOpacity
                 style={styleItem}
                 onPress={() => {
@@ -104,145 +111,14 @@ const Profile = props => {
                   enableRTL={true}
                 />
               </TouchableOpacity>
-              {login && (
-                <TouchableOpacity
-                  style={styleItem}
-                  onPress={() => {
-                    navigation.navigate('ProfileEdit');
-                  }}>
-                  <Text body1>{t('edit_profile')}</Text>
-                  <Icon
-                    name="angle-right"
-                    size={18}
-                    color={colors.primary}
-                    style={{marginLeft: 5}}
-                    enableRTL={true}
-                  />
-                </TouchableOpacity>
-              )}
-              {login && (
-                <TouchableOpacity
-                  style={styleItem}
-                  onPress={() => {
-                    navigation.navigate('ChangePassword');
-                  }}>
-                  <Text body1>{t('change_password')}</Text>
-                  <Icon
-                    name="angle-right"
-                    size={18}
-                    color={colors.primary}
-                    style={{marginLeft: 5}}
-                    enableRTL={true}
-                  />
-                </TouchableOpacity>
-              )}
-
-              {login && (
-                <TouchableOpacity
-                  style={styleItem}
-                  onPress={() => {
-                    navigation.navigate('EBank');
-                  }}>
-                  <Text body1>{t('payments')}</Text>
-                  <Icon
-                    name="angle-right"
-                    size={18}
-                    color={colors.primary}
-                    style={{marginLeft: 5}}
-                    enableRTL={true}
-                  />
-                </TouchableOpacity>
-              )}
-
-              {login && (
-                <TouchableOpacity
-                  style={styleItem}
-                  onPress={() => {
-                    navigation.navigate('EAddress');
-                  }}>
-                  <Text body1>{t('billing_address')}</Text>
-                  <Icon
-                    name="angle-right"
-                    size={18}
-                    color={colors.primary}
-                    style={{marginLeft: 5}}
-                    enableRTL={true}
-                  />
-                </TouchableOpacity>
-              )}
-
-              {login && (
-                <TouchableOpacity
-                  style={styleItem}
-                  onPress={() => {
-                    navigation.navigate('EWishlist');
-                  }}>
-                  <Text body1>{t('product_wishlist')}</Text>
-                  <Icon
-                    name="angle-right"
-                    size={18}
-                    color={colors.primary}
-                    style={{marginLeft: 5}}
-                    enableRTL={true}
-                  />
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                style={styleItem}
-                onPress={() => {
-                  navigation.navigate('PreviewComponent');
-                }}>
-                <Text body1>{t('preview_component')}</Text>
-                <Icon
-                  name="angle-right"
-                  size={18}
-                  color={colors.primary}
-                  style={{marginLeft: 5}}
-                  enableRTL={true}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styleItem}
-                onPress={() => {
-                  navigation.navigate('ContactUs');
-                }}>
-                <Text body1>{t('contact_us')}</Text>
-                <Icon
-                  name="angle-right"
-                  size={18}
-                  color={colors.primary}
-                  style={{marginLeft: 5}}
-                  enableRTL={true}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styleItem}
-                onPress={() => {
-                  navigation.navigate('AboutUs');
-                }}>
-                <Text body1>{t('about_us')}</Text>
-                <Icon
-                  name="angle-right"
-                  size={18}
-                  color={colors.primary}
-                  style={{marginLeft: 5}}
-                  enableRTL={true}
-                />
-              </TouchableOpacity>
             </View>
           </ScrollView>
         </View>
       </View>
       <View style={{padding: 10}}>
-        {login ? (
-          <Button full loading={loading} onPress={() => onLogOut()}>
-            {t('sign_out')}
-          </Button>
-        ) : (
-          <Button full loading={loading} onPress={() => onLogIn()}>
-            {t('sign_in')}
-          </Button>
-        )}
+        <Button full loading={loading} onPress={() => onLogOut()}>
+          {t('logout')}
+        </Button>
       </View>
     </SafeAreaView>
   );

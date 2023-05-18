@@ -16,6 +16,7 @@ const Project02 = ({
   disabled = false,
   days = '',
   members = [],
+  total_loans = 0,
 }) => {
   const {colors} = useTheme();
 
@@ -44,12 +45,11 @@ const Project02 = ({
               limit={3}
             /> */}
           </View>
-          {/* <View style={styles.viewRight}>
-            <ProgressCircle style={{marginBottom: 10}} percent={progress} />
+          <View style={styles.viewRight}>
             <Text footnote light>
-              {days}
+              {total_loans}
             </Text>
-          </View> */}
+          </View>
         </View>
       </View>
     </TouchableOpacity>

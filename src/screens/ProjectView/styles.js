@@ -8,12 +8,12 @@ export default StyleSheet.create({
   },
   specifications: {
     marginVertical: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
   },
   wrapContent: {
     flexWrap: 'wrap',
-    flexDirection: 'row',
+    flexDirection: 'column',
     borderColor: BaseColor.dividerColor,
     marginBottom: 20,
   },

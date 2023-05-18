@@ -15,6 +15,7 @@ import {
 } from '../../app/components';
 import styles from './styles';
 import {CollectorList, collectorList} from '../../app/database/allSchema';
+import {loanData} from '../../app/data/loans';
 
 const Home = props => {
   const {navigation} = props;
@@ -80,7 +81,6 @@ const Home = props => {
               </TouchableOpacity>
             );
           }}
-          onPressRight={() => onAdd()}
         />
         <TabTag
           style={{paddingHorizontal: 10, paddingBottom: 20, marginTop: 10}}
@@ -90,18 +90,41 @@ const Home = props => {
         />
         <FlatList
           contentContainerStyle={styles.paddingFlatList}
-          data={data}
+          data={loanData}
           keyExtractor={(_item, index) => index.toString()}
-          renderItem={({item}) => (
-            <Project02
-              title={item.name}
-              description={item.description}
-              onPress={goProjectDetail(item)}
-              style={{
-                marginBottom: 20,
-              }}
-            />
-          )}
+          renderItem={({item}) => {
+            let totalPrincipal = 0;
+            let totalInterest = 0;
+            let totalPenalty = 0;
+
+            const interest = parseFloat(item.principal);
+
+            const penalty = parseFloat(item.penalty);
+
+            // Add the principal, interest, and penalty to the totals
+            totalPrincipal += parseFloat(item.principal);
+            totalInterest += interest;
+            totalPenalty += penalty;
+
+            // Calculate the total amount
+            const totalAmount = totalPrincipal + totalInterest + totalPenalty;
+            const formattedAmount = totalAmount.toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            });
+
+            return (
+              <Project02
+                title={item.name}
+                description={item.description}
+                total_loans={formattedAmount}
+                onPress={goProjectDetail(item)}
+                style={{
+                  marginBottom: 20,
+                }}
+              />
+            );
+          }}
         />
       </View>
     );

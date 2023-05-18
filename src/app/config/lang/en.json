@@ -1,5 +1,10 @@
 {
   "login": "Login",
+  "logout": "Logout",
+
+  "upload_data": "Upload data",
+  "download_data": "Download data",
+  "setting": "Settings",
 
   "all_clients": "All Clients",
   "on_going": "SL",
@@ -17,9 +22,10 @@
 
   "name": "Name",
   "description": "Loan Description",
-  "principal": "Principal (Amount)",
-  "interest": "Interest (Amount)",
-  "penalty": "Penalty (Amount)",
+  "principal": "Principal",
+  "interest": "Interest",
+  "penalty": "Penalty",
+  "total": "Total",
   "upload_your_files": "Upload Your Files",
   "description_upload_file": "Try to more files and see them here",
   "save": "Save",

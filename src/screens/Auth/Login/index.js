@@ -1,39 +1,39 @@
 import React, {useState} from 'react';
-import {View, KeyboardAvoidingView, Platform} from 'react-native';
+import {View, KeyboardAvoidingView, Platform, Dimensions} from 'react-native';
 import {useDispatch} from 'react-redux';
-import {BaseColor, BaseStyle, useTheme} from '../../../app/config';
+import {BaseColor, BaseStyle, Images, useTheme} from '../../../app/config';
 import {AuthActions} from '../../../app/actions';
-import {Button, SafeAreaView, TextInput} from '../../../app/components';
+import {Button, Image, SafeAreaView, TextInput} from '../../../app/components';
 import styles from './styles';
 
 const {authentication} = AuthActions;
 const successInit = {
-  id: true,
+  name: true,
   password: true,
 };
 
 const Login = props => {
   const {navigation} = props;
-
+  const {width} = Dimensions.get('window');
   const {colors} = useTheme();
   const dispatch = useDispatch();
-  const [id, setId] = useState('test');
+  const [name, seName] = useState('test');
   const [password, setPassword] = useState('123456');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(successInit);
 
   const onLogin = () => {
-    if (id === '' || password === '') {
+    if (name === '' || password === '') {
       setSuccess({
         ...success,
-        id: false,
+        name: false,
         password: false,
       });
     } else {
       setLoading(true);
       dispatch(
         authentication(true, response => {
-          if (response.success && id === 'test' && password === '123456') {
+          if (response.success && name === 'test' && password === '123456') {
             navigation.navigate('ProjectMenu');
           } else {
             setLoading(false);
@@ -58,26 +58,36 @@ const Login = props => {
         style={{
           flex: 1,
         }}>
-        <View style={styles.contain}>
+        <View
+          style={styles.contain}
+          className="items-center justify-center space-y-5">
+          <View className="my-8">
+            <Image
+              source={Images.logo}
+              style={{width: width - 40}}
+              className="h-[270]"
+              resizeMode="contain"
+            />
+          </View>
           <TextInput
-            style={[BaseStyle.textInput]}
-            onChangeText={text => setId(text)}
+            style={[BaseStyle.textInput, {height: 50}]}
+            onChangeText={text => seName(text)}
             onFocus={() => {
               setSuccess({
                 ...success,
-                id: true,
+                name: true,
               });
             }}
             autoCorrect={false}
-            placeholder={'Input id'}
+            placeholder={'Input name'}
             placeholderTextColor={
-              success.id ? BaseColor.grayColor : colors.primary
+              success.name ? BaseColor.grayColor : colors.primary
             }
-            value={id}
+            value={name}
             selectionColor={colors.primary}
           />
           <TextInput
-            style={[BaseStyle.textInput, {marginTop: 10}]}
+            style={[BaseStyle.textInput, {height: 50, marginTop: 10}]}
             onChangeText={text => setPassword(text)}
             onFocus={() => {
               setSuccess({

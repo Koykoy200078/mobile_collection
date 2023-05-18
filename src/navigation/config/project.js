@@ -13,7 +13,6 @@ import Filter from '../../screens/Filter';
 import Login from '../../screens/Auth/Login';
 import ProjectView from '../../screens/ProjectView';
 import Profile from '../../screens/Profile';
-import ProjectCreate from '../../screens/ProjectCreate';
 
 export const NewsTabScreens = {
   Home: {
@@ -56,9 +55,6 @@ export default {
   },
   ProjectView: {
     component: ProjectView,
-  },
-  ProjectCreate: {
-    component: ProjectCreate,
   },
   TaskCreate: {
     component: TaskCreate,

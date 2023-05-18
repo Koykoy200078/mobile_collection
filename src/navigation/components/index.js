@@ -12,7 +12,7 @@ export const tabBarIcon = ({color, name}) => (
 export const tabBarIconHaveNoty = ({color, name}) => (
   <View>
     {tabBarIcon({color, name})}
-    <View
+    {/* <View
       style={{
         borderWidth: 1,
         borderColor: BaseColor.whiteColor,
@@ -27,9 +27,9 @@ export const tabBarIconHaveNoty = ({color, name}) => (
         borderRadius: 10,
       }}>
       <Text whiteColor caption2>
-        5
+        50
       </Text>
-    </View>
+    </View> */}
   </View>
 );
 
