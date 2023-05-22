@@ -1,7 +1,7 @@
 export default {
-  primary: '#0B5ED7',
-  secondary: '#02BE12',
-  accent: '#4EFF92',
+  primary: '#0f0285',
+  secondary: '#e4101c',
+  accent: '#31ad65',
   textColor: '#000000',
   textWhite: '#FFFFFF',
   secondaryTextColor: '#B9C4CA',

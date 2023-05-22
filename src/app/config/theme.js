@@ -26,143 +26,27 @@ export const BaseColor = {
  */
 export const ThemeSupport = [
   {
-    theme: 'pink',
-    light: {
-      dark: false,
-      colors: {
-        primary: '#FF2D55',
-        primaryDark: '#F90030',
-        primaryLight: '#FF5E80',
-        accent: '#4A90A4',
-        background: 'white',
-        card: '#F5F5F5',
-        text: '#212121',
-        border: '#c7c7cc',
-      },
-    },
-    dark: {
-      dark: true,
-      colors: {
-        primary: '#FF2D55',
-        primaryDark: '#F90030',
-        primaryLight: '#FF5E80',
-        accent: '#4A90A4',
-        background: '#010101',
-        card: '#121212',
-        text: '#e5e5e7',
-        border: '#272729',
-      },
-    },
-  },
-  {
-    theme: 'orange',
-    light: {
-      dark: false,
-      colors: {
-        primary: '#E5634D',
-        primaryDark: '#C31C0D',
-        primaryLight: '#FF8A65',
-        accent: '#4A90A4',
-        background: 'white',
-        card: '#F5F5F5',
-        text: '#212121',
-        border: '#c7c7cc',
-      },
-    },
-    dark: {
-      dark: true,
-      colors: {
-        primary: '#E5634D',
-        primaryDark: '#C31C0D',
-        primaryLight: '#FF8A65',
-        accent: '#4A90A4',
-        background: '#010101',
-        card: '#121212',
-        text: '#e5e5e7',
-        border: '#272729',
-      },
-    },
-  },
-  {
     theme: 'blue',
     light: {
       dark: false,
       colors: {
+        primary: '#0f0285',
+        primaryDark: '#1281ac',
+        primaryLight: '#68c9ef',
+        accent: '#FF8A65',
+        background: '#FFFFFF',
+        card: '#F5F5F5',
+        text: '#212121',
+        border: '#c7c7cc',
+      },
+    },
+    dark: {
+      dark: true,
+      colors: {
         primary: '#5DADE2',
         primaryDark: '#1281ac',
         primaryLight: '#68c9ef',
         accent: '#FF8A65',
-        background: 'white',
-        card: '#F5F5F5',
-        text: '#212121',
-        border: '#c7c7cc',
-      },
-    },
-    dark: {
-      dark: true,
-      colors: {
-        primary: '#5DADE2',
-        primaryDark: '#1281ac',
-        primaryLight: '#68c9ef',
-        accent: '#FF8A65',
-        background: '#010101',
-        card: '#121212',
-        text: '#e5e5e7',
-        border: '#272729',
-      },
-    },
-  },
-  {
-    theme: 'green',
-    light: {
-      dark: false,
-      colors: {
-        primary: '#58D68D',
-        primaryDark: '#388E3C',
-        primaryLight: '#C8E6C9',
-        accent: '#607D8B',
-        background: 'white',
-        card: '#F5F5F5',
-        text: '#212121',
-        border: '#c7c7cc',
-      },
-    },
-    dark: {
-      dark: true,
-      colors: {
-        primary: '#58D68D',
-        primaryDark: '#388E3C',
-        primaryLight: '#C8E6C9',
-        accent: '#607D8B',
-        background: '#010101',
-        card: '#121212',
-        text: '#e5e5e7',
-        border: '#272729',
-      },
-    },
-  },
-  {
-    theme: 'yellow',
-    light: {
-      dark: false,
-      colors: {
-        primary: '#FDC60A',
-        primaryDark: '#FFA000',
-        primaryLight: '#FFECB3',
-        accent: '#795548',
-        background: 'white',
-        card: '#F5F5F5',
-        text: '#212121',
-        border: '#c7c7cc',
-      },
-    },
-    dark: {
-      dark: true,
-      colors: {
-        primary: '#FDC60A',
-        primaryDark: '#FFA000',
-        primaryLight: '#FFECB3',
-        accent: '#795548',
         background: '#010101',
         card: '#121212',
         text: '#e5e5e7',
@@ -171,39 +55,6 @@ export const ThemeSupport = [
     },
   },
 ];
-
-/**
- * Define default theme use for whole application
- */
-export const DefaultTheme = {
-  theme: 'pink',
-  light: {
-    dark: false,
-    colors: {
-      primary: '#FF2D55',
-      primaryDark: '#F90030',
-      primaryLight: '#FF5E80',
-      accent: '#4A90A4',
-      background: 'white',
-      card: '#F5F5F5',
-      text: '#212121',
-      border: '#c7c7cc',
-    },
-  },
-  dark: {
-    dark: true,
-    colors: {
-      primary: '#FF2D55',
-      primaryDark: '#F90030',
-      primaryLight: '#FF5E80',
-      accent: '#4A90A4',
-      background: '#010101',
-      card: '#121212',
-      text: '#e5e5e7',
-      border: '#272729',
-    },
-  },
-};
 
 /**
  * Define list font use for whole application

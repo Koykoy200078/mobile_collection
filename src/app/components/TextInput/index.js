@@ -22,6 +22,7 @@ const Index = forwardRef((props, ref) => {
     iconLeft,
     onSubmitEditing,
     inputStyle,
+    textAlign,
     ...attrs
   } = props;
   return (
@@ -34,7 +35,7 @@ const Index = forwardRef((props, ref) => {
             fontFamily: `${font}-Regular`,
             flex: 1,
             height: '100%',
-            textAlign: I18nManager.isRTL ? 'right' : 'auto',
+            textAlign: textAlign,
             color: colors.text,
             paddingTop: 5,
             paddingBottom: 5,

@@ -11,8 +11,9 @@ import TaskView from '../../screens/TaskView';
 import Task from '../../screens/Task';
 import Filter from '../../screens/Filter';
 import Login from '../../screens/Auth/Login';
-import ProjectView from '../../screens/ProjectView';
+import ViewScreen from '../../screens/ViewScreen';
 import Profile from '../../screens/Profile';
+import CheckOutScreen from '../../screens/CheckOutScreen';
 
 export const NewsTabScreens = {
   Home: {
@@ -53,8 +54,11 @@ export default {
       title: 'home',
     },
   },
-  ProjectView: {
-    component: ProjectView,
+  ViewScreen: {
+    component: ViewScreen,
+  },
+  CheckOutScreen: {
+    component: CheckOutScreen,
   },
   TaskCreate: {
     component: TaskCreate,

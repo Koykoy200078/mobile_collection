@@ -12,10 +12,7 @@ const Project02 = ({
   style = {},
   onPress = () => {},
   description = '',
-  progress = 0,
   disabled = false,
-  days = '',
-  members = [],
   total_loans = 0,
 }) => {
   const {colors} = useTheme();

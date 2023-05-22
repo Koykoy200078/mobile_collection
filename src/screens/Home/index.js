@@ -26,22 +26,10 @@ const Home = props => {
       id: 'all',
       title: t('all_clients'),
     },
-    {
-      id: 'on_going',
-      title: t('on_going'),
-    },
-    {
-      id: 'completed',
-      title: t('completed'),
-    },
-    {
-      id: 'on_hold',
-      title: t('on_hold'),
-    },
   ];
 
   const [tab, setTab] = useState(tabs[0]);
-  const [data, setData] = useState([]);
+  const [data, setData] = useState(null);
 
   const onReload = async () => {
     try {
@@ -56,17 +44,8 @@ const Home = props => {
     }
   };
 
-  const projects = useMemo(() => {
-    Utils.enableExperimental();
-    if (tab.id === 'all') {
-      return PProjectHome;
-    } else {
-      return PProjectHome.filter(project => project.status === tab.id);
-    }
-  }, [tab]);
-
   const goProjectDetail = item => () => {
-    navigation.navigate('ProjectView', {item: item});
+    navigation.navigate('ViewScreen', {item: item});
   };
 
   const renderContent = () => {
@@ -76,7 +55,26 @@ const Home = props => {
           title={'Collector List'}
           renderRight={() => {
             return (
-              <TouchableOpacity onPress={() => onReload()}>
+              <TouchableOpacity
+                onPress={() => {
+                  Alert.alert(
+                    'Cautions',
+                    'Are you sure you want to reload the data? This will delete all the data you have entered. Please make sure you have synced your data before proceeding.',
+                    [
+                      {
+                        text: 'Cancel',
+                        onPress: () => console.log('Cancel Pressed'),
+                        style: 'cancel',
+                      },
+                      {
+                        text: 'Confirm',
+                        onPress: () => {
+                          onReload();
+                        },
+                      },
+                    ],
+                  );
+                }}>
                 <Icon name="sync" size={20} color={colors.text} />
               </TouchableOpacity>
             );
@@ -90,7 +88,7 @@ const Home = props => {
         />
         <FlatList
           contentContainerStyle={styles.paddingFlatList}
-          data={loanData}
+          data={data ? data : loanData}
           keyExtractor={(_item, index) => index.toString()}
           renderItem={({item}) => {
             let totalPrincipal = 0;
@@ -99,7 +97,7 @@ const Home = props => {
 
             const interest = parseFloat(item.principal);
 
-            const penalty = parseFloat(item.penalty);
+            const penalty = parseFloat(item.penalty) / 12;
 
             // Add the principal, interest, and penalty to the totals
             totalPrincipal += parseFloat(item.principal);

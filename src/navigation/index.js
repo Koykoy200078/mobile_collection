@@ -74,7 +74,7 @@ export default function () {
       });
 
       Utils.enableExperimental();
-      rootNavigation.dispatch(StackActions.replace('Login'));
+      rootNavigation.dispatch(StackActions.replace('Login')); // CheckOutScreen
     };
     onProcess();
   }, []);

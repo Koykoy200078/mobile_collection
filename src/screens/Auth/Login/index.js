@@ -61,11 +61,11 @@ const Login = props => {
         <View
           style={styles.contain}
           className="items-center justify-center space-y-5">
-          <View className="my-8">
+          <View className="my-4">
             <Image
               source={Images.logo}
-              style={{width: width - 40}}
-              className="h-[270]"
+              style={{width: width}}
+              className="h-[360]"
               resizeMode="contain"
             />
           </View>
@@ -95,6 +95,7 @@ const Login = props => {
                 password: true,
               });
             }}
+            textAlign={'left'}
             autoCorrect={false}
             placeholder={'Input password'}
             secureTextEntry={true}
