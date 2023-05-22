@@ -25,11 +25,12 @@ const CheckOutScreen = () => {
   const {regularLoans, emergencyLoans, savingDeposit, shareCapital} =
     route.params;
 
-  const aa =
-    parseFloat(regularLoans) +
-    parseFloat(emergencyLoans) +
-    parseFloat(savingDeposit) +
-    parseFloat(shareCapital);
+  let a = regularLoans ? parseFloat(regularLoans) : 0;
+  let b = emergencyLoans ? parseFloat(emergencyLoans) : 0;
+  let c = savingDeposit ? parseFloat(savingDeposit) : 0;
+  let d = shareCapital ? parseFloat(shareCapital) : 0;
+
+  const aa = a + b + c + d;
 
   const totalAmount = aa.toLocaleString('en-US', {
     minimumFractionDigits: 2,
@@ -73,37 +74,45 @@ const CheckOutScreen = () => {
           </Text>
 
           <View style={styles.specifications}>
-            <CardReport02
-              style={{flex: 1, width: width - 30, marginVertical: 10}}
-              title={'Regular Loan'}
-              checkedBoxLabel="Total Amount Due"
-              value={regularLoans}
-              editable={false}
-            />
+            {regularLoans > 0 ? (
+              <CardReport02
+                style={{flex: 1, width: width - 30, marginVertical: 10}}
+                title={'Regular Loan'}
+                checkedBoxLabel="Total Amount Due"
+                value={regularLoans}
+                editable={false}
+              />
+            ) : null}
 
-            <CardReport02
-              style={{flex: 1, width: width - 30, marginVertical: 10}}
-              title={'Emergency Loan'}
-              checkedBoxLabel="Total Amount Due"
-              value={emergencyLoans}
-              editable={false}
-            />
+            {emergencyLoans > 0 ? (
+              <CardReport02
+                style={{flex: 1, width: width - 30, marginVertical: 10}}
+                title={'Emergency Loan'}
+                checkedBoxLabel="Total Amount Due"
+                value={emergencyLoans}
+                editable={false}
+              />
+            ) : null}
 
-            <CardReport02
-              style={{flex: 1, width: width - 30, marginVertical: 10}}
-              title={'Savings Deposit'}
-              checkedBoxLabel="Amount"
-              value={savingDeposit}
-              editable={false}
-            />
+            {savingDeposit > 0 ? (
+              <CardReport02
+                style={{flex: 1, width: width - 30, marginVertical: 10}}
+                title={'Savings Deposit'}
+                checkedBoxLabel="Amount"
+                value={savingDeposit}
+                editable={false}
+              />
+            ) : null}
 
-            <CardReport02
-              style={{flex: 1, width: width - 30, marginVertical: 10}}
-              title={'Share Capital'}
-              checkedBoxLabel="Amount"
-              value={shareCapital}
-              editable={false}
-            />
+            {shareCapital > 0 ? (
+              <CardReport02
+                style={{flex: 1, width: width - 30, marginVertical: 10}}
+                title={'Share Capital'}
+                checkedBoxLabel="Amount"
+                value={shareCapital}
+                editable={false}
+              />
+            ) : null}
           </View>
 
           <View style={styles.specifications}>

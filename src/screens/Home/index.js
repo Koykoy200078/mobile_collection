@@ -31,6 +31,8 @@ const Home = props => {
   const [tab, setTab] = useState(tabs[0]);
   const [data, setData] = useState(null);
 
+  console.log('data ==> ', data);
+
   const onReload = async () => {
     try {
       const realm = await Realm.open({
@@ -63,7 +65,7 @@ const Home = props => {
                     [
                       {
                         text: 'Cancel',
-                        onPress: () => console.log('Cancel Pressed'),
+                        onPress: () => {},
                         style: 'cancel',
                       },
                       {
@@ -91,21 +93,13 @@ const Home = props => {
           data={data ? data : loanData}
           keyExtractor={(_item, index) => index.toString()}
           renderItem={({item}) => {
-            let totalPrincipal = 0;
-            let totalInterest = 0;
-            let totalPenalty = 0;
-
-            const interest = parseFloat(item.principal);
-
-            const penalty = parseFloat(item.penalty) / 12;
-
-            // Add the principal, interest, and penalty to the totals
-            totalPrincipal += parseFloat(item.principal);
-            totalInterest += interest;
-            totalPenalty += penalty;
+            let a = parseFloat(item.regularLoans);
+            let b = parseFloat(item.emergencyLoans);
+            let c = parseFloat(item.savingDeposit);
+            let d = parseFloat(item.shareCapital);
 
             // Calculate the total amount
-            const totalAmount = totalPrincipal + totalInterest + totalPenalty;
+            const totalAmount = a + b + c + d;
             const formattedAmount = totalAmount.toLocaleString('en-US', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,

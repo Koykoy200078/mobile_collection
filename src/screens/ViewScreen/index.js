@@ -27,10 +27,10 @@ const ViewScreen = () => {
 
   const [openModal, setModal] = useState(false);
 
-  const [regularLoans, setRegularLoans] = useState(0.0);
-  const [emergencyLoans, setEmergencyLoans] = useState(0.0);
-  const [savingDeposit, setSavingDeposit] = useState(0.0);
-  const [shareCapital, setShareCapital] = useState(0.0);
+  const [regularLoans, setRegularLoans] = useState(0);
+  const [emergencyLoans, setEmergencyLoans] = useState(0);
+  const [savingDeposit, setSavingDeposit] = useState(0);
+  const [shareCapital, setShareCapital] = useState(0);
 
   useEffect(() => {
     if (route?.params?.item) {
@@ -44,13 +44,23 @@ const ViewScreen = () => {
     savingDeposit,
     shareCapital,
     totalAmount,
+    aa,
   ]);
 
-  const aa =
-    parseFloat(regularLoans) +
-    parseFloat(emergencyLoans) +
-    parseFloat(savingDeposit) +
-    parseFloat(shareCapital);
+  let a = regularLoans
+    ? parseFloat(regularLoans)
+    : parseFloat(item.regularLoans);
+  let b = emergencyLoans
+    ? parseFloat(emergencyLoans)
+    : parseFloat(item.emergencyLoans);
+  let c = savingDeposit
+    ? parseFloat(savingDeposit)
+    : parseFloat(item.savingDeposit);
+  let d = shareCapital
+    ? parseFloat(shareCapital)
+    : parseFloat(item.shareCapital);
+
+  const aa = a + b + c + d;
 
   const totalAmount = aa.toLocaleString('en-US', {
     minimumFractionDigits: 2,
@@ -92,40 +102,40 @@ const ViewScreen = () => {
               style={{flex: 1, width: width - 30, marginVertical: 10}}
               title={'Regular Loan'}
               checkedBoxLabel="Total Amount Due"
-              value={regularLoans}
+              value={regularLoans ? regularLoans : item.regularLoans}
               onChangeText={val => setRegularLoans(val)}
               checkBoxEnabled={true}
-              checkBox={!regularLoans ? false : true}
+              checkBox={!regularLoans && !item.regularLoans ? false : true}
             />
 
             <CardReport02
               style={{flex: 1, width: width - 30, marginVertical: 10}}
               title={item.description}
               checkedBoxLabel="Total Amount Due"
-              value={emergencyLoans}
+              value={emergencyLoans ? emergencyLoans : item.emergencyLoans}
               onChangeText={val => setEmergencyLoans(val)}
               checkBoxEnabled={true}
-              checkBox={!emergencyLoans ? false : true}
+              checkBox={!emergencyLoans && !item.emergencyLoans ? false : true}
             />
 
             <CardReport02
               style={{flex: 1, width: width - 30, marginVertical: 10}}
               title={'Savings Deposit'}
               checkedBoxLabel="Amount"
-              value={savingDeposit}
+              value={savingDeposit ? savingDeposit : item.savingDeposit}
               onChangeText={val => setSavingDeposit(val)}
               checkBoxEnabled={true}
-              checkBox={!savingDeposit ? false : true}
+              checkBox={!savingDeposit && !item.savingDeposit ? false : true}
             />
 
             <CardReport02
               style={{flex: 1, width: width - 30, marginVertical: 10}}
               title={'Share Capital'}
               checkedBoxLabel="Amount"
-              value={shareCapital}
+              value={shareCapital ? shareCapital : item.shareCapital}
               onChangeText={val => setShareCapital(val)}
               checkBoxEnabled={true}
-              checkBox={!shareCapital ? false : true}
+              checkBox={!shareCapital && !item.shareCapital ? false : true}
             />
           </View>
 
@@ -144,10 +154,18 @@ const ViewScreen = () => {
                 full
                 onPress={() =>
                   navigation.navigate('CheckOutScreen', {
-                    regularLoans,
-                    emergencyLoans,
-                    savingDeposit,
-                    shareCapital,
+                    regularLoans: regularLoans
+                      ? regularLoans
+                      : item.regularLoans,
+                    emergencyLoans: emergencyLoans
+                      ? emergencyLoans
+                      : item.emergencyLoans,
+                    savingDeposit: savingDeposit
+                      ? savingDeposit
+                      : item.savingDeposit,
+                    shareCapital: shareCapital
+                      ? shareCapital
+                      : item.shareCapital,
                   })
                 }>
                 Checkout
