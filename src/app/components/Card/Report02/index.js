@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import {TouchableOpacity, View} from 'react-native';
 import {parseHexTransparency} from '../../../utils';
@@ -7,6 +7,7 @@ import Icon from '../../../components/Icon';
 import Text from '../../../components/Text';
 import styles from './styles';
 import {CheckBox, TextInput} from '../..';
+import Tooltip from 'react-native-walkthrough-tooltip';
 
 const CardReport02 = ({
   title = '',
@@ -20,6 +21,15 @@ const CardReport02 = ({
   value,
   onChangeText,
   editable,
+  isVisible,
+  onClose,
+  onPressView,
+
+  principal,
+  interest,
+  penalty,
+
+  enableTooltip = false,
 }) => {
   const {colors} = useTheme();
 
@@ -36,10 +46,39 @@ const CardReport02 = ({
             borderColor: colors.border,
           },
         ]}>
-        <View style={[styles.header]}>
-          <Text headline style={{marginBottom: 5}} className="flex-row">
+        <View style={[styles.header]} className="justify-between">
+          <Text headline style={{marginBottom: 5}}>
             {title}
           </Text>
+
+          {enableTooltip ? (
+            <Tooltip
+              isVisible={isVisible}
+              content={
+                <View className="w-[120]">
+                  <View className="flex-row justify-between">
+                    <Text className="font-bold">Principals: </Text>
+                    <Text>{principal}</Text>
+                  </View>
+
+                  <View className="flex-row justify-between">
+                    <Text className="font-bold">Interests: </Text>
+                    <Text>{interest}</Text>
+                  </View>
+
+                  <View className="flex-row justify-between">
+                    <Text className="font-bold">Penalties: </Text>
+                    <Text>{penalty}</Text>
+                  </View>
+                </View>
+              }
+              placement="bottom"
+              onClose={onClose}>
+              <TouchableOpacity style={{marginRight: 10}} onPress={onPressView}>
+                <Icon name="info-circle" size={17} color={colors.text} />
+              </TouchableOpacity>
+            </Tooltip>
+          ) : null}
         </View>
 
         <View className="flex-col items-start space-y-1">

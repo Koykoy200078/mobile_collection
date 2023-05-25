@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
-import {ScrollView, View, useWindowDimensions} from 'react-native';
+import {ScrollView, View, useWindowDimensions, Alert} from 'react-native';
 import {
   Button,
   CardReport02,
@@ -13,6 +13,8 @@ import {
 } from '../../app/components';
 import {BaseStyle, useTheme} from '../../app/config';
 import styles from './styles';
+import {CollectorList, collectorList} from '../../app/database/allSchema';
+import Realm from 'realm';
 
 const CheckOutScreen = () => {
   const {width} = useWindowDimensions();
@@ -22,8 +24,10 @@ const CheckOutScreen = () => {
 
   const route = useRoute();
 
-  const {regularLoans, emergencyLoans, savingDeposit, shareCapital} =
+  const {name, regularLoans, emergencyLoans, savingDeposit, shareCapital} =
     route.params;
+
+  useEffect(() => {}, [a, b, c, d]);
 
   let a = regularLoans ? parseFloat(regularLoans) : 0;
   let b = emergencyLoans ? parseFloat(emergencyLoans) : 0;
@@ -36,6 +40,30 @@ const CheckOutScreen = () => {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+
+  const onAdd = async () => {
+    // try {
+    //   const realm = await Realm.open({schema: [collectorList]});
+    //   const lastCollectorList = realm
+    //     .objects(CollectorList)
+    //     .sorted('id', true)[0];
+    //   const highestId = lastCollectorList ? lastCollectorList.id + 1 : 1;
+    //   realm.write(() => {
+    //     realm.create(CollectorList, {
+    //       id: highestId,
+    //       name: name,
+    //       regularLoans: a,
+    //       emergencyLoans: b,
+    //       savingDeposit: c,
+    //       shareCapital: d,
+    //     });
+    //   });
+    //   console.log('Successfully Added');
+    //   realm.close();
+    // } catch (error) {
+    //   Alert.alert('ERROR: ', error);
+    // }
+  };
 
   return (
     <SafeAreaView
@@ -126,7 +154,9 @@ const CheckOutScreen = () => {
 
           <View className="p-[10]">
             <View style={styles.specifications}>
-              <Button full>Proceed to Payment</Button>
+              <Button full onPress={() => onAdd()}>
+                Proceed to Payment
+              </Button>
             </View>
           </View>
         </View>

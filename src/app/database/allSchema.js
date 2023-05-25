@@ -8,10 +8,10 @@ export const collectorList = {
   properties: {
     id: {type: 'int', default: 0, min: 0},
     name: {type: 'string', default: '', indexed: true},
-    description: {type: 'string', default: ''},
-    principal: {type: 'string', default: ''},
-    interest: {type: 'string', default: ''},
-    penalty: {type: 'string', default: ''},
+    regularLoans: {type: 'float', default: 0},
+    emergencyLoans: {type: 'float', default: 0},
+    savingDeposit: {type: 'float', default: 0},
+    shareCapital: {type: 'float', default: 0},
   },
 };
 

@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {useTranslation} from 'react-i18next';
-import {ScrollView, TouchableOpacity, View} from 'react-native';
+import {Alert, ScrollView, TouchableOpacity, View} from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {BaseStyle, useTheme} from '../../app/config';
 // Load sample data
@@ -70,7 +70,23 @@ const Profile = props => {
               <TouchableOpacity
                 style={styleItem}
                 onPress={() => {
-                  // navigation.navigate('ProfileEdit');
+                  Alert.alert(
+                    'Upload Data',
+                    'Are you sure you want to upload the data? This will update the data on the server. Please make sure you have download your data before proceeding.',
+                    [
+                      {
+                        text: 'Cancel',
+                        onPress: () => {},
+                        style: 'cancel',
+                      },
+                      {
+                        text: 'Confirm',
+                        onPress: () => {
+                          // onReload();
+                        },
+                      },
+                    ],
+                  );
                 }}>
                 <Text body1>{t('upload_data')}</Text>
                 <Icon
@@ -85,7 +101,23 @@ const Profile = props => {
               <TouchableOpacity
                 style={styleItem}
                 onPress={() => {
-                  // navigation.navigate('ProfileEdit');
+                  Alert.alert(
+                    'Download Data',
+                    'Are you sure you want to download the data? This will delete all the data you have entered. Please make sure you have upload your data before proceeding.',
+                    [
+                      {
+                        text: 'Cancel',
+                        onPress: () => {},
+                        style: 'cancel',
+                      },
+                      {
+                        text: 'Confirm',
+                        onPress: () => {
+                          // onReload();
+                        },
+                      },
+                    ],
+                  );
                 }}>
                 <Text body1>{t('download_data')}</Text>
                 <Icon
