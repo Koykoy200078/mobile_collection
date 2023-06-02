@@ -13,40 +13,29 @@ import {
 } from '../../app/components';
 import {BaseStyle, useTheme} from '../../app/config';
 import styles from './styles';
-import {get} from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
 const ViewScreen = () => {
   const {width} = useWindowDimensions();
   const {t} = useTranslation();
   const {colors} = useTheme();
   const navigation = useNavigation();
-
   const route = useRoute();
   const myRef = useRef(null);
-
   const [item, setItem] = useState('');
+
+  const [regularView, setRegularView] = useState(false);
+  const [emergencyView, setEmergencyView] = useState(false);
 
   const [regularLoans, setRegularLoans] = useState(0);
   const [emergencyLoans, setEmergencyLoans] = useState(0);
   const [savingDeposit, setSavingDeposit] = useState(0);
   const [shareCapital, setShareCapital] = useState(0);
 
-  const [regularView, setRegularView] = useState(false);
-  const [emergencyView, setEmergencyView] = useState(false);
-
   useEffect(() => {
     if (route?.params?.item) {
       setItem(route?.params?.item);
     }
-  }, [
-    route,
-    regularLoans,
-    emergencyLoans,
-    savingDeposit,
-    shareCapital,
-    item,
-    getTotalAmount,
-  ]);
+  }, [route]);
 
   const extractRegularLoanData = data => {
     const regularData = {
@@ -69,6 +58,7 @@ const ViewScreen = () => {
 
     return regularData;
   };
+
   const extractEmergencyLoanData = data => {
     const emergencyData = {
       descriptions: [],
@@ -90,55 +80,49 @@ const ViewScreen = () => {
 
     return emergencyData;
   };
-  const extractSavingDeposit = data => {
-    const savingDeposit = {
+
+  const extractSavingsData = data => {
+    const savingsData = {
       amount: [],
     };
 
     if (data) {
       item.data.forEach(item => {
-        savingDeposit.amount.push(item.saving.totalAmount);
+        savingsData.amount.push(item.saving);
       });
     }
 
-    return savingDeposit;
+    return savingsData;
   };
 
-  const extractShareCapital = data => {
-    const shareCapital = {
+  const extractCapitalData = data => {
+    const capitalData = {
       amount: [],
     };
 
     if (data) {
       item.data.forEach(item => {
-        let totalShare = 0;
-        console.log('item.share ==> ', item.share['totalAmount']);
-        // shareCapital.amount.push(item.share);
+        capitalData.amount.push(item.share);
       });
     }
 
-    return shareCapital;
+    return capitalData;
   };
 
   const regularLoanData = extractRegularLoanData(item);
-  const emergencyLoanData = extractEmergencyLoanData(item);
-  const savingDepositData = extractSavingDeposit(item);
-  const shareCapitalData = extractShareCapital(item);
-
-  console.log('savingDepositData ==> ', savingDepositData);
-
-  const regularPrincipal = parseFloat(regularLoanData.principals); // Convert the regularPrincipal to a float
-  const regularInterest = parseFloat(regularLoanData.interests); // Convert the regularInterest to a float
-  const regularPenalty = parseFloat(regularLoanData.penalties); // Convert the regularPenalty to a float
+  const regularPrincipal = parseFloat(regularLoanData.principals);
+  const regularInterest = parseFloat(regularLoanData.interests);
+  const regularPenalty = parseFloat(regularLoanData.penalties);
   const regularAmount = regularPrincipal + regularInterest + regularPenalty;
   const principalNewData = regularAmount.toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
 
-  const emergencyPrincipal = parseFloat(emergencyLoanData.principals); // Convert the emergencyPrincipal to a float
-  const emergencyInterest = parseFloat(emergencyLoanData.interests); // Convert the emergencyInterest to a float
-  const emergencyPenalty = parseFloat(emergencyLoanData.penalties); // Convert the emergencyPenalty to a float
+  const emergencyLoanData = extractEmergencyLoanData(item);
+  const emergencyPrincipal = parseFloat(emergencyLoanData.principals);
+  const emergencyInterest = parseFloat(emergencyLoanData.interests);
+  const emergencyPenalty = parseFloat(emergencyLoanData.penalties);
   const emergencyAmount =
     emergencyPrincipal + emergencyInterest + emergencyPenalty;
   const emergencyNewData = emergencyAmount.toLocaleString('en-US', {
@@ -146,25 +130,28 @@ const ViewScreen = () => {
     maximumFractionDigits: 2,
   });
 
-  const savingData = parseFloat(savingDepositData.amount); // Convert the savingDepositData to a float
-  const savingNewData = savingData.toLocaleString('en-US', {
+  const savingsData = extractSavingsData(item);
+  const savingsAmount = parseFloat(savingsData.amount);
+  const savingsNewData = savingsAmount.toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
 
-  const shareData = parseFloat(shareCapitalData.amount); // Convert the shareCapitalData to a float
-  const shareNewData = shareData.toLocaleString('en-US', {
+  const capitalData = extractCapitalData(item);
+  const capitalAmount = parseFloat(capitalData.amount);
+  const capitalNewData = capitalAmount.toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
 
-  let a = regularLoans ? regularLoans : principalNewData;
-  let b = emergencyLoans ? emergencyLoans : emergencyNewData;
-  let c = savingDeposit ? savingDeposit : savingNewData;
-  let d = shareCapital ? shareCapital : shareNewData;
+  let a = regularLoans ? parseFloat(regularLoans) : parseFloat(regularAmount);
+  let b = emergencyLoans
+    ? parseFloat(emergencyLoans)
+    : parseFloat(emergencyAmount);
+  let c = savingDeposit ? parseFloat(savingDeposit) : parseFloat(savingsAmount);
+  let d = shareCapital ? parseFloat(shareCapital) : parseFloat(capitalAmount);
 
-  const getTotalAmount =
-    parseFloat(a) + parseFloat(b) + parseFloat(c) + parseFloat(d);
+  const getTotalAmount = a + b + c + d;
   const totalAmountDue = getTotalAmount.toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -204,11 +191,20 @@ const ViewScreen = () => {
             <CardReport02
               style={{flex: 1, width: width - 30, marginVertical: 10}}
               title="Regular Loan"
+              placeholder={
+                regularLoans
+                  ? regularLoans
+                  : principalNewData
+                  ? principalNewData
+                  : '0.00'
+              }
               checkedBoxLabel="Total Amount Due"
-              value={regularLoans ? regularLoans : principalNewData}
+              value={regularLoans}
               onChangeText={val => setRegularLoans(val)}
               checkBoxEnabled={true}
-              checkBox={!regularLoans && !principalNewData ? false : true}
+              checkBox={
+                regularLoans || principalNewData !== '0.00' ? true : false
+              }
               isVisible={regularView}
               enableTooltip={true}
               onClose={() => setRegularView(false)}
@@ -222,10 +218,19 @@ const ViewScreen = () => {
               style={{flex: 1, width: width - 30, marginVertical: 10}}
               title="Emergency Loan"
               checkedBoxLabel="Total Amount Due"
-              value={emergencyLoans ? emergencyLoans : emergencyNewData}
+              placeholder={
+                emergencyLoans
+                  ? emergencyLoans
+                  : emergencyNewData
+                  ? emergencyNewData
+                  : '0.00'
+              }
+              value={emergencyLoans}
               onChangeText={val => setEmergencyLoans(val)}
               checkBoxEnabled={true}
-              checkBox={!emergencyLoans && !emergencyNewData ? false : true}
+              checkBox={
+                emergencyLoans || emergencyNewData !== '0.00' ? true : false
+              }
               isVisible={emergencyView}
               enableTooltip={true}
               onClose={() => setEmergencyView(false)}
@@ -239,20 +244,37 @@ const ViewScreen = () => {
               style={{flex: 1, width: width - 30, marginVertical: 10}}
               title={'Savings Deposit'}
               checkedBoxLabel="Amount"
-              value={savingDeposit ? savingDeposit : savingNewData}
+              placeholder={
+                savingDeposit
+                  ? savingDeposit
+                  : savingsNewData
+                  ? savingsNewData
+                  : '0.00'
+              }
+              value={savingDeposit}
               onChangeText={val => setSavingDeposit(val)}
               checkBoxEnabled={true}
-              checkBox={!savingDeposit && !savingNewData ? false : true}
+              checkBox={
+                savingDeposit || savingsNewData !== '0.00' ? true : false
+              }
             />
-
             <CardReport02
               style={{flex: 1, width: width - 30, marginVertical: 10}}
               title={'Share Capital'}
               checkedBoxLabel="Amount"
-              value={shareCapital ? shareCapital : shareNewData}
+              placeholder={
+                shareCapital
+                  ? shareCapital
+                  : capitalNewData
+                  ? capitalNewData
+                  : '0.00'
+              }
+              value={shareCapital}
               onChangeText={val => setShareCapital(val)}
               checkBoxEnabled={true}
-              checkBox={!shareCapital && !shareNewData ? false : true}
+              checkBox={
+                shareCapital || capitalNewData !== '0.00' ? true : false
+              }
             />
           </View>
 
@@ -272,18 +294,10 @@ const ViewScreen = () => {
                 onPress={() =>
                   navigation.navigate('CheckOutScreen', {
                     name: item.name,
-                    regularLoans: regularLoans
-                      ? regularLoans
-                      : item.regularLoans,
-                    emergencyLoans: emergencyLoans
-                      ? emergencyLoans
-                      : item.emergencyLoans,
-                    savingDeposit: savingDeposit
-                      ? savingDeposit
-                      : item.savingDeposit,
-                    shareCapital: shareCapital
-                      ? shareCapital
-                      : item.shareCapital,
+                    regularLoans: a,
+                    emergencyLoans: b,
+                    savingDeposit: c,
+                    shareCapital: d,
                   })
                 }>
                 Checkout

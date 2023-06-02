@@ -14,6 +14,7 @@ import Login from '../../screens/Auth/Login';
 import ViewScreen from '../../screens/ViewScreen';
 import Profile from '../../screens/Profile';
 import CheckOutScreen from '../../screens/CheckOutScreen';
+import Upload from '../../screens/Upload';
 
 export const NewsTabScreens = {
   Home: {
@@ -82,6 +83,12 @@ export default {
     component: Profile,
     options: {
       title: 'profile',
+    },
+  },
+  Upload: {
+    component: Upload,
+    options: {
+      title: 'upload_data',
     },
   },
 };

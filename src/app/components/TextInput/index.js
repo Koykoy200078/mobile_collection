@@ -36,7 +36,7 @@ const Index = forwardRef((props, ref) => {
             flex: 1,
             height: '100%',
             textAlign: textAlign,
-            color: colors.text,
+            color: '#000',
             paddingTop: 5,
             paddingBottom: 5,
           },

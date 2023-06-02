@@ -70,23 +70,24 @@ const Profile = props => {
               <TouchableOpacity
                 style={styleItem}
                 onPress={() => {
-                  Alert.alert(
-                    'Upload Data',
-                    'Are you sure you want to upload the data? This will update the data on the server. Please make sure you have download your data before proceeding.',
-                    [
-                      {
-                        text: 'Cancel',
-                        onPress: () => {},
-                        style: 'cancel',
-                      },
-                      {
-                        text: 'Confirm',
-                        onPress: () => {
-                          // onReload();
-                        },
-                      },
-                    ],
-                  );
+                  // Alert.alert(
+                  //   'Upload Data',
+                  //   'Are you sure you want to upload the data? This will update the data on the server. Please make sure you have download your data before proceeding.',
+                  //   [
+                  //     {
+                  //       text: 'Cancel',
+                  //       onPress: () => {},
+                  //       style: 'cancel',
+                  //     },
+                  //     {
+                  //       text: 'Confirm',
+                  //       onPress: () => {
+                  //         // onReload();
+                  //       },
+                  //     },
+                  //   ],
+                  // );
+                  navigation.navigate('Upload');
                 }}>
                 <Text body1>{t('upload_data')}</Text>
                 <Icon

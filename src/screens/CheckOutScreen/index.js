@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import {ScrollView, View, useWindowDimensions, Alert} from 'react-native';
@@ -14,7 +14,6 @@ import {
 import {BaseStyle, useTheme} from '../../app/config';
 import styles from './styles';
 import {CollectorList, collectorList} from '../../app/database/allSchema';
-import Realm from 'realm';
 
 const CheckOutScreen = () => {
   const {width} = useWindowDimensions();
@@ -27,42 +26,87 @@ const CheckOutScreen = () => {
   const {name, regularLoans, emergencyLoans, savingDeposit, shareCapital} =
     route.params;
 
-  useEffect(() => {}, [a, b, c, d]);
+  const [regular, setRegular] = useState(regularLoans || 0);
+  const [emergency, setEmergency] = useState(emergencyLoans || 0);
+  const [saving, setSaving] = useState(savingDeposit || 0);
+  const [share, setShare] = useState(shareCapital || 0);
 
-  let a = regularLoans ? parseFloat(regularLoans) : 0;
-  let b = emergencyLoans ? parseFloat(emergencyLoans) : 0;
-  let c = savingDeposit ? parseFloat(savingDeposit) : 0;
-  let d = shareCapital ? parseFloat(shareCapital) : 0;
+  useEffect(() => {}, [regular, emergency, saving, share]);
+
+  let a = regularLoans ? parseFloat(regular) : 0;
+  let b = emergencyLoans ? parseFloat(emergency) : 0;
+  let c = savingDeposit ? parseFloat(saving) : 0;
+  let d = shareCapital ? parseFloat(share) : 0;
 
   const aa = a + b + c + d;
+
+  const principalNewData = a.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  const emergencyNewData = b.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  const savingsNewData = c.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  const capitalNewData = d.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
   const totalAmount = aa.toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
 
+  const formattedRegular = regular.toFixed(2);
+  const formattedEmergency = emergency.toFixed(2);
+  const formattedSaving = saving.toFixed(2);
+  const formattedShare = share.toFixed(2);
+
   const onAdd = async () => {
-    // try {
-    //   const realm = await Realm.open({schema: [collectorList]});
-    //   const lastCollectorList = realm
-    //     .objects(CollectorList)
-    //     .sorted('id', true)[0];
-    //   const highestId = lastCollectorList ? lastCollectorList.id + 1 : 1;
-    //   realm.write(() => {
-    //     realm.create(CollectorList, {
-    //       id: highestId,
-    //       name: name,
-    //       regularLoans: a,
-    //       emergencyLoans: b,
-    //       savingDeposit: c,
-    //       shareCapital: d,
-    //     });
-    //   });
-    //   console.log('Successfully Added');
-    //   realm.close();
-    // } catch (error) {
-    //   Alert.alert('ERROR: ', error);
-    // }
+    Alert.alert('Confirm', 'Are you sure you want to proceed?', [
+      {
+        text: 'Cancel',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      {
+        text: 'Yes',
+        onPress: async () => {
+          try {
+            const realm = await Realm.open({schema: [collectorList]});
+            const lastCollectorList = realm
+              .objects(CollectorList)
+              .sorted('id', true)[0];
+            const highestId = lastCollectorList ? lastCollectorList.id + 1 : 1;
+            realm.write(() => {
+              realm.create(CollectorList, {
+                id: highestId,
+                name: name,
+                regularLoans: parseFloat(formattedRegular),
+                emergencyLoans: parseFloat(formattedEmergency),
+                savingDeposit: parseFloat(formattedSaving),
+                shareCapital: parseFloat(formattedShare),
+              });
+            });
+            Alert.alert('Success', 'Payment Confirm', [
+              {
+                text: 'Ok',
+                onPress: () => console.log('Ok Pressed'),
+                style: 'cancel',
+              },
+            ]);
+            realm.close();
+          } catch (error) {
+            console.log('Error: ', error);
+          }
+        },
+      },
+    ]);
   };
 
   return (
@@ -106,8 +150,9 @@ const CheckOutScreen = () => {
               <CardReport02
                 style={{flex: 1, width: width - 30, marginVertical: 10}}
                 title={'Regular Loan'}
+                placeholder={regularLoans ? principalNewData : '0.00'}
                 checkedBoxLabel="Total Amount Due"
-                value={regularLoans}
+                // value={regularLoans}
                 editable={false}
               />
             ) : null}
@@ -116,8 +161,9 @@ const CheckOutScreen = () => {
               <CardReport02
                 style={{flex: 1, width: width - 30, marginVertical: 10}}
                 title={'Emergency Loan'}
+                placeholder={emergencyLoans ? emergencyNewData : '0.00'}
                 checkedBoxLabel="Total Amount Due"
-                value={emergencyLoans}
+                // value={emergencyLoans}
                 editable={false}
               />
             ) : null}
@@ -126,8 +172,9 @@ const CheckOutScreen = () => {
               <CardReport02
                 style={{flex: 1, width: width - 30, marginVertical: 10}}
                 title={'Savings Deposit'}
+                placeholder={savingDeposit ? savingsNewData : '0.00'}
                 checkedBoxLabel="Amount"
-                value={savingDeposit}
+                // value={savingDeposit}
                 editable={false}
               />
             ) : null}
@@ -136,8 +183,9 @@ const CheckOutScreen = () => {
               <CardReport02
                 style={{flex: 1, width: width - 30, marginVertical: 10}}
                 title={'Share Capital'}
+                placeholder={shareCapital ? capitalNewData : '0.00'}
                 checkedBoxLabel="Amount"
-                value={shareCapital}
+                // value={shareCapital}
                 editable={false}
               />
             ) : null}

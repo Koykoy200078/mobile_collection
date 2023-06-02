@@ -29,6 +29,7 @@ const CardReport02 = ({
   interest,
   penalty,
 
+  placeholder,
   enableTooltip = false,
 }) => {
   const {colors} = useTheme();
@@ -57,17 +58,17 @@ const CardReport02 = ({
               content={
                 <View className="w-[120]">
                   <View className="flex-row justify-between">
-                    <Text className="font-bold">Principals: </Text>
+                    <Text className="font-bold">Principal: </Text>
                     <Text>{principal}</Text>
                   </View>
 
                   <View className="flex-row justify-between">
-                    <Text className="font-bold">Interests: </Text>
+                    <Text className="font-bold">Interest: </Text>
                     <Text>{interest}</Text>
                   </View>
 
                   <View className="flex-row justify-between">
-                    <Text className="font-bold">Penalties: </Text>
+                    <Text className="font-bold">Penalty: </Text>
                     <Text>{penalty}</Text>
                   </View>
                 </View>
@@ -114,9 +115,9 @@ const CardReport02 = ({
               ]}
               textAlign={'right'}
               autoCorrect={false}
-              placeholder={'0.00'}
+              placeholder={placeholder}
               selectionColor={colors.primary}
-              value={parseInt(value) ? value : ''}
+              value={value ? value : ''}
               keyboardType="numeric"
               editable={editable}
               onChangeText={onChangeText}

@@ -17,7 +17,7 @@ import styles from './styles';
 import {CollectorList, collectorList} from '../../app/database/allSchema';
 import {loanData} from '../../app/data/loans';
 
-const Home = props => {
+const Upload = props => {
   const {navigation} = props;
   const {t} = useTranslation();
   const {colors} = useTheme();
@@ -31,7 +31,18 @@ const Home = props => {
   const [tab, setTab] = useState(tabs[0]);
   const [data, setData] = useState(null);
 
-  console.log('data ==> ', data);
+  const onReload = async () => {
+    try {
+      const realm = await Realm.open({
+        schema: [collectorList],
+      });
+      const data = realm.objects(CollectorList);
+      setData(data);
+      Alert.alert('Data Refresh');
+    } catch (error) {
+      console.log('Error fetching data:', error);
+    }
+  };
 
   const goProjectDetail = item => () => {
     navigation.navigate('ViewScreen', {item: item});
@@ -40,7 +51,35 @@ const Home = props => {
   const renderContent = () => {
     return (
       <View style={{flex: 1}}>
-        <Header title={'Collector List'} />
+        <Header
+          title={'Modified data'}
+          renderRight={() => {
+            return (
+              <TouchableOpacity
+                onPress={() => {
+                  Alert.alert(
+                    'Cautions',
+                    'Are you sure you want to reload the modified data?',
+                    [
+                      {
+                        text: 'Cancel',
+                        onPress: () => {},
+                        style: 'cancel',
+                      },
+                      {
+                        text: 'Confirm',
+                        onPress: () => {
+                          onReload();
+                        },
+                      },
+                    ],
+                  );
+                }}>
+                <Icon name="sync" size={20} color={colors.text} />
+              </TouchableOpacity>
+            );
+          }}
+        />
         <TabTag
           style={{paddingHorizontal: 10, paddingBottom: 20, marginTop: 10}}
           tabs={tabs}
@@ -49,47 +88,27 @@ const Home = props => {
         />
         <FlatList
           contentContainerStyle={styles.paddingFlatList}
-          data={data ? data : loanData}
+          data={data}
           keyExtractor={(_item, index) => index.toString()}
           renderItem={({item}) => {
-            let a = parseFloat(
-              item.data.map(data => data.regular.map(item => item.principal)),
-            );
-            let aa = parseFloat(
-              item.data.map(data => data.regular.map(item => item.interest)),
-            );
-            let aaa = parseFloat(
-              item.data.map(data => data.regular.map(item => item.penalty)),
-            );
-            const regularAmount = a + aa + aaa;
+            console.log('a ==> ', item);
+            let regularAmount = item.regularLoans;
+            let emergencyAmount = item.emergencyLoans;
+            let savingDeposit = item.savingDeposit;
+            let shareCapital = item.shareCapital;
 
-            let b = parseFloat(
-              item.data.map(data => data.emergency.map(item => item.principal)),
-            );
-            let bb = parseFloat(
-              item.data.map(data => data.emergency.map(item => item.interest)),
-            );
-            let bbb = parseFloat(
-              item.data.map(data => data.emergency.map(item => item.penalty)),
-            );
-            const emergencyAmount = b + bb + bbb;
-
-            let c = parseFloat(item.data.map(data => data.saving));
-
-            let d = parseFloat(item.data.map(data => data.share));
-            // Calculate the total amount
-            const totalAmount = regularAmount + emergencyAmount + c + d;
+            const totalAmount =
+              regularAmount + emergencyAmount + savingDeposit + shareCapital;
             const formattedAmount = totalAmount.toLocaleString('en-US', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             });
-
             return (
               <Project02
                 title={item.name}
                 description={item.description}
                 total_loans={formattedAmount}
-                onPress={goProjectDetail(item)}
+                // onPress={goProjectDetail(item)}
                 style={{
                   marginBottom: 20,
                 }}
@@ -112,4 +131,4 @@ const Home = props => {
   );
 };
 
-export default Home;
+export default Upload;
