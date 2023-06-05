@@ -96,7 +96,15 @@ const CheckOutScreen = () => {
             Alert.alert('Success', 'Payment Confirm', [
               {
                 text: 'Ok',
-                onPress: () => console.log('Ok Pressed'),
+                onPress: () =>
+                  navigation.navigate('Print', {
+                    name: name,
+                    regularLoans: parseFloat(formattedRegular),
+                    emergencyLoans: parseFloat(formattedEmergency),
+                    savingDeposit: parseFloat(formattedSaving),
+                    shareCapital: parseFloat(formattedShare),
+                    totalAmount,
+                  }),
                 style: 'cancel',
               },
             ]);

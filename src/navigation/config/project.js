@@ -15,6 +15,7 @@ import ViewScreen from '../../screens/ViewScreen';
 import Profile from '../../screens/Profile';
 import CheckOutScreen from '../../screens/CheckOutScreen';
 import Upload from '../../screens/Upload';
+import Print from '../../screens/Print';
 
 export const NewsTabScreens = {
   Home: {
@@ -83,6 +84,12 @@ export default {
     component: Profile,
     options: {
       title: 'profile',
+    },
+  },
+  Print: {
+    component: Print,
+    options: {
+      title: 'print',
     },
   },
   Upload: {
