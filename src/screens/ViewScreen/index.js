@@ -295,7 +295,13 @@ const ViewScreen = () => {
                   navigation.navigate('CheckOutScreen', {
                     name: item.name,
                     regularLoans: a,
+                    rPrincipal: regularLoanData.principals,
+                    rInterest: regularLoanData.interests,
+                    rPenalty: regularLoanData.penalties,
                     emergencyLoans: b,
+                    ePrincipal: emergencyLoanData.principals,
+                    eInterest: emergencyLoanData.interests,
+                    ePenalty: emergencyLoanData.penalties,
                     savingDeposit: c,
                     shareCapital: d,
                   })

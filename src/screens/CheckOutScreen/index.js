@@ -23,15 +23,45 @@ const CheckOutScreen = () => {
 
   const route = useRoute();
 
-  const {name, regularLoans, emergencyLoans, savingDeposit, shareCapital} =
-    route.params;
+  const {
+    name,
+    regularLoans,
+    emergencyLoans,
+    savingDeposit,
+    shareCapital,
+    rPrincipal,
+    rInterest,
+    rPenalty,
+    ePrincipal,
+    eInterest,
+    ePenalty,
+  } = route.params;
 
   const [regular, setRegular] = useState(regularLoans || 0);
   const [emergency, setEmergency] = useState(emergencyLoans || 0);
   const [saving, setSaving] = useState(savingDeposit || 0);
   const [share, setShare] = useState(shareCapital || 0);
 
-  useEffect(() => {}, [regular, emergency, saving, share]);
+  const [rP, setRP] = useState(rPrincipal || 0);
+  const [rI, setRI] = useState(rInterest || 0);
+  const [rPe, setRPe] = useState(rPenalty || 0);
+
+  const [eP, setEP] = useState(ePrincipal || 0);
+  const [eI, setEI] = useState(eInterest || 0);
+  const [ePe, setEPe] = useState(ePenalty || 0);
+
+  useEffect(() => {}, [
+    regular,
+    emergency,
+    saving,
+    share,
+    rP,
+    rI,
+    rPe,
+    eP,
+    eI,
+    ePe,
+  ]);
 
   let a = regularLoans ? parseFloat(regular) : 0;
   let b = emergencyLoans ? parseFloat(emergency) : 0;
@@ -104,6 +134,12 @@ const CheckOutScreen = () => {
                     savingDeposit: parseFloat(formattedSaving),
                     shareCapital: parseFloat(formattedShare),
                     totalAmount,
+                    rP: regular === 0 ? 0 : rP,
+                    rI: regular === 0 ? 0 : rI,
+                    rPe: regular === 0 ? 0 : rPe,
+                    eP: emergency === 0 ? 0 : eP,
+                    eI: emergency === 0 ? 0 : eI,
+                    ePe: emergency === 0 ? 0 : ePe,
                   }),
                 style: 'cancel',
               },

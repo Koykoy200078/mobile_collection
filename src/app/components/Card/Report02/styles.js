@@ -1,4 +1,4 @@
-import { StyleSheet, Platform } from 'react-native';
+import {StyleSheet, Platform} from 'react-native';
 
 export default StyleSheet.create({
   content: {
@@ -13,7 +13,7 @@ export default StyleSheet.create({
       },
       default: {
         shadowColor: 'rgba(0,0,0, .2)',
-        shadowOffset: { height: 0, width: 0 },
+        shadowOffset: {height: 0, width: 0},
         shadowOpacity: 3,
         shadowRadius: 3,
       },
@@ -30,5 +30,24 @@ export default StyleSheet.create({
     height: 25,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+
+  touchable: {
+    backgroundColor: '#181829',
+    height: 50,
+  },
+  title: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+  message: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+  icon: {
+    height: 24,
+    width: 24,
   },
 });

@@ -5,11 +5,56 @@ import {CollectorList, collectorList} from '../../app/database/allSchema';
 import styles from './styles';
 import RNPrint from 'react-native-print';
 import {Button} from '../../app/components';
+import {Images} from '../../app/config';
+import {imageUri} from './imageUri';
 
 export default function ({navigation, route}) {
   const [data, setData] = useState(null);
   const [selectedPrinter, setSelectedPrinter] = useState(null);
 
+  const logoUri = 'data:image/png;base64,' + imageUri.data;
+
+  const currentDate = new Date();
+
+  const day = currentDate.getDate();
+  const monthIndex = currentDate.getMonth();
+  const year = currentDate.getFullYear();
+  const hour = currentDate.getHours();
+  const minute = currentDate.getMinutes();
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+
+  const monthNames = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+
+  const formattedHour = hour % 12 === 0 ? 12 : hour % 12; // Convert hour to 12-hour format
+  const formattedMinute = minute.toString().padStart(2, '0'); // Ensure minute has two digits
+
+  const formattedDate = `${day} ${monthNames[monthIndex]} ${year}, ${formattedHour}:${formattedMinute} ${ampm}`;
+
+  // Function to generate a random number within a range
+  const getRandomNumber = (min, max) => {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  };
+
+  // Generate random Receipt No.
+  const receiptNo = getRandomNumber(1000, 9999);
+
+  // Generate random Reference ID
+  const referenceID = getRandomNumber(100000000000, 999999999999);
+
+  const accountNum = getRandomNumber(100000000, 999999999);
   const {
     name,
     regularLoans,
@@ -17,29 +62,46 @@ export default function ({navigation, route}) {
     savingDeposit,
     shareCapital,
     totalAmount,
+    rP,
+    rI,
+    rPe,
+    eP,
+    eI,
+    ePe,
   } = route.params;
+
+  console.log('name ==> ', name);
+  console.log('regularLoans ==> ', regularLoans);
+  console.log('rP ==> ', rP);
+  console.log('rI ==> ', rI);
+  console.log('rPe ==> ', rPe);
+  console.log('emergencyLoans ==> ', emergencyLoans);
+  console.log('eP ==> ', eP);
+  console.log('eI ==> ', eI);
+  console.log('ePe ==> ', ePe);
 
   const printHTML = async () => {
     await RNPrint.print({
-      html: `<html>
+      html: `<!DOCTYPE html>
+<html>
   <head>
-    <title>Summary Report</title>
+    <title>Statement of Account</title>
     <style>
       * {
         box-sizing: border-box;
       }
       body {
         font-family: Arial, sans-serif;
-        margin: 10;
+        margin: 0;
         padding: 0;
         background-color: #fff;
       }
       .container {
-        max-width: 420px;
+        width: 58mm;
+        height: 160mm;
         margin: 0 auto;
-        padding: 20px;
         background-color: #fff;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
       }
       .text-center {
         text-align: center;
@@ -51,36 +113,58 @@ export default function ({navigation, route}) {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
-        align-items: center; /* Add this line to vertically align the items */
-        padding: 5px;
+        align-items: center;
+        margin-bottom: 5px;
       }
       .receipt-header {
-        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        margin-bottom: 15px;
+      }
+      .receipt-header img {
+        height: 60px;
+        margin-right: 5px;
+      }
+      .company-details {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+      }
+      .company-name {
+        font-size: 16px;
+        margin: 0;
+        margin-left: 5px;
+      }
+      .company-address {
+        font-size: 12px;
+        margin: 0;
+        margin-left: 5px;
       }
       .receipt-details {
-        margin-bottom: 10px;
+        margin-bottom: 15px;
         background-color: #fff;
-        padding: 10px;
-        border-radius: 5px;
+        border-radius: 3px;
       }
       .receipt-total {
-        margin-top: 10px;
+        margin-top: 0;
+        margin-bottom: 15px;
       }
-      .receipt-footer {
-        margin-top: 20px;
-        text-align: center;
+      .section-title {
+        font-size: 12px;
+        font-weight: bold;
+      }
+      .section-value {
         font-size: 12px;
       }
-      @media print {
-        body {
-          background-color: #f9f9f9;
-        }
+      @page {
+        size: 58mm 160mm;
+        margin: 0;
+      }
+      @media print and (-webkit-min-device-pixel-ratio: 0) {
+        /* Remove unnecessary page breaks for Chrome and Safari */
         .container {
-          margin: 0;
-          box-shadow: none;
-        }
-        .receipt-footer {
-          display: none;
+          page-break-after: auto;
         }
       }
     </style>
@@ -88,80 +172,161 @@ export default function ({navigation, route}) {
   <body>
     <div class="container">
       <div class="receipt-header">
-        <h1 class="text-center font-bold" style="margin-bottom: 10px">
-          SUMMARY REPORT
-        </h1>
-        <p class="text-center" style="margin-bottom: 10px">
-          Amount has been sent to the biller.
-        </p>
+        <div class="company-details">
+          <img src="${logoUri}" alt="Company Logo" width="65" height="100" />
+          <div>
+            <h1 class="company-name">Sacred Heart Coop</h1>
+            <p class="company-address">
+              Cruz na Daan 3008 San Rafael, Philippines
+            </p>
+          </div>
+        </div>
       </div>
+
+      <h1
+        class="text-center"
+        style="font-size: 18px; font-weight: bold; margin-top: 10px"
+      >
+        STATEMENT OF ACCOUNT
+      </h1>
 
       <div class="receipt-details">
         <div class="flex-row">
-          <div>
-            <p class="font-bold">Biller Name:</p>
+          <div class="section-title">Account Number:</div>
+          <div class="section-value">${accountNum}</div>
+        </div>
+
+        <div class="flex-row">
+          <div class="section-title">Biller Name:</div>
+          <div class="section-value">${name}</div>
+        </div>
+
+        <div class="flex-row">
+          <div class="section-title">Regular Loans:</div>
+          <div class="section-value">${regularLoans}</div>
+        </div>
+
+        <div
+          class="flex-row"
+          style="margin-left: 20px; justify-content: flex-start"
+        >
+          <div class="section-title" style="font-size: 12px">
+            &bull; Principal:
           </div>
-          <div>
-            <p>${name}</p>
+          <div class="section-value" style="margin-left: 10px; font-size: 12px">
+            ${rP}
+          </div>
+        </div>
+
+        <div
+          class="flex-row"
+          style="margin-left: 20px; justify-content: flex-start"
+        >
+          <div class="section-title" style="font-size: 12px">
+            &bull; Interest:
+          </div>
+          <div class="section-value" style="margin-left: 15px; font-size: 12px">
+            ${rI}
+          </div>
+        </div>
+
+        <div
+          class="flex-row"
+          style="margin-left: 20px; justify-content: flex-start"
+        >
+          <div class="section-title" style="font-size: 12px">
+            &bull; Penalty:
+          </div>
+          <div class="section-value" style="margin-left: 15px; font-size: 12px">
+            ${rPe}
           </div>
         </div>
 
         <div class="flex-row">
-          <div>
-            <p class="font-bold">Account Number:</p>
+          <div class="section-title">Emergency Loans:</div>
+          <div class="section-value">${emergencyLoans}</div>
+        </div>
+
+        <div
+          class="flex-row"
+          style="margin-left: 20px; justify-content: flex-start"
+        >
+          <div class="section-title" style="font-size: 12px">
+            &bull; Principal:
           </div>
-          <div>
-            <p>{accountNum}</p>
+          <div class="section-value" style="margin-left: 10px; font-size: 12px">
+            ${eP}
           </div>
+        </div>
+
+        <div
+          class="flex-row"
+          style="margin-left: 20px; justify-content: flex-start"
+        >
+          <div class="section-title" style="font-size: 12px">
+            &bull; Interest:
+          </div>
+          <div class="section-value" style="margin-left: 15px; font-size: 12px">
+            ${eI}
+          </div>
+        </div>
+
+        <div
+          class="flex-row"
+          style="margin-left: 20px; justify-content: flex-start"
+        >
+          <div class="section-title" style="font-size: 12px">
+            &bull; Penalty:
+          </div>
+          <div class="section-value" style="margin-left: 15px; font-size: 12px">
+            ${ePe}
+          </div>
+        </div>
+
+        <div class="flex-row">
+          <div class="section-title">Saving's Deposit:</div>
+          <div class="section-value">${savingDeposit}</div>
+        </div>
+
+        <div class="flex-row">
+          <div class="section-title">Share Capital:</div>
+          <div class="section-value">${shareCapital}</div>
         </div>
       </div>
 
       <div class="receipt-total">
         <div class="flex-row">
-          <div>
-            <p class="font-bold">Total Paid:</p>
-          </div>
-          <div>
-            <p>${totalAmount}</p>
-          </div>
+          <div class="section-title">Total Paid Amount:</div>
+          <div class="section-value">${totalAmount}</div>
         </div>
       </div>
 
       <div class="receipt-details">
         <div class="flex-row">
-          <div>
-            <p class="font-bold">Receipt No.:</p>
-          </div>
-          <div>
-            <p>{receiptNo}</p>
-          </div>
+          <div class="section-title">Receipt No.:</div>
+          <div class="section-value">${receiptNo}</div>
         </div>
 
         <div class="flex-row">
-          <div>
-            <p class="font-bold">Date:</p>
-          </div>
-          <div>
-            <p>{date}</p>
-          </div>
+          <div class="section-title">Date:</div>
+          <div class="section-value">${formattedDate}</div>
         </div>
 
-        <div class="flex-row">
-          <div>
-            <p class="font-bold">Reference ID:</p>
-          </div>
-          <div>
-            <p>{refId}</p>
-          </div>
+         <div class="flex-row">
+          <div class="section-title">Reference ID:</div>
+          <div class="section-value">${referenceID}</div>
         </div>
       </div>
 
       <div class="receipt-footer">
-        <p>Thank you for using our service!</p>
+        <div class="flex-row text-center" style="justify-content: center; margin-top: 10px">
+          <div class="section-title">Thank you for using our service!</div>
+        </div>
       </div>
     </div>
   </body>
 </html>
+
 `,
     });
   };
@@ -200,7 +365,6 @@ export default function ({navigation, route}) {
                 <Text style={{flexShrink: 1, color: '#000'}}>{name}</Text>
               </View>
             </View>
-
             <View style={{flexDirection: 'row', padding: 5}}>
               <View style={{width: '50%'}}>
                 <Text
@@ -256,7 +420,7 @@ export default function ({navigation, route}) {
                 </Text>
               </View>
               <View>
-                <Text style={{flexShrink: 1, color: '#000'}}>123</Text>
+                <Text style={{flexShrink: 1, color: '#000'}}>{receiptNo}</Text>
               </View>
             </View>
 
@@ -269,7 +433,7 @@ export default function ({navigation, route}) {
               </View>
               <View>
                 <Text style={{flexShrink: 1, color: '#000'}}>
-                  1 June 2023, 08:00AM
+                  {formattedDate}
                 </Text>
               </View>
             </View>
@@ -282,7 +446,9 @@ export default function ({navigation, route}) {
                 </Text>
               </View>
               <View>
-                <Text style={{flexShrink: 1, color: '#000'}}>1231231313</Text>
+                <Text style={{flexShrink: 1, color: '#000'}}>
+                  {referenceID}
+                </Text>
               </View>
             </View>
           </View>

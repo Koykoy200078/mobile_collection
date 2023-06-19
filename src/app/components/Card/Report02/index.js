@@ -1,6 +1,6 @@
-import React, {useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import {TouchableOpacity, View} from 'react-native';
+import {TouchableOpacity, View, SafeAreaView} from 'react-native';
 import {parseHexTransparency} from '../../../utils';
 import {BaseStyle, useTheme} from '../../../config';
 import Icon from '../../../components/Icon';
@@ -8,6 +8,7 @@ import Text from '../../../components/Text';
 import styles from './styles';
 import {CheckBox, TextInput} from '../..';
 import Tooltip from 'react-native-walkthrough-tooltip';
+// import AnimatedAccordion from '@dev-event/react-native-accordion';
 
 const CardReport02 = ({
   title = '',
@@ -33,6 +34,22 @@ const CardReport02 = ({
   enableTooltip = false,
 }) => {
   const {colors} = useTheme();
+
+  // const accordionRef = useRef(null);
+
+  // const [show, setShow] = useState(false);
+
+  // const handleContentTouchable = useCallback(() => {
+  //   return <Text style={styles.title}>Sample header</Text>;
+  // }, []);
+
+  // const handleContent = useCallback(() => {
+  //   return <Text style={styles.message}>Sample content</Text>;
+  // }, []);
+
+  // const handleOpenAccordion = useCallback(() => {
+  //   accordionRef.current?.openAccordion();
+  // }, []);
 
   return (
     <View
@@ -79,7 +96,18 @@ const CardReport02 = ({
                 <Icon name="info-circle" size={17} color={colors.text} />
               </TouchableOpacity>
             </Tooltip>
-          ) : null}
+          ) : // <AnimatedAccordion
+          //   ref={accordionRef}
+          //   sizeIcon={16}
+          //   styleChevron={styles.icon}
+          //   renderContent={handleContent}
+          //   onChangeState={isShow => setShow(isShow)}
+          //   styleTouchable={styles.touchable}
+          //   // activeBackgroundIcon={theme.light_gray}
+          //   // inactiveBackgroundIcon={theme.light_gray}
+          //   handleContentTouchable={handleContentTouchable}
+          // />
+          null}
         </View>
 
         <View className="flex-col items-start space-y-1">

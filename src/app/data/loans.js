@@ -53,7 +53,7 @@ export const loanData = [
   },
   {
     id: 3,
-    name: 'Andrea',
+    name: 'Carvajal, Christian Franc',
     data: [
       {
         regular: [
