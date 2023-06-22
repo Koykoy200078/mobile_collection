@@ -15,9 +15,16 @@ import {
 } from '../../app/components';
 import styles from './styles';
 import {CollectorList, collectorList} from '../../app/database/allSchema';
+import {BASE_URL} from '../../app/config/url';
 import {loanData} from '../../app/data/loans';
+import axios from 'axios';
+import {useDispatch, useSelector} from 'react-redux';
+import {getDetails} from '../../app/reducers/batchDetails';
 
 const Home = props => {
+  const batchData = useSelector(state => state.batchDetails.data);
+
+  const dispatch = useDispatch();
   const {navigation} = props;
   const {t} = useTranslation();
   const {colors} = useTheme();
@@ -29,9 +36,39 @@ const Home = props => {
   ];
 
   const [tab, setTab] = useState(tabs[0]);
-  const [data, setData] = useState(null);
+  const [getData, setData] = useState(batchData);
 
-  console.log('data ==> ', data);
+  useEffect(() => {}, [batchData, getData]);
+
+  const fetchData = async () => {
+    dispatch(
+      getDetails({
+        branchid: 0,
+        collectorid: 1,
+        clientid: 1974,
+        slclass: [12, 13],
+      }),
+    );
+  };
+
+  const saveData = async () => {
+    try {
+      const CollectorListSchema = {
+        name: 'DownloadedData',
+        properties: {
+          id: 'int',
+          name: 'string',
+          regularLoans: 'float',
+          emergencyLoans: 'float',
+          savingDeposit: 'float',
+          shareCapital: 'float',
+        },
+        primaryKey: 'id',
+      };
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const goProjectDetail = item => () => {
     navigation.navigate('ViewScreen', {item: item});
@@ -47,56 +84,48 @@ const Home = props => {
           tab={tab}
           onChange={tabData => setTab(tabData)}
         />
-        <FlatList
-          contentContainerStyle={styles.paddingFlatList}
-          data={data ? data : loanData}
-          keyExtractor={(_item, index) => index.toString()}
-          renderItem={({item}) => {
-            let a = parseFloat(
-              item.data.map(data => data.regular.map(item => item.principal)),
-            );
-            let aa = parseFloat(
-              item.data.map(data => data.regular.map(item => item.interest)),
-            );
-            let aaa = parseFloat(
-              item.data.map(data => data.regular.map(item => item.penalty)),
-            );
-            const regularAmount = a + aa + aaa;
+        {!getData ? (
+          <View
+            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+            <Text>No data found</Text>
 
-            let b = parseFloat(
-              item.data.map(data => data.emergency.map(item => item.principal)),
-            );
-            let bb = parseFloat(
-              item.data.map(data => data.emergency.map(item => item.interest)),
-            );
-            let bbb = parseFloat(
-              item.data.map(data => data.emergency.map(item => item.penalty)),
-            );
-            const emergencyAmount = b + bb + bbb;
+            <TouchableOpacity
+              style={{
+                backgroundColor: colors.primary,
+                padding: 10,
+                borderRadius: 5,
+                marginTop: 10,
+              }}
+              onPress={() => fetchData()}>
+              <Text style={{color: '#FFFFFF'}}>Fetch Data</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <FlatList
+            contentContainerStyle={styles.paddingFlatList}
+            data={getData?.data}
+            keyExtractor={(_item, index) => index.toString()}
+            renderItem={({item}) => {
+              let total = item.TOTALDUE;
 
-            let c = parseFloat(item.data.map(data => data.saving));
+              const formatNumber = number => {
+                return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+              };
 
-            let d = parseFloat(item.data.map(data => data.share));
-            // Calculate the total amount
-            const totalAmount = regularAmount + emergencyAmount + c + d;
-            const formattedAmount = totalAmount.toLocaleString('en-US', {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            });
-
-            return (
-              <Project02
-                title={item.name}
-                description={item.description}
-                total_loans={formattedAmount}
-                onPress={goProjectDetail(item)}
-                style={{
-                  marginBottom: 20,
-                }}
-              />
-            );
-          }}
-        />
+              return (
+                <Project02
+                  title={item.CLIENTNAME}
+                  description={item.SLDESCR}
+                  total_loans={formatNumber(total)}
+                  onPress={goProjectDetail(item)}
+                  style={{
+                    marginBottom: 20,
+                  }}
+                />
+              );
+            }}
+          />
+        )}
       </View>
     );
   };

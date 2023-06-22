@@ -3,7 +3,13 @@ import {View, Text, LogBox} from 'react-native';
 import {Provider} from 'react-redux';
 import {PersistGate} from 'redux-persist/integration/react';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
-import {persistor, store} from './src/app/store';
+// import { persistor, store } from './src/app/store';
+
+import configureStore from './src/app/reducers';
+import rootSaga from './src/app/sagas';
+const {store, persistor, runSaga} = configureStore();
+
+runSaga(rootSaga);
 
 import App from './src/navigation';
 

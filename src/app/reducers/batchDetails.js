@@ -1,42 +1,43 @@
 import {
-  USER_LOGIN,
-  USER_LOGIN_COMPLETED,
-  USER_LOGIN_ERROR,
-  USER_LOGIN_REQUEST,
+  GET_BATCH_DETAILS,
+  GET_BATCH_DETAILS_COMPLETED,
+  GET_BATCH_DETAILS_ERROR,
+  GET_BATCH_DETAILS_REQUEST,
 } from '../api/actions';
 
 const INITIAL_STATE = {
   isLoading: false,
-  userData: null,
+  data: null,
   error: false,
   errorMsg: null,
 };
 
 export default function reducer(state = INITIAL_STATE, action = {}) {
+  console.log(action.type);
   switch (action.type) {
-    case USER_LOGIN_REQUEST:
+    case GET_BATCH_DETAILS_REQUEST:
       return {
         ...state,
         isLoading: true,
         error: false,
       };
-    case USER_LOGIN_COMPLETED:
+    case GET_BATCH_DETAILS_COMPLETED:
       return {
         ...state,
         isLoading: false,
-        userData: action.response,
+        data: action.response,
         error: false,
       };
-    case USER_LOGIN_ERROR:
+    case GET_BATCH_DETAILS_ERROR:
       return {
         ...state,
         isLoading: false,
-        userData: null,
+        data: null,
         error: true,
         errorMsg: action.response,
       };
 
-    case 'RESET_LOGIN':
+    case 'RESET_BATCH_DETAILS':
       return INITIAL_STATE;
 
     default:
@@ -44,11 +45,11 @@ export default function reducer(state = INITIAL_STATE, action = {}) {
   }
 }
 
-export const userLogin = payload => ({
-  type: USER_LOGIN,
+export const getDetails = payload => ({
+  type: GET_BATCH_DETAILS,
   payload,
 });
 
-export const resetLogin = () => ({
-  type: 'RESET_LOGIN',
+export const resetGetDetails = () => ({
+  type: 'RESET_BATCH_DETAILS',
 });

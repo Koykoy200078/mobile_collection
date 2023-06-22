@@ -1,14 +1,13 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
-import {TouchableOpacity, View, SafeAreaView} from 'react-native';
-import {parseHexTransparency} from '../../../utils';
-import {BaseStyle, useTheme} from '../../../config';
+import {TouchableOpacity, View} from 'react-native';
+import {useTheme} from '../../../config';
 import Icon from '../../../components/Icon';
 import Text from '../../../components/Text';
 import styles from './styles';
 import {CheckBox, TextInput} from '../..';
 import Tooltip from 'react-native-walkthrough-tooltip';
-// import AnimatedAccordion from '@dev-event/react-native-accordion';
+import Collapsible from 'react-native-collapsible';
 
 const CardReport02 = ({
   title = '',
@@ -32,24 +31,11 @@ const CardReport02 = ({
 
   placeholder,
   enableTooltip = false,
+
+  toggleAccordion,
+  isCollapsed,
 }) => {
   const {colors} = useTheme();
-
-  // const accordionRef = useRef(null);
-
-  // const [show, setShow] = useState(false);
-
-  // const handleContentTouchable = useCallback(() => {
-  //   return <Text style={styles.title}>Sample header</Text>;
-  // }, []);
-
-  // const handleContent = useCallback(() => {
-  //   return <Text style={styles.message}>Sample content</Text>;
-  // }, []);
-
-  // const handleOpenAccordion = useCallback(() => {
-  //   accordionRef.current?.openAccordion();
-  // }, []);
 
   return (
     <View
@@ -70,44 +56,39 @@ const CardReport02 = ({
           </Text>
 
           {enableTooltip ? (
-            <Tooltip
-              isVisible={isVisible}
-              content={
-                <View className="w-[120]">
+            <View>
+              <TouchableOpacity onPress={toggleAccordion}>
+                <View className="flex-row items-center">
+                  <Icon name="info-circle" size={17} color={colors.text} />
+                  <Text
+                    caption2
+                    style={{color: colors.text}}
+                    numberOfLines={1}
+                    className="ml-1 text-xs font-bold">
+                    See More
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <Collapsible collapsed={isCollapsed}>
+                <View className="w-[120] mb-1">
                   <View className="flex-row justify-between">
                     <Text className="font-bold">Principal: </Text>
-                    <Text>{principal}</Text>
+                    <Text className="font-bold">{principal}</Text>
                   </View>
 
                   <View className="flex-row justify-between">
                     <Text className="font-bold">Interest: </Text>
-                    <Text>{interest}</Text>
+                    <Text className="font-bold">{interest}</Text>
                   </View>
 
                   <View className="flex-row justify-between">
                     <Text className="font-bold">Penalty: </Text>
-                    <Text>{penalty}</Text>
+                    <Text className="font-bold">{penalty}</Text>
                   </View>
                 </View>
-              }
-              placement="bottom"
-              onClose={onClose}>
-              <TouchableOpacity style={{marginRight: 10}} onPress={onPressView}>
-                <Icon name="info-circle" size={17} color={colors.text} />
-              </TouchableOpacity>
-            </Tooltip>
-          ) : // <AnimatedAccordion
-          //   ref={accordionRef}
-          //   sizeIcon={16}
-          //   styleChevron={styles.icon}
-          //   renderContent={handleContent}
-          //   onChangeState={isShow => setShow(isShow)}
-          //   styleTouchable={styles.touchable}
-          //   // activeBackgroundIcon={theme.light_gray}
-          //   // inactiveBackgroundIcon={theme.light_gray}
-          //   handleContentTouchable={handleContentTouchable}
-          // />
-          null}
+              </Collapsible>
+            </View>
+          ) : null}
         </View>
 
         <View className="flex-col items-start space-y-1">
