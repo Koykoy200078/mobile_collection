@@ -16,6 +16,7 @@
     "@react-navigation/core": "^6.4.8",
     "@react-navigation/native": "^6.1.6",
     "@react-navigation/stack": "^6.3.16",
+    "@shopify/flash-list": "^1.4.3",
     "axios": "^1.4.0",
     "i18next": "^22.5.0",
     "moment": "^2.29.4",

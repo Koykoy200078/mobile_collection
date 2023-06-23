@@ -1,93 +1,48 @@
 import Realm from 'realm';
 
-export const CollectorList = 'CollectorList';
+export const Collection = 'Collection';
 
-export const collectorList = {
-  name: CollectorList,
-  primaryKey: 'id',
+export const Client = 'Client';
+
+export const ClientSchema = {
+  name: Client,
+  primaryKey: 'ClientID',
   properties: {
-    id: {type: 'int', default: 0, min: 0},
-    name: {type: 'string', default: '', indexed: true},
-    regularLoans: {type: 'float', default: 0},
-    emergencyLoans: {type: 'float', default: 0},
-    savingDeposit: {type: 'float', default: 0},
-    shareCapital: {type: 'float', default: 0},
+    ClientID: 'int',
+    FName: 'string?',
+    LName: 'string?',
+    MName: 'string?',
+    SName: 'string?',
+    DateOfBirth: 'string?',
+    SMSNumber: 'string?',
+    collections: {type: 'list', objectType: Collection},
+  },
+};
+
+export const CollectionSchema = {
+  name: Collection,
+  properties: {
+    ID: 'string',
+    CLIENTNAME: 'string',
+    SLDESCR: 'string',
+    REF_NO: 'string',
+    PRINCIPAL: 'string',
+    BALANCE: 'string',
+    PRINDUE: 'string',
+    INTDUE: 'string',
+    PENDUE: 'string',
+    INSDUE: 'string',
+    TOTALDUE: 'string',
+    SHARECAPITAL: 'string',
+    DEPOSIT: 'string',
   },
 };
 
 const databaseOptions = {
   path: 'collectorList.realm',
-  schema: [CollectorList],
+  schema: [ClientSchema, CollectionSchema],
   schemaVersion: 0,
 };
 
-// export const insertNewTodoList = newTodoList =>
-//   new Promise((resolve, reject) => {
-//     Realm.open(databaseOptions)
-//       .then(realm => {
-//         realm.write(() => {
-//           realm.create(TODOLIST_SCHEMA, newTodoList);
-//           resolve(newTodoList);
-//         });
-//       })
-//       .catch(error => reject(error));
-//   });
-
-// export const updateTodoList = todoList =>
-//   new Promise((resolve, reject) => {
-//     Realm.open(databaseOptions)
-//       .then(realm => {
-//         realm.write(() => {
-//           let updatingTodoList = realm.objectForPrimaryKey(
-//             TODOLIST_SCHEMA,
-//             todoList.id,
-//           );
-//           updatingTodoList.name = todoList.name;
-//           resolve();
-//         });
-//       })
-//       .catch(error => reject(error));
-//   });
-
-// export const deleteTodoList = todoListId =>
-//   new Promise((resolve, reject) => {
-//     Realm.open(databaseOptions)
-//       .then(realm => {
-//         realm.write(() => {
-//           let deletingTodoList = realm.objectForPrimaryKey(
-//             TODOLIST_SCHEMA,
-//             todoListId,
-//           );
-//           realm.delete(deletingTodoList);
-//           resolve();
-//         });
-//       })
-//       .catch(error => reject(error));
-//   });
-
-// export const deleteAllTodoList = () =>
-//   new Promise((resolve, reject) => {
-//     Realm.open(databaseOptions)
-//       .then(realm => {
-//         realm.write(() => {
-//           let allTodoList = realm.objects(TODOLIST_SCHEMA);
-//           realm.delete(allTodoList);
-//           resolve();
-//         });
-//       })
-//       .catch(error => reject(error));
-//   });
-
-// export const queryAllTodoList = () =>
-//   new Promise((resolve, reject) => {
-//     Realm.open(databaseOptions)
-//       .then(realm => {
-//         realm.write(() => {
-//           let allTodoList = realm.objects(TODOLIST_SCHEMA);
-//           resolve(allTodoList);
-//         });
-//       })
-//       .catch(error => reject(error));
-//   });
-
-// export default new Realm(databaseOptions);
+export const getSchema = [ClientSchema, CollectionSchema];
+export default databaseOptions;

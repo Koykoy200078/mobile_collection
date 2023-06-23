@@ -23,79 +23,16 @@ const CheckOutScreen = () => {
 
   const route = useRoute();
 
-  const {
-    name,
-    regularLoans,
-    emergencyLoans,
-    savingDeposit,
-    shareCapital,
-    rPrincipal,
-    rInterest,
-    rPenalty,
-    ePrincipal,
-    eInterest,
-    ePenalty,
-  } = route.params;
+  const {name, allData, inputAmounts, total} = route.params;
 
-  const [regular, setRegular] = useState(regularLoans || 0);
-  const [emergency, setEmergency] = useState(emergencyLoans || 0);
-  const [saving, setSaving] = useState(savingDeposit || 0);
-  const [share, setShare] = useState(shareCapital || 0);
+  useEffect(() => {}, [name, allData, inputAmounts, total]);
 
-  const [rP, setRP] = useState(rPrincipal || 0);
-  const [rI, setRI] = useState(rInterest || 0);
-  const [rPe, setRPe] = useState(rPenalty || 0);
+  console.log('allData ==>', allData);
 
-  const [eP, setEP] = useState(ePrincipal || 0);
-  const [eI, setEI] = useState(eInterest || 0);
-  const [ePe, setEPe] = useState(ePenalty || 0);
-
-  useEffect(() => {}, [
-    regular,
-    emergency,
-    saving,
-    share,
-    rP,
-    rI,
-    rPe,
-    eP,
-    eI,
-    ePe,
-  ]);
-
-  let a = regularLoans ? parseFloat(regular) : 0;
-  let b = emergencyLoans ? parseFloat(emergency) : 0;
-  let c = savingDeposit ? parseFloat(saving) : 0;
-  let d = shareCapital ? parseFloat(share) : 0;
-
-  const aa = a + b + c + d;
-
-  const principalNewData = a.toLocaleString('en-US', {
+  const totalAmount = total.toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-  const emergencyNewData = b.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-  const savingsNewData = c.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-  const capitalNewData = d.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
-  const totalAmount = aa.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
-  const formattedRegular = regular.toFixed(2);
-  const formattedEmergency = emergency.toFixed(2);
-  const formattedSaving = saving.toFixed(2);
-  const formattedShare = share.toFixed(2);
 
   const onAdd = async () => {
     Alert.alert('Confirm', 'Are you sure you want to proceed?', [
@@ -153,6 +90,24 @@ const CheckOutScreen = () => {
     ]);
   };
 
+  const matchingItems = allData.collections.filter(item =>
+    inputAmounts.hasOwnProperty(item.REF_NO),
+  );
+  const renderedItem = matchingItems.map(item => (
+    <View
+      style={{flex: 1, width: width - 30, marginVertical: 10}}
+      key={item.REF_NO}>
+      <CardReport02
+        style={{flex: 1}}
+        title={item.SLDESCR}
+        description={'REF: ' + item.REF_NO}
+        checkedBoxLabel="Total Amount Paid"
+        value={inputAmounts[item.REF_NO]}
+        editable={false}
+      />
+    </View>
+  ));
+
   return (
     <SafeAreaView
       style={[BaseStyle.safeAreaView, {flex: 1}]}
@@ -190,49 +145,14 @@ const CheckOutScreen = () => {
           </Text>
 
           <View style={styles.specifications}>
-            {regularLoans > 0 ? (
-              <CardReport02
-                style={{flex: 1, width: width - 30, marginVertical: 10}}
-                title={'Regular Loan'}
-                placeholder={regularLoans ? principalNewData : '0.00'}
-                checkedBoxLabel="Total Amount Due"
-                // value={regularLoans}
-                editable={false}
-              />
-            ) : null}
-
-            {emergencyLoans > 0 ? (
-              <CardReport02
-                style={{flex: 1, width: width - 30, marginVertical: 10}}
-                title={'Emergency Loan'}
-                placeholder={emergencyLoans ? emergencyNewData : '0.00'}
-                checkedBoxLabel="Total Amount Due"
-                // value={emergencyLoans}
-                editable={false}
-              />
-            ) : null}
-
-            {savingDeposit > 0 ? (
-              <CardReport02
-                style={{flex: 1, width: width - 30, marginVertical: 10}}
-                title={'Savings Deposit'}
-                placeholder={savingDeposit ? savingsNewData : '0.00'}
-                checkedBoxLabel="Amount"
-                // value={savingDeposit}
-                editable={false}
-              />
-            ) : null}
-
-            {shareCapital > 0 ? (
-              <CardReport02
-                style={{flex: 1, width: width - 30, marginVertical: 10}}
-                title={'Share Capital'}
-                placeholder={shareCapital ? capitalNewData : '0.00'}
-                checkedBoxLabel="Amount"
-                // value={shareCapital}
-                editable={false}
-              />
-            ) : null}
+            {/* <CardReport02
+              style={{flex: 1, width: width - 30, marginVertical: 10}}
+              title={'Regular Loan'}
+              checkedBoxLabel="Total Amount Due"
+              // value={regularLoans}
+              editable={false}
+            /> */}
+            {renderedItem}
           </View>
 
           <View style={styles.specifications}>

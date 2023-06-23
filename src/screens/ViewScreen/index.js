@@ -25,23 +25,40 @@ const ViewScreen = () => {
   const myRef = useRef(null);
   const [item, setItem] = useState('');
 
-  const [regularView, setRegularView] = useState(false);
-  const [emergencyView, setEmergencyView] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState({});
+  const [inputAmounts, setInputAmounts] = useState({});
+  const [totalValue, setTotalValue] = useState(0);
+  const [collectionData, setCollectionData] = useState(null);
 
-  const [regularLoans, setRegularLoans] = useState(0);
-  const [emergencyLoans, setEmergencyLoans] = useState(0);
-  const [savingDeposit, setSavingDeposit] = useState(0);
-  const [shareCapital, setShareCapital] = useState(0);
+  console.log('isCollapsed ==> ', isCollapsed);
+  console.log('inputAmounts ==> ', inputAmounts);
 
-  const [isCollapsed1, setIsCollapsed1] = useState(true);
-  const [isCollapsed2, setIsCollapsed2] = useState(true);
+  useEffect(() => {
+    calculateTotalValue();
+  }, [isCollapsed, inputAmounts]);
 
-  const toggleAccordion1 = () => {
-    setIsCollapsed1(!isCollapsed1);
+  const handleAccordionToggle = index => {
+    setIsCollapsed(prevState => ({
+      ...prevState,
+      [index]: !prevState[index],
+    }));
   };
 
-  const toggleAccordion2 = () => {
-    setIsCollapsed2(!isCollapsed2);
+  const handleInputChange = (index, value) => {
+    setInputAmounts(prevState => ({
+      ...prevState,
+      [index]: value,
+    }));
+  };
+
+  const calculateTotalValue = () => {
+    let total = 0;
+    Object.values(inputAmounts).forEach(value => {
+      if (value) {
+        total += parseFloat(value);
+      }
+    });
+    setTotalValue(total);
   };
 
   useEffect(() => {
@@ -50,12 +67,11 @@ const ViewScreen = () => {
     }
   }, [route]);
 
-  console.log('item ==> ', item);
-
-  // const formatNumber = number => {
-  //   return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  // };
-
+  let fName = item.FName ? item.FName : '';
+  let mName = item.MName ? item.MName : '';
+  let lName = item.LName ? item.LName + ', ' : '';
+  let sName = item.SName ? item.SName : '';
+  let getName = lName + fName + ' ' + mName + ' ' + sName;
   return (
     <SafeAreaView
       style={[BaseStyle.safeAreaView, {flex: 1}]}
@@ -83,102 +99,55 @@ const ViewScreen = () => {
         showsVerticalScrollIndicator={false}>
         <View key={item.id}>
           <Text title3 body1 className="text-xl font-bold">
-            {item.CLIENTNAME}
+            {getName}
           </Text>
 
           <View style={styles.specifications}>
-            <CardReport02
-              style={{flex: 1, width: width - 30, marginVertical: 10}}
-              title="Regular Loan"
-              // placeholder={
-              //   regularLoans
-              //     ? regularLoans
-              //     : principalNewData
-              //     ? principalNewData
-              //     : '0.00'
-              // }
-              checkedBoxLabel="Total Amount Due"
-              // value={regularLoans}
-              // onChangeText={val => setRegularLoans(val)}
-              checkBoxEnabled={true}
-              // checkBox={
-              //   regularLoans || principalNewData !== '0.00' ? true : false
-              // }
-              enableTooltip={true}
-              toggleAccordion={toggleAccordion1}
-              isCollapsed={isCollapsed1}
-              principal={item.PRINDUE}
-              interest={item.INTDUE}
-              penalty={item.penalties}
-            />
+            {item &&
+              item.collections &&
+              item.collections.map((item, index) => {
+                const a = parseFloat(item.PRINDUE);
+                const b = parseFloat(item.INTDUE);
+                const c = parseFloat(item.PENDUE);
 
-            {/* <CardReport02
-              style={{flex: 1, width: width - 30, marginVertical: 10}}
-              title="Emergency Loan"
-              checkedBoxLabel="Total Amount Due"
-              placeholder={
-                emergencyLoans
-                  ? emergencyLoans
-                  : emergencyNewData
-                  ? emergencyNewData
-                  : '0.00'
-              }
-              value={emergencyLoans}
-              onChangeText={val => setEmergencyLoans(val)}
-              checkBoxEnabled={true}
-              checkBox={
-                emergencyLoans || emergencyNewData !== '0.00' ? true : false
-              }
-              enableTooltip={true}
-              toggleAccordion={toggleAccordion2}
-              isCollapsed={isCollapsed2}
-              principal={emergencyLoanData.principals}
-              interest={emergencyLoanData.interests}
-              penalty={emergencyLoanData.penalties}
-            />
+                const total = a + b + c;
+                const formatNumber = number => {
+                  return number
+                    .toString()
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                };
 
-            <CardReport02
-              style={{flex: 1, width: width - 30, marginVertical: 10}}
-              title={'Savings Deposit'}
-              checkedBoxLabel="Amount"
-              placeholder={
-                savingDeposit
-                  ? savingDeposit
-                  : savingsNewData
-                  ? savingsNewData
-                  : '0.00'
-              }
-              value={savingDeposit}
-              onChangeText={val => setSavingDeposit(val)}
-              checkBoxEnabled={true}
-              checkBox={
-                savingDeposit || savingsNewData !== '0.00' ? true : false
-              }
-            />*/}
-            <CardReport02
-              style={{flex: 1, width: width - 30, marginVertical: 10}}
-              title={'Share Capital'}
-              checkedBoxLabel="Amount"
-              // placeholder={
-              //   shareCapital
-              //     ? shareCapital
-              //     : capitalNewData
-              //     ? capitalNewData
-              //     : '0.00'
-              // }
-              // value={formatNumber(item.SHARECAPITAL)}
-              // onChangeText={val => setShareCapital(val)}
-              checkBoxEnabled={true}
-              // checkBox={
-              //   shareCapital || capitalNewData !== '0.00' ? true : false
-              // }
-            />
+                const id = item.REF_NO; // Unique identifier for the item
+
+                return (
+                  <CardReport02
+                    key={index}
+                    style={{flex: 1, width: width - 30, marginVertical: 10}}
+                    title={item.SLDESCR}
+                    description={'REF: ' + item.REF_NO}
+                    placeholder="0.00"
+                    checkedBoxLabel="Input Amount"
+                    value={inputAmounts[id] || ''}
+                    onChangeText={val => handleInputChange(id, val)}
+                    checkBoxEnabled={true}
+                    checkBox={!!inputAmounts[id]}
+                    isActive={isCollapsed[index] ? 'angle-down' : 'angle-up'}
+                    enableTooltip={true}
+                    toggleAccordion={() => handleAccordionToggle(index)}
+                    isCollapsed={isCollapsed[index]}
+                    principal={formatNumber(item.PRINDUE)}
+                    interest={formatNumber(item.INTDUE)}
+                    penalty={formatNumber(item.PENDUE)}
+                    total={formatNumber(total.toFixed(2))}
+                  />
+                );
+              })}
           </View>
 
           <View style={styles.specifications}>
             <ProductSpecGrid
               style={{flex: 1}}
-              // title={totalAmountDue ? totalAmountDue : '0.00'}
+              title={totalValue ? totalValue.toFixed(2) : '0.00'}
               description={t('total_amount')}
               isEnable={false}
             />
@@ -190,17 +159,10 @@ const ViewScreen = () => {
                 full
                 onPress={() =>
                   navigation.navigate('CheckOutScreen', {
-                    name: item.name,
-                    regularLoans: a,
-                    rPrincipal: regularLoanData.principals,
-                    rInterest: regularLoanData.interests,
-                    rPenalty: regularLoanData.penalties,
-                    emergencyLoans: b,
-                    ePrincipal: emergencyLoanData.principals,
-                    eInterest: emergencyLoanData.interests,
-                    ePenalty: emergencyLoanData.penalties,
-                    savingDeposit: c,
-                    shareCapital: d,
+                    name: getName,
+                    allData: item,
+                    inputAmounts: inputAmounts,
+                    total: parseFloat(totalValue),
                   })
                 }>
                 Checkout

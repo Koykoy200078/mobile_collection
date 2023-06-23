@@ -18,7 +18,6 @@ export function* batchDetailsAsync(action) {
       console.log('response error ==> ', response);
     } else {
       yield put({type: GET_BATCH_DETAILS_COMPLETED, response});
-      console.log('response complete ==> ', response);
     }
   } catch (error) {
     console.error(error);

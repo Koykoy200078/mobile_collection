@@ -11,6 +11,7 @@ import Collapsible from 'react-native-collapsible';
 
 const CardReport02 = ({
   title = '',
+  description,
   checkedBoxLabel = '',
   style = {},
   onPress = () => {},
@@ -28,12 +29,14 @@ const CardReport02 = ({
   principal,
   interest,
   penalty,
+  total,
 
   placeholder,
   enableTooltip = false,
 
   toggleAccordion,
   isCollapsed,
+  isActive,
 }) => {
   const {colors} = useTheme();
 
@@ -51,20 +54,26 @@ const CardReport02 = ({
           },
         ]}>
         <View style={[styles.header]} className="justify-between">
-          <Text headline style={{marginBottom: 5}}>
-            {title}
-          </Text>
+          <View className="flex-col items-start">
+            <Text headline style={{marginBottom: 5}}>
+              {title}
+            </Text>
+
+            <Text caption2 style={{color: colors.text}}>
+              {description}
+            </Text>
+          </View>
 
           {enableTooltip ? (
             <View>
               <TouchableOpacity onPress={toggleAccordion}>
-                <View className="flex-row items-center">
-                  <Icon name="info-circle" size={17} color={colors.text} />
+                <View className="flex-row items-center justify-end">
+                  <Icon name={isActive} size={17} color={colors.text} />
                   <Text
                     caption2
                     style={{color: colors.text}}
                     numberOfLines={1}
-                    className="ml-1 text-xs font-bold">
+                    className="ml-2 text-xs font-bold">
                     See More
                   </Text>
                 </View>
@@ -72,18 +81,23 @@ const CardReport02 = ({
               <Collapsible collapsed={isCollapsed}>
                 <View className="w-[120] mb-1">
                   <View className="flex-row justify-between">
-                    <Text className="font-bold">Principal: </Text>
-                    <Text className="font-bold">{principal}</Text>
+                    <Text className="font-bold text-xs">Principal: </Text>
+                    <Text className="font-bold text-xs">{principal}</Text>
                   </View>
 
                   <View className="flex-row justify-between">
-                    <Text className="font-bold">Interest: </Text>
-                    <Text className="font-bold">{interest}</Text>
+                    <Text className="font-bold text-xs">Interest: </Text>
+                    <Text className="font-bold text-xs">{interest}</Text>
                   </View>
 
                   <View className="flex-row justify-between">
-                    <Text className="font-bold">Penalty: </Text>
-                    <Text className="font-bold">{penalty}</Text>
+                    <Text className="font-bold text-xs">Penalty: </Text>
+                    <Text className="font-bold text-xs">{penalty}</Text>
+                  </View>
+
+                  <View className="flex-row justify-between mt-2">
+                    <Text className="font-bold text-xs">Total: </Text>
+                    <Text className="font-bold text-xs">{total}</Text>
                   </View>
                 </View>
               </Collapsible>
@@ -105,7 +119,7 @@ const CardReport02 = ({
               <Text
                 headline
                 light
-                className="flex-row text-xs"
+                className="flex-row text-base font-bold"
                 numberOfLines={1}
                 ellipsizeMode="tail">
                 {checkedBoxLabel}
