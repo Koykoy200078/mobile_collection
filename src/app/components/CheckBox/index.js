@@ -1,8 +1,8 @@
 import React from 'react';
 import {TouchableOpacity} from 'react-native';
 import {useTheme} from '../../config';
-import Icon from '../../components/Icon';
 import Text from '../../components/Text';
+import {Icons} from '../../config/icons';
 
 const CheckBox = ({
   onPress = () => {},
@@ -17,7 +17,7 @@ const CheckBox = ({
     <TouchableOpacity
       style={{flexDirection: 'row', alignItems: 'center'}}
       onPress={onPress}>
-      <Icon
+      <Icons.FontAwesome5
         solid={checked}
         name={checked ? checkedIcon : uncheckedIcon}
         color={color || colors.text}

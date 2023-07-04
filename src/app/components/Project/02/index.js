@@ -2,8 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {TouchableOpacity, View} from 'react-native';
 import {useTheme} from '../../../config';
-import ProgressCircle from '../../../components/Progress/Circle';
-import Avatars from '../../../components/Avatars';
+
 import Text from '../../../components/Text';
 import styles from './styles';
 

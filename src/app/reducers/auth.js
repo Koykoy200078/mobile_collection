@@ -7,7 +7,7 @@ import {
 
 const INITIAL_STATE = {
   isLoading: false,
-  userData: null,
+  authData: null,
   error: false,
   errorMsg: null,
 };
@@ -24,14 +24,14 @@ export default function reducer(state = INITIAL_STATE, action = {}) {
       return {
         ...state,
         isLoading: false,
-        userData: action.response,
+        authData: action.response,
         error: false,
       };
     case USER_LOGIN_ERROR:
       return {
         ...state,
         isLoading: false,
-        userData: null,
+        authData: null,
         error: true,
         errorMsg: action.response,
       };

@@ -1,5 +1,3 @@
-import Realm from 'realm';
-
 export const Collection = 'Collection';
 
 export const Client = 'Client';
@@ -38,11 +36,56 @@ export const CollectionSchema = {
   },
 };
 
+export const updatedCollectionDataSchema = 'updatedCollectionData';
+export const updatedClientDataSchema = 'updatedClientData';
+export const updatedClientData = {
+  name: updatedClientDataSchema,
+  primaryKey: 'ClientID',
+  properties: {
+    ClientID: 'int',
+    FName: 'string?',
+    LName: 'string?',
+    MName: 'string?',
+    SName: 'string?',
+    DateOfBirth: 'string?',
+    SMSNumber: 'string?',
+    collections: {type: 'list', objectType: updatedCollectionDataSchema},
+  },
+};
+export const updatedCollectionData = {
+  name: updatedCollectionDataSchema,
+  properties: {
+    ID: 'string',
+    CLIENTNAME: 'string',
+    SLDESCR: 'string',
+    REF_NO: 'string',
+    PRINCIPAL: 'string',
+    BALANCE: 'string',
+    PRINDUE: 'string',
+    INTDUE: 'string',
+    PENDUE: 'string',
+    INSDUE: 'string',
+    TOTALDUE: 'string',
+    SHARECAPITAL: 'string',
+    DEPOSIT: 'string',
+  },
+};
+
 const databaseOptions = {
   path: 'collectorList.realm',
-  schema: [ClientSchema, CollectionSchema],
+  schema: [
+    ClientSchema,
+    CollectionSchema,
+    updatedClientData,
+    updatedCollectionData,
+  ],
   schemaVersion: 0,
 };
 
-export const getSchema = [ClientSchema, CollectionSchema];
+export const getSchema = [
+  ClientSchema,
+  CollectionSchema,
+  updatedClientData,
+  updatedCollectionData,
+];
 export default databaseOptions;

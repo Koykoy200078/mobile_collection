@@ -26,3 +26,5 @@ export {
   DefaultFont,
   Languages,
 };
+
+export {default as ROUTES} from './routes';

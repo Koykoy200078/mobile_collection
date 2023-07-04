@@ -1,57 +1,59 @@
-import React, {useEffect, useState} from 'react';
-import {useTranslation} from 'react-i18next';
-import {FlatList, TouchableOpacity, View} from 'react-native';
-import {BaseStyle, useTheme} from '../../app/config';
+import React, {useState, useEffect} from 'react';
 import {
-  Button,
-  Header,
-  Icon,
-  Project02,
-  SafeAreaView,
-  TabTag,
+  View,
   Text,
-} from '../../app/components';
+  SafeAreaView,
+  TouchableOpacity,
+  FlatList,
+  Alert,
+} from 'react-native';
+import {BaseStyle, ROUTES, useTheme} from '../../app/config';
+import {Header, Project02, TabTag} from '../../app/components';
+import {Icons} from '../../app/config/icons';
 import styles from './styles';
-import {
-  Client,
-  ClientSchema,
-  CollectionSchema,
-} from '../../app/database/allSchema';
-import {useDispatch, useSelector} from 'react-redux';
+import {Realm} from '@realm/react';
+import databaseOptions, {Client} from '../../app/database/allSchema';
 import {getDetails} from '../../app/reducers/batchDetails';
+import {useDispatch, useSelector} from 'react-redux';
 import {FlashList} from '@shopify/flash-list';
 
-const Home = props => {
-  const batchData = useSelector(state => state.batchDetails.data);
-
-  const dispatch = useDispatch();
-  const {navigation} = props;
-  const {t} = useTranslation();
+export default function ({navigation}) {
   const {colors} = useTheme();
   const tabs = [
     {
       id: 'all',
-      title: t('all_clients'),
+      title: 'All Clients',
     },
   ];
 
+  const batchData = useSelector(state => state.batchDetails.data);
+  const dispatch = useDispatch();
   const [tab, setTab] = useState(tabs[0]);
-  const [getData, setData] = useState(batchData);
   const [hasData, setHasData] = useState(false);
 
   // offline data
   const [clientData, setClientData] = useState(null);
 
   useEffect(() => {
-    if (getData) {
-      if (hasData) {
+    async function handleData() {
+      if (batchData) {
+        await showData();
       } else {
-        saveData();
+        Alert.alert('Error', 'No data found!', [
+          {
+            text: 'OK',
+            style: 'cancel',
+          },
+          {
+            text: 'Retry',
+            onPress: () => fetchData(),
+          },
+        ]);
       }
-    } else {
-      console.log('false');
     }
-  }, [batchData, getData, hasData, clientData]);
+
+    handleData();
+  }, [batchData, hasData, clientData]);
 
   const fetchData = async () => {
     dispatch(
@@ -65,63 +67,66 @@ const Home = props => {
   };
 
   const saveData = async () => {
-    try {
-      const realm = await Realm.open({
-        schema: [ClientSchema, CollectionSchema],
-      });
-      realm.write(() => {
-        getData.data.forEach(client => {
-          const collections = client.collections.map(collection => ({
-            ...collection,
-            id: `${client.ClientID}-${collection.ID}`,
-          }));
+    Alert.alert('Save Data', 'Are you sure you want to save data?', [
+      {
+        text: 'Cancel',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      {
+        text: 'OK',
+        onPress: async () => {
+          try {
+            const realm = await Realm.open(databaseOptions);
+            realm.write(() => {
+              batchData.data.forEach(client => {
+                const collections = client.collections.map(collection => ({
+                  ...collection,
+                  id: `${client.ClientID}-${collection.ID}`,
+                }));
 
-          const dateOfBirth = new Date(client.DateOfBirth);
-          const formattedDateOfBirth = `${dateOfBirth.getFullYear()}-${(
-            dateOfBirth.getMonth() + 1
-          )
-            .toString()
-            .padStart(2, '0')}-${dateOfBirth
-            .getDate()
-            .toString()
-            .padStart(2, '0')}`;
+                const dateOfBirth = new Date(client.DateOfBirth);
+                const formattedDateOfBirth = `${dateOfBirth.getFullYear()}-${(
+                  dateOfBirth.getMonth() + 1
+                )
+                  .toString()
+                  .padStart(2, '0')}-${dateOfBirth
+                  .getDate()
+                  .toString()
+                  .padStart(2, '0')}`;
 
-          const clientData = {
-            ClientID: client.ClientID,
-            FName: client.FName || '',
-            LName: client.LName || '',
-            MName: client.MName || '', // Handle null MName values
-            SName: client.SName || '',
-            DateOfBirth: client.DateOfBirth ? formattedDateOfBirth : '', // Handle null DateOfBirth values
-            SMSNumber: client.SMSNumber || '',
-            collections,
-          };
+                const clientData = {
+                  ClientID: client.ClientID,
+                  FName: client.FName || '',
+                  LName: client.LName || '',
+                  MName: client.MName || '', // Handle null MName values
+                  SName: client.SName || '',
+                  DateOfBirth: client.DateOfBirth ? formattedDateOfBirth : '', // Handle null DateOfBirth values
+                  SMSNumber: client.SMSNumber || '',
+                  collections,
+                };
 
-          realm.create(Client, clientData, 'modified');
-        });
-      });
-      console.log('Data saved offline successfully!');
-      setHasData(true);
-    } catch (error) {
-      console.error('Error saving data offline:', error);
-      setHasData(false);
-    }
+                realm.create(Client, clientData, 'modified');
+              });
+            });
+            Alert.alert('Success', 'Data saved successfully!');
+            realm.close();
+          } catch (error) {
+            Alert.alert('Error', 'Error saving data!');
+          }
+        },
+      },
+    ]);
   };
 
   const showData = async () => {
     try {
-      const realm = await Realm.open({
-        schema: [ClientSchema, CollectionSchema],
-      });
+      const realm = await Realm.open(databaseOptions);
       const clients = realm.objects(Client);
       setClientData(Array.from(clients));
     } catch (error) {
       console.error('Error retrieving data:', error);
     }
-  };
-
-  const goProjectDetail = item => () => {
-    navigation.navigate('ViewScreen', {item: item});
   };
 
   const renderContent = () => {
@@ -132,14 +137,22 @@ const Home = props => {
           renderLeft={() => {
             return (
               <TouchableOpacity onPress={() => fetchData()}>
-                <Icon name="bell" size={24} color={colors.primaryLight} />
+                <Icons.Ionicons
+                  name="md-cloud-download-outline"
+                  size={24}
+                  color={colors.primaryLight}
+                />
               </TouchableOpacity>
             );
           }}
           renderRight={() => {
             return (
-              <TouchableOpacity onPress={() => showData()}>
-                <Icon name="bell" size={24} color={colors.primaryLight} />
+              <TouchableOpacity onPress={() => saveData()}>
+                <Icons.Feather
+                  name="refresh-ccw"
+                  size={24}
+                  color={colors.primaryLight}
+                />
               </TouchableOpacity>
             );
           }}
@@ -156,26 +169,33 @@ const Home = props => {
           data={clientData}
           keyExtractor={(_item, index) => index.toString()}
           renderItem={({item}) => {
-            let fName = item.FName ? item.FName : '';
-            let mName = item.MName ? item.MName : '';
-            let lName = item.LName ? item.LName + ', ' : '';
-            let sName = item.SName ? item.SName : '';
+            const {FName, MName, LName, SName, collections, SLDESCR} = item;
 
-            let totalDue = 0;
-            let getTotal = item.collections.forEach(data => {
-              totalDue += parseFloat(data.TOTALDUE);
-            });
+            const fName = FName || '';
+            const mName = MName || '';
+            const lName = LName ? LName + ', ' : '';
+            const sName = SName || '';
+
+            const totalDue = collections.reduce(
+              (acc, data) => acc + parseFloat(data.TOTALDUE),
+              0,
+            );
 
             const formatNumber = number => {
               return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
             };
 
+            const clientName = lName + fName + ' ' + mName + ' ' + sName;
+
+            const handlePress = item => {
+              navigation.navigate(ROUTES.VIEW, {item: item});
+            };
             return (
               <Project02
-                title={lName + fName + ' ' + mName + ' ' + sName}
-                description={item.SLDESCR}
+                title={clientName}
+                description={SLDESCR}
                 total_loans={totalDue ? formatNumber(totalDue) : ''}
-                onPress={goProjectDetail(item)}
+                onPress={() => handlePress(item)}
                 style={{
                   marginBottom: 20,
                 }}
@@ -186,7 +206,6 @@ const Home = props => {
       </View>
     );
   };
-
   return (
     <View style={{flex: 1}}>
       <SafeAreaView
@@ -196,6 +215,4 @@ const Home = props => {
       </SafeAreaView>
     </View>
   );
-};
-
-export default Home;
+}

@@ -1,56 +1,53 @@
-import React, {useState} from 'react';
-import {View, KeyboardAvoidingView, Platform, Dimensions} from 'react-native';
-import {useDispatch} from 'react-redux';
-import {BaseColor, BaseStyle, Images, useTheme} from '../../../app/config';
-import {AuthActions} from '../../../app/actions';
-import {Button, Image, SafeAreaView, TextInput} from '../../../app/components';
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  Dimensions,
+  Platform,
+  SafeAreaView,
+  Image,
+  KeyboardAvoidingView,
+  Alert,
+} from 'react-native';
+import {BaseStyle, Images, useTheme} from '../../../app/config';
+import {useDispatch, useSelector} from 'react-redux';
 import styles from './styles';
+import {Button, TextInput} from '../../../app/components';
 
-const {authentication} = AuthActions;
-const successInit = {
-  name: true,
-  password: true,
-};
+import {userLogin} from '../../../app/reducers/auth';
 
-const Login = props => {
-  const {navigation} = props;
+export default function ({navigation}) {
   const {width} = Dimensions.get('window');
   const {colors} = useTheme();
   const dispatch = useDispatch();
-  const [name, seName] = useState('test');
-  const [password, setPassword] = useState('123456');
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(successInit);
+  const [username, setUsername] = useState(null);
+  const [password, setPassword] = useState(null);
 
-  const onLogin = () => {
-    if (name === '' || password === '') {
-      setSuccess({
-        ...success,
-        name: false,
-        password: false,
-      });
-    } else {
-      setLoading(true);
-      dispatch(
-        authentication(true, response => {
-          if (response.success && name === 'test' && password === '123456') {
-            navigation.navigate('ProjectMenu');
-          } else {
-            setLoading(false);
-          }
-        }),
-      );
-    }
-  };
+  const auth = useSelector(state => state.auth);
+  const {isLoading, authData, error} = auth;
 
   const offsetKeyboard = Platform.select({
     ios: 0,
     android: 20,
   });
 
+  useEffect(() => {}, [username, password]);
+
+  const onLogin = () => {
+    if (username === null || username.length === 0) {
+      Alert.alert('Error!', 'Please enter username');
+      return;
+    } else if (password === null || password.length === 0) {
+      Alert.alert('Error!', 'Please enter password');
+      return;
+    } else {
+      dispatch(userLogin({username, password}));
+    }
+  };
+
   return (
     <SafeAreaView
       style={BaseStyle.safeAreaView}
+      className="bg-white dark:bg-black"
       edges={['right', 'top', 'left']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -69,55 +66,38 @@ const Login = props => {
               resizeMode="contain"
             />
           </View>
+
           <TextInput
             style={[BaseStyle.textInput, {height: 50}]}
-            onChangeText={text => seName(text)}
-            onFocus={() => {
-              setSuccess({
-                ...success,
-                name: true,
-              });
-            }}
+            onChangeText={val => setUsername(val)}
             autoCorrect={false}
-            placeholder={'Input name'}
-            placeholderTextColor={
-              success.name ? BaseColor.grayColor : colors.primary
-            }
-            value={name}
+            placeholder={'Username'}
+            value={username}
             selectionColor={colors.primary}
           />
+
           <TextInput
             style={[BaseStyle.textInput, {height: 50, marginTop: 10}]}
-            onChangeText={text => setPassword(text)}
-            onFocus={() => {
-              setSuccess({
-                ...success,
-                password: true,
-              });
-            }}
+            onChangeText={val => setPassword(val)}
             textAlign={'left'}
             autoCorrect={false}
-            placeholder={'Input password'}
+            placeholder={'Password'}
             secureTextEntry={true}
-            placeholderTextColor={
-              success.password ? BaseColor.grayColor : colors.primary
-            }
             value={password}
             selectionColor={colors.primary}
           />
+
           <View style={{width: '100%', marginVertical: 16}}>
             <Button
               full
-              loading={loading}
+              loading={isLoading}
               style={{marginTop: 20}}
               onPress={onLogin}>
-              Login
+              LOGIN
             </Button>
           </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
-};
-
-export default Login;
+}

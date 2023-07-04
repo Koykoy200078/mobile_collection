@@ -51,7 +51,7 @@ export default function Header(props) {
         </TouchableOpacity>
       </View>
       <View style={[styles.contentCenter, styleContentCenter]}>
-        <Text headline numberOfLines={1}>
+        <Text headline numberOfLines={1} className="text-black dark:text-white">
           {title}
         </Text>
 

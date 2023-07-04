@@ -1,5 +1,6 @@
 import {put, call, takeEvery} from 'redux-saga/effects';
 import {getBatchDetails} from '../api/batchDetails';
+import {Alert} from 'react-native';
 import {
   GET_BATCH_DETAILS,
   GET_BATCH_DETAILS_COMPLETED,
@@ -13,9 +14,9 @@ export function* batchDetailsAsync(action) {
   try {
     const response = yield call(getBatchDetails, action.payload);
 
-    if (response !== undefined && response.errors) {
+    if (response !== undefined && response.error) {
       yield put({type: GET_BATCH_DETAILS_ERROR, response});
-      console.log('response error ==> ', response);
+      Alert.alert('Error', response.message);
     } else {
       yield put({type: GET_BATCH_DETAILS_COMPLETED, response});
     }

@@ -1,10 +1,12 @@
 import {BASE_URL} from '../config/url';
+import {select} from 'redux-saga/effects';
 
 export function* getBatchDetails(payload) {
   const {branchid, collectorid, clientid, slclass = '12,13'} = payload;
+  const auth = yield select(state => state.auth.authData.data.token);
+
+  console.log('auth:', auth);
   try {
-    let auth =
-      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJiX2lkIjoiMCIsImNfaWQiOiIxIiwibl9kIjoiUm9nZWxpbyBQYXJheWFvIiwiaWF0IjoxNjg3NTA2MjI1LCJleHAiOjE2ODc1MDgwMjV9.mM44NY3C4l0DaQBWoZ1wVmFrFVV6L-d_OMkG0q8s7bI';
     const options = {
       method: 'GET',
       headers: {
@@ -23,7 +25,7 @@ export function* getBatchDetails(payload) {
     if (response.ok) {
       return data;
     } else {
-      throw new Error(data.errors);
+      throw new Error(data);
     }
   } catch (error) {
     console.log('Error: ', error);

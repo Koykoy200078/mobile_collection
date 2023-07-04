@@ -1,13 +1,12 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {TouchableOpacity, View} from 'react-native';
 import {useTheme} from '../../../config';
-import Icon from '../../../components/Icon';
 import Text from '../../../components/Text';
 import styles from './styles';
 import {CheckBox, TextInput} from '../..';
-import Tooltip from 'react-native-walkthrough-tooltip';
 import Collapsible from 'react-native-collapsible';
+import {Icons} from '../../../config/icons';
 
 const CardReport02 = ({
   title = '',
@@ -40,6 +39,7 @@ const CardReport02 = ({
 }) => {
   const {colors} = useTheme();
 
+  useEffect(() => {}, [isCollapsed]);
   return (
     <View
       disabled={disabled}
@@ -58,52 +58,62 @@ const CardReport02 = ({
             <Text headline style={{marginBottom: 5}}>
               {title}
             </Text>
+          </View>
+        </View>
 
+        <View className="flex-row justify-between space-x-1 mb-2">
+          <View className="">
             <Text caption2 style={{color: colors.text}}>
               {description}
             </Text>
           </View>
-
           {enableTooltip ? (
             <View>
               <TouchableOpacity onPress={toggleAccordion}>
-                <View className="flex-row items-center justify-end">
-                  <Icon name={isActive} size={17} color={colors.text} />
-                  <Text
-                    caption2
-                    style={{color: colors.text}}
-                    numberOfLines={1}
-                    className="ml-2 text-xs font-bold">
-                    See More
-                  </Text>
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-row">
+                    <Icons.FontAwesome5
+                      name={isActive}
+                      size={17}
+                      color={colors.text}
+                    />
+                    <Text
+                      caption2
+                      style={{color: colors.text}}
+                      numberOfLines={1}
+                      className="ml-2 text-xs font-bold">
+                      See More
+                    </Text>
+                  </View>
                 </View>
               </TouchableOpacity>
-              <Collapsible collapsed={isCollapsed}>
-                <View className="w-[120] mb-1">
-                  <View className="flex-row justify-between">
-                    <Text className="font-bold text-xs">Principal: </Text>
-                    <Text className="font-bold text-xs">{principal}</Text>
-                  </View>
-
-                  <View className="flex-row justify-between">
-                    <Text className="font-bold text-xs">Interest: </Text>
-                    <Text className="font-bold text-xs">{interest}</Text>
-                  </View>
-
-                  <View className="flex-row justify-between">
-                    <Text className="font-bold text-xs">Penalty: </Text>
-                    <Text className="font-bold text-xs">{penalty}</Text>
-                  </View>
-
-                  <View className="flex-row justify-between mt-2">
-                    <Text className="font-bold text-xs">Total: </Text>
-                    <Text className="font-bold text-xs">{total}</Text>
-                  </View>
-                </View>
-              </Collapsible>
             </View>
           ) : null}
         </View>
+
+        <Collapsible collapsed={isCollapsed}>
+          <View className="mb-2">
+            <View className="flex-row justify-between">
+              <Text className="font-bold text-xs">Principal: </Text>
+              <Text className="font-bold text-xs">{principal}</Text>
+            </View>
+
+            <View className="flex-row justify-between">
+              <Text className="font-bold text-xs">Interest: </Text>
+              <Text className="font-bold text-xs">{interest}</Text>
+            </View>
+
+            <View className="flex-row justify-between">
+              <Text className="font-bold text-xs">Penalty: </Text>
+              <Text className="font-bold text-xs">{penalty}</Text>
+            </View>
+
+            <View className="flex-row justify-between mt-2">
+              <Text className="font-bold text-sm">TOTAL: </Text>
+              <Text className="font-bold text-sm">{total}</Text>
+            </View>
+          </View>
+        </Collapsible>
 
         <View className="flex-col items-start space-y-1">
           <View className="flex-row items-center">
@@ -133,9 +143,9 @@ const CardReport02 = ({
                   width: 117,
                   fontStyle: 'italic',
                   flex: 1,
-                  backgroundColor: '#F1F1F1',
                 },
               ]}
+              className="text-black dark:text-[#F1F1F1]"
               textAlign={'right'}
               autoCorrect={false}
               placeholder={placeholder}

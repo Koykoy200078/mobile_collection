@@ -1,41 +1,122 @@
-import React, {useEffect, useState} from 'react';
-import {useNavigation, useRoute} from '@react-navigation/native';
-import {useTranslation} from 'react-i18next';
-import {ScrollView, View, useWindowDimensions, Alert} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {View, Text, useWindowDimensions, Alert} from 'react-native';
+import databaseOptions, {
+  updatedCollectionDataSchema,
+} from '../../app/database/allSchema';
 import {
   Button,
   CardReport02,
   Header,
-  Icon,
   ProductSpecGrid,
-  SafeAreaView,
-  Text,
 } from '../../app/components';
-import {BaseStyle, useTheme} from '../../app/config';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {BaseStyle, ROUTES, useTheme} from '../../app/config';
+import {Icons} from '../../app/config/icons';
+import {ScrollView} from 'react-native-gesture-handler';
 import styles from './styles';
-import {CollectorList, collectorList} from '../../app/database/allSchema';
 
-const CheckOutScreen = () => {
+export default function ({navigation, route}) {
   const {width} = useWindowDimensions();
-  const {t} = useTranslation();
   const {colors} = useTheme();
-  const navigation = useNavigation();
-
-  const route = useRoute();
-
   const {name, allData, inputAmounts, total} = route.params;
 
   useEffect(() => {}, [name, allData, inputAmounts, total]);
 
-  console.log('allData ==>', allData);
+  console.log('allData: ', allData);
+  console.log('Checkout: ', inputAmounts);
 
   const totalAmount = total.toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
 
-  const onAdd = async () => {
-    Alert.alert('Confirm', 'Are you sure you want to proceed?', [
+  const renderedItem = Object.keys(inputAmounts)
+    .map(refNo => {
+      const {SLDESCR, DEPOSIT, SHARECAPITAL} = inputAmounts[refNo];
+
+      const matchingItem = allData.collections.find(
+        item => item.REF_NO === refNo,
+      );
+
+      if (!matchingItem) {
+        return null; // Skip if there is no matching item in the API data
+      }
+
+      if (!SLDESCR && !DEPOSIT && !SHARECAPITAL) {
+        return null; // Skip if name is missing or both deposit and share capital are empty
+      }
+      return (
+        <View key={refNo}>
+          {SLDESCR ? (
+            <CardReport02
+              style={{flex: 1, width: width - 30, marginVertical: 10}}
+              title={matchingItem.SLDESCR}
+              description={`REF: ${refNo}`}
+              checkedBoxLabel="Total Amount Paid"
+              value={SLDESCR}
+              editable={false}
+            />
+          ) : null}
+
+          {SHARECAPITAL ? (
+            <CardReport02
+              style={{flex: 1, width: width - 30, marginVertical: 10}}
+              title="Share Capital"
+              description={`REF: ${refNo}`}
+              checkedBoxLabel="Total Amount Paid"
+              value={SHARECAPITAL}
+              editable={false}
+            />
+          ) : null}
+
+          {DEPOSIT ? (
+            <CardReport02
+              style={{flex: 1, width: width - 30, marginVertical: 10}}
+              title="Deposit"
+              description={`REF: ${refNo}`}
+              checkedBoxLabel="Total Amount Paid"
+              value={DEPOSIT}
+              editable={false}
+            />
+          ) : null}
+        </View>
+      );
+    })
+    .filter(Boolean);
+
+  // TODO: not finished yet, last touched here
+  // TODO: auth user
+  const updateData = async updatedCollectionData => {
+    // Alert.alert('Confirm', 'Are you sure you want to proceed?', [
+    //   {
+    //     text: 'Cancel',
+    //     onPress: () => console.log('Cancel Pressed'),
+    //     style: 'cancel',
+    //   },
+    //   {
+    //     text: 'Yes',
+    //     onPress: async () => {
+    //       try {
+    //         const realm = await Realm.open(databaseOptions);
+    //         realm.write(() => {
+    //           updatedCollectionData.forEach(collection => {
+    //             realm.create(
+    //               updatedCollectionDataSchema,
+    //               collection,
+    //               'modified',
+    //             );
+    //           });
+    //         });
+    //         console.log('Data updated successfully!');
+    //         realm.close();
+    //       } catch (error) {
+    //         console.error('Error updating data: ', error);
+    //       }
+    //     },
+    //   },
+    // ]);
+
+    Alert.alert('Confirm', 'Everything is working fine!', [
       {
         text: 'Cancel',
         onPress: () => console.log('Cancel Pressed'),
@@ -43,70 +124,16 @@ const CheckOutScreen = () => {
       },
       {
         text: 'Yes',
-        onPress: async () => {
-          try {
-            const realm = await Realm.open({schema: [collectorList]});
-            const lastCollectorList = realm
-              .objects(CollectorList)
-              .sorted('id', true)[0];
-            const highestId = lastCollectorList ? lastCollectorList.id + 1 : 1;
-            realm.write(() => {
-              realm.create(CollectorList, {
-                id: highestId,
-                name: name,
-                regularLoans: parseFloat(formattedRegular),
-                emergencyLoans: parseFloat(formattedEmergency),
-                savingDeposit: parseFloat(formattedSaving),
-                shareCapital: parseFloat(formattedShare),
-              });
-            });
-            Alert.alert('Success', 'Payment Confirm', [
-              {
-                text: 'Ok',
-                onPress: () =>
-                  navigation.navigate('Print', {
-                    name: name,
-                    regularLoans: parseFloat(formattedRegular),
-                    emergencyLoans: parseFloat(formattedEmergency),
-                    savingDeposit: parseFloat(formattedSaving),
-                    shareCapital: parseFloat(formattedShare),
-                    totalAmount,
-                    rP: regular === 0 ? 0 : rP,
-                    rI: regular === 0 ? 0 : rI,
-                    rPe: regular === 0 ? 0 : rPe,
-                    eP: emergency === 0 ? 0 : eP,
-                    eI: emergency === 0 ? 0 : eI,
-                    ePe: emergency === 0 ? 0 : ePe,
-                  }),
-                style: 'cancel',
-              },
-            ]);
-            realm.close();
-          } catch (error) {
-            console.log('Error: ', error);
-          }
-        },
+        onPress: async () =>
+          navigation.navigate(ROUTES.PRINTOUT, {
+            name: name,
+            allData: allData,
+            inputAmounts: inputAmounts,
+            total: total,
+          }),
       },
     ]);
   };
-
-  const matchingItems = allData.collections.filter(item =>
-    inputAmounts.hasOwnProperty(item.REF_NO),
-  );
-  const renderedItem = matchingItems.map(item => (
-    <View
-      style={{flex: 1, width: width - 30, marginVertical: 10}}
-      key={item.REF_NO}>
-      <CardReport02
-        style={{flex: 1}}
-        title={item.SLDESCR}
-        description={'REF: ' + item.REF_NO}
-        checkedBoxLabel="Total Amount Paid"
-        value={inputAmounts[item.REF_NO]}
-        editable={false}
-      />
-    </View>
-  ));
 
   return (
     <SafeAreaView
@@ -117,14 +144,17 @@ const CheckOutScreen = () => {
         renderLeft={() => {
           return (
             <View className="flex-row items-center space-x-2 w-[100]">
-              <Icon
+              <Icons.FontAwesome5
                 name="angle-left"
                 size={20}
                 color={colors.text}
                 enableRTL={true}
               />
 
-              <Text title3 body1 className="text-xl font-bold">
+              <Text
+                title3
+                body1
+                className="text-xl font-bold text-black dark:text-white">
                 Back
               </Text>
             </View>
@@ -140,33 +170,27 @@ const CheckOutScreen = () => {
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}>
         <View>
-          <Text title3 body1 className="text-xl font-bold text-center">
+          <Text
+            title3
+            body1
+            className="text-xl font-bold text-center text-black dark:text-white">
             Review Selected Account
           </Text>
 
-          <View style={styles.specifications}>
-            {/* <CardReport02
-              style={{flex: 1, width: width - 30, marginVertical: 10}}
-              title={'Regular Loan'}
-              checkedBoxLabel="Total Amount Due"
-              // value={regularLoans}
-              editable={false}
-            /> */}
-            {renderedItem}
-          </View>
+          {renderedItem}
 
           <View style={styles.specifications}>
             <ProductSpecGrid
               style={{flex: 1}}
               title={totalAmount ? totalAmount : '0.00'}
-              description={t('total_amount')}
+              description={'Total Amount Paid'}
               isEnable={false}
             />
           </View>
 
           <View className="p-[10]">
             <View style={styles.specifications}>
-              <Button full onPress={() => onAdd()}>
+              <Button full onPress={() => updateData()}>
                 Proceed to Payment
               </Button>
             </View>
@@ -175,6 +199,4 @@ const CheckOutScreen = () => {
       </ScrollView>
     </SafeAreaView>
   );
-};
-
-export default CheckOutScreen;
+}

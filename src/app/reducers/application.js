@@ -1,6 +1,13 @@
-import * as actionTypes from './../actions/actionTypes';
+import {
+  CHANGE_FONT,
+  CHANGE_LANGUAGE,
+  CHANGE_THEME,
+  FORCE_APPEARANCE,
+  SET_INTRO,
+  SET_MENU,
+} from '../api/actions';
 
-const initialState = {
+const INITIAL_STATE = {
   theme: 'blue',
   font: null,
   force_dark: null,
@@ -9,34 +16,34 @@ const initialState = {
   intro: true,
 };
 
-export default (state = initialState, action = {}) => {
+export default (state = INITIAL_STATE, action = {}) => {
   switch (action.type) {
-    case actionTypes.CHANGE_THEME:
+    case CHANGE_THEME:
       return {
         ...state,
         theme: action.theme,
       };
-    case actionTypes.CHANGE_FONT:
+    case CHANGE_FONT:
       return {
         ...state,
         font: action.font,
       };
-    case actionTypes.FORCE_APPEARANCE:
+    case FORCE_APPEARANCE:
       return {
         ...state,
         force_dark: action.force_dark,
       };
-    case actionTypes.CHANGE_LANGUAGE:
+    case CHANGE_LANGUAGE:
       return {
         ...state,
         language: action.language,
       };
-    case actionTypes.SET_MENU:
+    case SET_MENU:
       return {
         ...state,
         menu: action.menu,
       };
-    case actionTypes.SET_INTRO:
+    case SET_INTRO:
       return {
         ...state,
         intro: action.intro,

@@ -1,4 +1,3 @@
-import AuthReducer from './auth';
 import ApplicationReducer from './application';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -22,10 +21,13 @@ const authPersistConfig = {
   blacklist: [],
 };
 
+import auth from './auth';
 import batchDetails from './batchDetails';
+
 const rootReducer = combineReducers({
   // authLogin: persistReducer(authPersistConfig, authLogin),
-  auth: AuthReducer,
+  // auth: AuthReducer,
+  auth: persistReducer(authPersistConfig, auth),
   application: ApplicationReducer,
   batchDetails,
 });

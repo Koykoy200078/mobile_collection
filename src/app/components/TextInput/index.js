@@ -1,6 +1,6 @@
 import React, {forwardRef} from 'react';
 import PropTypes from 'prop-types';
-import {I18nManager, TextInput, View} from 'react-native';
+import {TextInput, View} from 'react-native';
 import {BaseColor, BaseStyle, useFont, useTheme} from '../../config';
 
 const Index = forwardRef((props, ref) => {
@@ -36,12 +36,12 @@ const Index = forwardRef((props, ref) => {
             flex: 1,
             height: '100%',
             textAlign: textAlign,
-            color: '#000',
             paddingTop: 5,
             paddingBottom: 5,
           },
           inputStyle,
         ]}
+        className="text-black dark:text-white"
         onChangeText={text => onChangeText(text)}
         onFocus={() => onFocus()}
         autoCorrect={false}
