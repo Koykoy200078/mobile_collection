@@ -99,8 +99,6 @@ export default () => {
   const {theme} = useTheme();
   const isDarkMode = useColorScheme() === 'dark';
 
-  console.log('authData ==> ', authData);
-
   useEffect(() => {
     // Config status bar
     if (Platform.OS === 'android') {

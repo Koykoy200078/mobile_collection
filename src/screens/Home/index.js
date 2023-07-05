@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   FlatList,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import {BaseStyle, ROUTES, useTheme} from '../../app/config';
 import {Header, Project02, TabTag} from '../../app/components';
@@ -27,54 +28,68 @@ export default function ({navigation}) {
   ];
 
   const batchData = useSelector(state => state.batchDetails.data);
+  const batchLoading = useSelector(state => state.batchDetails.isLoading);
   const dispatch = useDispatch();
   const [tab, setTab] = useState(tabs[0]);
-  const [hasData, setHasData] = useState(false);
+  // const [hasData, setHasData] = useState(false);
+  const [clientData, setClientData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // offline data
-  const [clientData, setClientData] = useState(null);
+  const fetchData = useCallback(async () => {
+    Alert.alert(
+      'Downloading Data',
+      'Are you sure you want to download the data?',
+      [
+        {
+          text: 'NO',
+          onPress: () => Alert.alert('Cancelled', 'Data not downloaded'),
+          style: 'cancel',
+        },
+        {
+          text: 'YES',
+          onPress: async () => {
+            dispatch(
+              getDetails({
+                branchid: 0,
+                collectorid: 1,
+                clientid: 1974,
+                slclass: [12, 13],
+              }),
+            );
+
+            Alert.alert(
+              'Info',
+              batchLoading
+                ? 'Downloading, Please wait . . .'
+                : 'Successfully Downloaded',
+              [
+                {
+                  text: 'Next',
+                  onPress: () => saveData(),
+                },
+              ],
+            );
+          },
+        },
+      ],
+    );
+  }, [dispatch]);
 
   useEffect(() => {
-    async function handleData() {
-      if (batchData) {
-        await showData();
-      } else {
-        Alert.alert('Error', 'No data found!', [
-          {
-            text: 'OK',
-            style: 'cancel',
-          },
-          {
-            text: 'Retry',
-            onPress: () => fetchData(),
-          },
-        ]);
-      }
+    if (batchData) {
+      showData();
     }
+  }, [batchData, saveData, fetchData]);
 
-    handleData();
-  }, [batchData, hasData, clientData]);
-
-  const fetchData = async () => {
-    dispatch(
-      getDetails({
-        branchid: 0,
-        collectorid: 1,
-        clientid: 1974,
-        slclass: [12, 13],
-      }),
-    );
-  };
-
-  const saveData = async () => {
-    Alert.alert('Save Data', 'Are you sure you want to save data?', [
+  const saveData = useCallback(async () => {
+    Alert.alert('Saving Data', 'Are you sure you want to save the data?', [
       {
-        text: 'Cancel',
-        onPress: () => console.log('Cancel Pressed'),
+        text: 'NO',
+        onPress: () => Alert.alert('Cancelled', 'Data not saved'),
         style: 'cancel',
       },
       {
-        text: 'OK',
+        text: 'YES',
         onPress: async () => {
           try {
             const realm = await Realm.open(databaseOptions);
@@ -99,9 +114,9 @@ export default function ({navigation}) {
                   ClientID: client.ClientID,
                   FName: client.FName || '',
                   LName: client.LName || '',
-                  MName: client.MName || '', // Handle null MName values
+                  MName: client.MName || '',
                   SName: client.SName || '',
-                  DateOfBirth: client.DateOfBirth ? formattedDateOfBirth : '', // Handle null DateOfBirth values
+                  DateOfBirth: client.DateOfBirth ? formattedDateOfBirth : '',
                   SMSNumber: client.SMSNumber || '',
                   collections,
                 };
@@ -111,15 +126,17 @@ export default function ({navigation}) {
             });
             Alert.alert('Success', 'Data saved successfully!');
             realm.close();
+            // setHasData(true);
+            showData();
           } catch (error) {
             Alert.alert('Error', 'Error saving data!');
           }
         },
       },
     ]);
-  };
+  }, [batchData, showData]);
 
-  const showData = async () => {
+  const showData = useCallback(async () => {
     try {
       const realm = await Realm.open(databaseOptions);
       const clients = realm.objects(Client);
@@ -127,29 +144,18 @@ export default function ({navigation}) {
     } catch (error) {
       console.error('Error retrieving data:', error);
     }
-  };
+  }, []);
 
-  const renderContent = () => {
+  const renderContent = useCallback(() => {
     return (
       <View style={{flex: 1}}>
         <Header
           title={'Collector List'}
           renderLeft={() => {
             return (
-              <TouchableOpacity onPress={() => fetchData()}>
+              <TouchableOpacity onPress={fetchData}>
                 <Icons.Ionicons
                   name="md-cloud-download-outline"
-                  size={24}
-                  color={colors.primaryLight}
-                />
-              </TouchableOpacity>
-            );
-          }}
-          renderRight={() => {
-            return (
-              <TouchableOpacity onPress={() => saveData()}>
-                <Icons.Feather
-                  name="refresh-ccw"
                   size={24}
                   color={colors.primaryLight}
                 />
@@ -161,7 +167,7 @@ export default function ({navigation}) {
           style={{paddingHorizontal: 10, paddingBottom: 20, marginTop: 10}}
           tabs={tabs}
           tab={tab}
-          onChange={tabData => setTab(tabData)}
+          onChange={setTab}
         />
         <FlashList
           contentContainerStyle={styles.paddingFlatList}
@@ -190,6 +196,7 @@ export default function ({navigation}) {
             const handlePress = item => {
               navigation.navigate(ROUTES.VIEW, {item: item});
             };
+
             return (
               <Project02
                 title={clientName}
@@ -205,7 +212,18 @@ export default function ({navigation}) {
         />
       </View>
     );
-  };
+  }, [
+    colors.primary,
+    colors.primaryLight,
+    fetchData,
+    loading,
+    saveData,
+    clientData,
+    navigation,
+    tab,
+    tabs,
+  ]);
+
   return (
     <View style={{flex: 1}}>
       <SafeAreaView

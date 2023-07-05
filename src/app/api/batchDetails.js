@@ -5,7 +5,6 @@ export function* getBatchDetails(payload) {
   const {branchid, collectorid, clientid, slclass = '12,13'} = payload;
   const auth = yield select(state => state.auth.authData.data.token);
 
-  console.log('auth:', auth);
   try {
     const options = {
       method: 'GET',
