@@ -7,6 +7,7 @@ import {
   FlatList,
   Alert,
   ActivityIndicator,
+  useWindowDimensions,
 } from 'react-native';
 import {BaseStyle, ROUTES, useTheme} from '../../app/config';
 import {Header, Project02, TabTag} from '../../app/components';
@@ -20,6 +21,7 @@ import {FlashList} from '@shopify/flash-list';
 
 export default function ({navigation}) {
   const {colors} = useTheme();
+  const {width, height} = useWindowDimensions();
   const tabs = [
     {
       id: 'all',
@@ -34,6 +36,8 @@ export default function ({navigation}) {
   // const [hasData, setHasData] = useState(false);
   const [clientData, setClientData] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  console.log('clientData: ', clientData);
 
   const fetchData = useCallback(async () => {
     Alert.alert(
@@ -57,18 +61,16 @@ export default function ({navigation}) {
               }),
             );
 
-            Alert.alert(
-              'Info',
+            {
               batchLoading
-                ? 'Downloading, Please wait . . .'
-                : 'Successfully Downloaded',
-              [
-                {
-                  text: 'Next',
-                  onPress: () => saveData(),
-                },
-              ],
-            );
+                ? Alert.alert('Info', 'Downloading, Please wait . . .')
+                : Alert.alert('Info', 'Successfully Downloaded', [
+                    {
+                      text: 'Next',
+                      onPress: () => saveData(),
+                    },
+                  ]);
+            }
           },
         },
       ],
@@ -118,15 +120,16 @@ export default function ({navigation}) {
                   SName: client.SName || '',
                   DateOfBirth: client.DateOfBirth ? formattedDateOfBirth : '',
                   SMSNumber: client.SMSNumber || '',
+
                   collections,
                 };
 
+                // const updateMode = {mode: 'modified', update: true};
                 realm.create(Client, clientData, 'modified');
               });
             });
             Alert.alert('Success', 'Data saved successfully!');
             realm.close();
-            // setHasData(true);
             showData();
           } catch (error) {
             Alert.alert('Error', 'Error saving data!');
@@ -200,7 +203,8 @@ export default function ({navigation}) {
             return (
               <Project02
                 title={clientName}
-                description={SLDESCR}
+                description={item.DateOfBirth}
+                isPaid={item.isPaid}
                 total_loans={totalDue ? formatNumber(totalDue) : ''}
                 onPress={() => handlePress(item)}
                 style={{
@@ -209,6 +213,13 @@ export default function ({navigation}) {
               />
             );
           }}
+          ListEmptyComponent={
+            <View className="flex-1 items-center justify-center">
+              <Text className="text-black dark:text-white font-bold">
+                No data found.
+              </Text>
+            </View>
+          }
         />
       </View>
     );

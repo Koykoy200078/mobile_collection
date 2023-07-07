@@ -1,4 +1,4 @@
-import { StyleSheet, Platform } from 'react-native';
+import {StyleSheet, Platform} from 'react-native';
 
 export default StyleSheet.create({
   content: {
@@ -13,7 +13,7 @@ export default StyleSheet.create({
       },
       default: {
         shadowColor: 'rgba(0,0,0, .2)',
-        shadowOffset: { height: 0, width: 0 },
+        shadowOffset: {height: 0, width: 0},
         shadowOpacity: 3,
         shadowRadius: 3,
       },
@@ -26,7 +26,7 @@ export default StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  viewLeft: { flex: 1, height: '100%' },
+  viewLeft: {flex: 1, height: '100%'},
   viewRight: {
     alignItems: 'center',
     marginTop: 10,

@@ -51,7 +51,7 @@ export default function ({navigation, route}) {
             <CardReport02
               style={{flex: 1, width: width - 30, marginVertical: 10}}
               title={matchingItem.SLDESCR}
-              description={`REF: ${refNo}`}
+              description={`REF# ${refNo}`}
               checkedBoxLabel="Total Amount Paid"
               value={SLDESCR}
               editable={false}
@@ -62,7 +62,7 @@ export default function ({navigation, route}) {
             <CardReport02
               style={{flex: 1, width: width - 30, marginVertical: 10}}
               title="Share Capital"
-              description={`REF: ${refNo}`}
+              description={`REF# ${refNo}`}
               checkedBoxLabel="Total Amount Paid"
               value={SHARECAPITAL}
               editable={false}
@@ -73,7 +73,7 @@ export default function ({navigation, route}) {
             <CardReport02
               style={{flex: 1, width: width - 30, marginVertical: 10}}
               title="Deposit"
-              description={`REF: ${refNo}`}
+              description={`REF# ${refNo}`}
               checkedBoxLabel="Total Amount Paid"
               value={DEPOSIT}
               editable={false}

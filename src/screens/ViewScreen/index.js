@@ -69,6 +69,11 @@ export default function ({navigation, route}) {
     setTotalValue(total);
   };
 
+  const totalAmount = totalValue.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
   let fName = item.FName ? item.FName : '';
   let mName = item.MName ? item.MName : '';
   let lName = item.LName ? item.LName + ', ' : '';
@@ -129,7 +134,7 @@ export default function ({navigation, route}) {
                     key={index}
                     style={{flex: 1, width: width - 30, marginVertical: 10}}
                     title={name}
-                    description={'REF: ' + collection.REF_NO}
+                    description={'REF# ' + collection.REF_NO}
                     placeholder="0.00"
                     checkedBoxLabel="Input Amount"
                     value={inputAmounts[id]?.SLDESCR || ''}
@@ -171,7 +176,7 @@ export default function ({navigation, route}) {
                     key={index}
                     style={{flex: 1, width: width - 30, marginVertical: 10}}
                     title={'Share Capital'}
-                    description={'REF: ' + collection.REF_NO}
+                    description={'REF# ' + collection.REF_NO}
                     placeholder="0.00"
                     checkedBoxLabel="Input Amount"
                     value={inputAmounts[id]?.SHARECAPITAL || ''}
@@ -207,7 +212,7 @@ export default function ({navigation, route}) {
                     key={index}
                     style={{flex: 1, width: width - 30, marginVertical: 10}}
                     title={'Deposit'}
-                    description={'REF: ' + collection.REF_NO}
+                    description={'REF# ' + collection.REF_NO}
                     placeholder="0.00"
                     checkedBoxLabel="Input Amount"
                     value={inputAmounts[id]?.DEPOSIT || ''}
@@ -222,7 +227,7 @@ export default function ({navigation, route}) {
           <View style={styles.specifications}>
             <ProductSpecGrid
               style={{flex: 1}}
-              title={totalValue ? totalValue.toFixed(2) : '0.00'}
+              title={totalAmount ? totalAmount : '0.00'}
               description={'Total Amount Due'}
               isEnable={false}
             />

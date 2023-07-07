@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {TouchableOpacity, View} from 'react-native';
+import {Image, TouchableOpacity, View} from 'react-native';
 import {useTheme} from '../../../config';
 
 import Text from '../../../components/Text';
@@ -13,6 +13,7 @@ const Project02 = ({
   description = '',
   disabled = false,
   total_loans = 0,
+  isPaid,
 }) => {
   const {colors} = useTheme();
 
@@ -35,16 +36,23 @@ const Project02 = ({
             <Text caption2 light style={styles.description}>
               {description}
             </Text>
-            {/* <Avatars
-              styleThumb={{width: 30, height: 30}}
-              users={members}
-              limit={3}
-            /> */}
           </View>
-          <View style={styles.viewRight}>
-            <Text footnote light>
-              {total_loans}
-            </Text>
+          <View className="flex-col items-end">
+            <View>
+              {isPaid ? (
+                <Image
+                  source={{
+                    uri: 'https://www.iconfinder.com/icons/1930264/download/png/512',
+                  }}
+                  style={{width: 20, height: 20}}
+                />
+              ) : null}
+            </View>
+            <View style={styles.viewRight}>
+              <Text footnote light>
+                {total_loans}
+              </Text>
+            </View>
           </View>
         </View>
       </View>

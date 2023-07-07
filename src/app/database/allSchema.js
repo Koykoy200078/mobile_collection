@@ -13,6 +13,7 @@ export const ClientSchema = {
     SName: 'string?',
     DateOfBirth: 'string?',
     SMSNumber: 'string?',
+    isPaid: {type: 'bool', default: false},
     collections: {type: 'list', objectType: Collection},
   },
 };
@@ -79,7 +80,7 @@ const databaseOptions = {
     updatedClientData,
     updatedCollectionData,
   ],
-  schemaVersion: 0,
+  schemaVersion: 1,
 };
 
 export const getSchema = [
