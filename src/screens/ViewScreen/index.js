@@ -5,9 +5,11 @@ import {
   useWindowDimensions,
   SafeAreaView,
   ScrollView,
+  Image,
+  Alert,
 } from 'react-native';
 import {useDispatch} from 'react-redux';
-import {BaseStyle, ROUTES, useTheme} from '../../app/config';
+import {BaseStyle, Images, ROUTES, useTheme} from '../../app/config';
 import styles from './styles';
 import {
   Button,
@@ -16,8 +18,9 @@ import {
   ProductSpecGrid,
 } from '../../app/components';
 import {Icons} from '../../app/config/icons';
+import databaseOptions, {Client} from '../../app/database/allSchemas';
 
-export default function ({navigation, route}) {
+const ViewScreen = ({navigation, route}) => {
   const dispatch = useDispatch();
   const {width} = useWindowDimensions();
   const {colors} = useTheme();
@@ -27,6 +30,8 @@ export default function ({navigation, route}) {
   const [inputAmounts, setInputAmounts] = useState({});
   const [totalValue, setTotalValue] = useState(0);
   const [collectionData, setCollectionData] = useState(null);
+
+  console.log('item: ', item);
 
   useEffect(() => {
     calculateTotalValue();
@@ -95,6 +100,58 @@ export default function ({navigation, route}) {
         onPressLeft={() => {
           navigation.goBack();
         }}
+        renderRight={() =>
+          item.isPaid ? (
+            <Icons.Entypo name="check" size={20} color={'green'} />
+          ) : null
+        }
+        onPressRight={async () => {
+          item.isPaid
+            ? Alert.alert(
+                'This client is already paid',
+                'Are you sure you want to unpaid this client?',
+                [
+                  {
+                    text: 'Cancel',
+                    onPress: () => console.log('Cancel Pressed'),
+                    style: 'cancel',
+                  },
+                  {
+                    text: 'Yes',
+                    onPress: async () => {
+                      try {
+                        const realm = await Realm.open(databaseOptions);
+                        realm.write(() => {
+                          const existingClient = realm.objectForPrimaryKey(
+                            Client,
+                            item.ClientID,
+                          );
+
+                          if (!existingClient) {
+                            Alert.alert('Error', 'Client not found!');
+                            return;
+                          }
+
+                          // Update client properties
+                          existingClient.isPaid = false;
+                          realm.create(
+                            Client,
+                            existingClient,
+                            Realm.UpdateMode.Modified,
+                          );
+                        });
+
+                        Alert.alert('Success', 'Data updated successfully!');
+                      } catch (error) {
+                        Alert.alert('Error', 'Error updating data!');
+                        console.error('Error: ', error);
+                      }
+                    },
+                  },
+                ],
+              )
+            : null;
+        }}
       />
 
       <ScrollView
@@ -106,6 +163,9 @@ export default function ({navigation, route}) {
             title3
             body1
             className="text-xl font-bold text-black dark:text-white">
+            {item.isPaid ? (
+              <Image source={Images.complete} style={{width: 20, height: 20}} />
+            ) : null}{' '}
             {getName}
           </Text>
 
@@ -249,4 +309,6 @@ export default function ({navigation, route}) {
       </ScrollView>
     </SafeAreaView>
   );
-}
+};
+
+export default ViewScreen;

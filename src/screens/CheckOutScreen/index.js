@@ -1,5 +1,11 @@
-import React, {useState, useEffect} from 'react';
-import {View, Text, useWindowDimensions, Alert} from 'react-native';
+import React, {useState, useEffect, useCallback} from 'react';
+import {
+  View,
+  Text,
+  useWindowDimensions,
+  Alert,
+  TouchableOpacity,
+} from 'react-native';
 import {
   Button,
   CardReport02,
@@ -11,13 +17,21 @@ import {BaseStyle, ROUTES, useTheme} from '../../app/config';
 import {Icons} from '../../app/config/icons';
 import {ScrollView} from 'react-native-gesture-handler';
 import styles from './styles';
+import databaseOptions, {
+  Client,
+  UploadData,
+  updateClient,
+  uploadSchema,
+} from '../../app/database/allSchemas';
+import Realm from 'realm';
 
-export default function ({navigation, route}) {
+const CheckOutScreen = ({navigation, route}) => {
   const {width} = useWindowDimensions();
   const {colors} = useTheme();
+  const [data, setData] = useState([]);
   const {name, allData, inputAmounts, total} = route.params;
 
-  useEffect(() => {}, [name, allData, inputAmounts, total]);
+  useEffect(() => {}, [name, allData, inputAmounts, total, data]);
 
   const totalAmount = total.toLocaleString('en-US', {
     minimumFractionDigits: 2,
@@ -80,9 +94,7 @@ export default function ({navigation, route}) {
     })
     .filter(Boolean);
 
-  // TODO: not finished yet, last touched here
-  // TODO: auth user
-  const updateData = async updatedClient => {
+  const updateData = async () => {
     Alert.alert('Confirm', 'Everything is working fine!', [
       {
         text: 'Cancel',
@@ -91,42 +103,133 @@ export default function ({navigation, route}) {
       },
       {
         text: 'Yes',
-        onPress: async () =>
-          // navigation.navigate(ROUTES.PRINTOUT, {
-          //   name: name,
-          //   allData: allData,
-          //   inputAmounts: inputAmounts,
-          //   total: total,
-          // }),
-
-          {
-            try {
-              const realm = await Realm.open(databaseOptions);
-              realm.write(() => {
-                const existingClient = realm.objectForPrimaryKey(
-                  Client,
-                  updatedClient.ClientID,
-                );
-
-                if (!existingClient) {
-                  Alert.alert('Error', 'Client not found!');
-                  return;
-                }
-
-                // Update client properties
-                existingClient.isPaid = true;
-                realm.create(Client, existingClient, 'modified');
-              });
-
-              Alert.alert('Success', 'Data updated successfully!');
-              realm.close();
-            } catch (error) {
-              Alert.alert('Error', 'Error updating data!');
-            }
-          },
+        onPress: () => {
+          saveNewData();
+        },
       },
     ]);
   };
+
+  const saveNewData = async () => {
+    const realm = await Realm.open(databaseOptions);
+    try {
+      // Fetch the target client with its collections using the provided ClientID
+      const targetClient = realm
+        .objects(Client)
+        .filtered(
+          'ClientID = $0 AND collections.@size > 0',
+          allData.ClientID,
+        )[0];
+
+      if (!targetClient) {
+        console.log(
+          `Client with ClientID ${allData.ClientID} not found or has no collections.`,
+        );
+        realm.close();
+        return;
+      }
+
+      // Transform the data into the expected format
+      const transformedData = {
+        ClientID: targetClient.ClientID,
+        FName: targetClient.FName,
+        LName: targetClient.LName,
+        MName: targetClient.MName,
+        SName: targetClient.SName,
+        DateOfBirth: targetClient.DateOfBirth,
+        SMSNumber: targetClient.SMSNumber,
+        collections: targetClient.collections.map(collection => ({
+          ID: collection.ID,
+          CLIENTNAME: collection.CLIENTNAME,
+          SLC: collection.SLC,
+          SLT: collection.SLT,
+          REF: collection.REF,
+          SLDESCR: collection.SLDESCR,
+          REF_NO: collection.REF_NO,
+          AMT: '1000.00', // You can add any other dynamic data here
+          SHARECAPITAL: collection.SHARECAPITAL,
+          DEPOSIT: collection.DEPOSIT,
+          REMARKS: 'Paid Due', // You can add any other dynamic data here
+        })),
+      };
+
+      // Begin a write transaction
+      realm.write(() => {
+        // Create or update the 'UploadData' object in the database
+        realm.create(UploadData, transformedData, Realm.UpdateMode.Modified);
+      });
+      transactionData();
+      // Close the Realm after use
+    } catch (error) {
+      Alert.alert('Error', 'Error saving data!');
+      console.error('Error: ', error);
+    } finally {
+      navigation.navigate(ROUTES.PRINTOUT, {
+        name: name,
+        allData: allData,
+        inputAmounts: inputAmounts,
+        total: total,
+        isSuccessful: true,
+      });
+    }
+  };
+
+  const transactionData = async () => {
+    try {
+      const realm = await Realm.open(databaseOptions);
+      realm.write(() => {
+        const existingClient = realm.objectForPrimaryKey(
+          Client,
+          allData.ClientID,
+        );
+
+        if (!existingClient) {
+          Alert.alert('Error', 'Client not found!');
+          return;
+        }
+
+        // Update client properties
+        existingClient.isPaid = true;
+        realm.create(Client, existingClient, Realm.UpdateMode.Modified);
+      });
+
+      Alert.alert('Success', 'Data updated successfully!');
+    } catch (error) {
+      Alert.alert('Error', 'Error updating data!');
+      console.error('Error: ', error);
+    } finally {
+      // TODO: last touch here
+      if (
+        inputAmounts === null &&
+        inputAmounts === undefined &&
+        inputAmounts === '' &&
+        inputAmounts === 0
+      ) {
+        Alert.alert('Error', 'Something went wrong!');
+      } else {
+        navigation.navigate(ROUTES.PRINTOUT, {
+          name: name,
+          allData: allData,
+          inputAmounts: inputAmounts,
+          total: total,
+          isSuccessful: true,
+        });
+      }
+    }
+  };
+
+  // const showData = useCallback(async () => {
+  //   try {
+  //     const realm = await Realm.open(databaseOptions);
+  //     const savedData = realm.objects(UploadData);
+  //     const data = Array.from(savedData); // Convert Realm results to a regular array
+  //     console.log('Saved Data:', JSON.stringify(data, null, 2));
+  //     realm.close(); // Close the Realm after use
+  //   } catch (error) {
+  //     console.error('Error while fetching data:', error);
+  //     return null;
+  //   }
+  // }, []);
 
   return (
     <SafeAreaView
@@ -192,4 +295,6 @@ export default function ({navigation, route}) {
       </ScrollView>
     </SafeAreaView>
   );
-}
+};
+
+export default CheckOutScreen;

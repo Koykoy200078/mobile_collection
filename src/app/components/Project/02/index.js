@@ -41,9 +41,7 @@ const Project02 = ({
             <View>
               {isPaid ? (
                 <Image
-                  source={{
-                    uri: Images.complete,
-                  }}
+                  source={Images.complete}
                   style={{width: 20, height: 20}}
                 />
               ) : null}

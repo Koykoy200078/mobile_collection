@@ -14,30 +14,23 @@ import {Header, Project02, TabTag} from '../../app/components';
 import {Icons} from '../../app/config/icons';
 import styles from './styles';
 import {Realm} from '@realm/react';
-import databaseOptions, {Client} from '../../app/database/allSchema';
-import {getDetails} from '../../app/reducers/batchDetails';
+import databaseOptions, {Client} from '../../app/database/allSchemas';
+import {getDetails, resetGetDetails} from '../../app/reducers/batchDetails';
 import {useDispatch, useSelector} from 'react-redux';
 import {FlashList} from '@shopify/flash-list';
+import {useFocusEffect} from '@react-navigation/native';
 
 const Home = ({navigation}) => {
   const {colors} = useTheme();
   const {width, height} = useWindowDimensions();
-  const tabs = [
-    {
-      id: 'all',
-      title: 'All Clients',
-    },
-  ];
 
   const batchData = useSelector(state => state.batchDetails.data);
   const {isLoading, error, isSuccess} = useSelector(
     state => state.batchDetails,
   );
   const dispatch = useDispatch();
-  const [tab, setTab] = useState(tabs[0]);
-  // const [hasData, setHasData] = useState(false);
+
   const [clientData, setClientData] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
     Alert.alert(
@@ -67,16 +60,14 @@ const Home = ({navigation}) => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (batchData) {
-      showData();
-    }
+    showData();
+  }, [batchData]);
 
+  useEffect(() => {
     if (isSuccess) {
       saveData();
     }
-  }, [batchData, saveData, fetchData, isSuccess]);
-
-  console.log('batchLoading: ', isLoading);
+  }, [isSuccess]);
 
   const saveData = useCallback(async () => {
     Alert.alert('Saving Data', 'Are you sure you want to save the data?', [
@@ -119,11 +110,11 @@ const Home = ({navigation}) => {
                   collections,
                 };
 
-                // const updateMode = {mode: 'modified', update: true};
-                realm.create(Client, clientData, 'modified');
+                realm.create(Client, clientData, Realm.UpdateMode.Modified);
               });
             });
             Alert.alert('Success', 'Data saved successfully!');
+            dispatch(resetGetDetails());
             realm.close();
             showData();
           } catch (error) {
@@ -140,7 +131,7 @@ const Home = ({navigation}) => {
       const clients = realm.objects(Client);
       setClientData(Array.from(clients));
     } catch (error) {
-      console.error('Error retrieving data:', error);
+      Alert.alert('Error retrieving data', error);
     }
   }, []);
 
@@ -161,12 +152,9 @@ const Home = ({navigation}) => {
             );
           }}
         />
-        <TabTag
-          style={{paddingHorizontal: 10, paddingBottom: 20, marginTop: 10}}
-          tabs={tabs}
-          tab={tab}
-          onChange={setTab}
-        />
+
+        <View className="mt-2" />
+
         <FlashList
           contentContainerStyle={styles.paddingFlatList}
           estimatedItemSize={200}
@@ -203,7 +191,7 @@ const Home = ({navigation}) => {
                 total_loans={totalDue ? formatNumber(totalDue) : ''}
                 onPress={() => handlePress(item)}
                 style={{
-                  marginBottom: 20,
+                  marginBottom: 10,
                 }}
               />
             );
@@ -222,13 +210,25 @@ const Home = ({navigation}) => {
     colors.primary,
     colors.primaryLight,
     fetchData,
-    loading,
     saveData,
     clientData,
     navigation,
-    tab,
-    tabs,
   ]);
+
+  // Fetch data when the component mounts
+  useEffect(() => {
+    showData();
+  }, []);
+
+  // Fetch data when the component gains focus
+  useFocusEffect(
+    useCallback(() => {
+      showData();
+      return () => {
+        // Cleanup function (if needed)
+      };
+    }, []),
+  );
 
   return (
     <View style={{flex: 1}}>
