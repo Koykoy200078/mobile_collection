@@ -7,6 +7,7 @@ import {
 
 const INITIAL_STATE = {
   isLoading: false,
+  isSuccess: false,
   data: null,
   error: false,
   errorMsg: null,
@@ -19,12 +20,14 @@ export default function reducer(state = INITIAL_STATE, action = {}) {
       return {
         ...state,
         isLoading: true,
+        isSuccess: false,
         error: false,
       };
     case GET_BATCH_DETAILS_COMPLETED:
       return {
         ...state,
         isLoading: false,
+        isSuccess: true,
         data: action.response,
         error: false,
       };
@@ -32,6 +35,7 @@ export default function reducer(state = INITIAL_STATE, action = {}) {
       return {
         ...state,
         isLoading: false,
+        isSuccess: false,
         data: null,
         error: true,
         errorMsg: action.response,

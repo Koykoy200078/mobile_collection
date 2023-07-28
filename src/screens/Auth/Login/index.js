@@ -61,8 +61,8 @@ export default function ({navigation}) {
           <View className="my-4">
             <Image
               source={Images.logo}
-              style={{width: width}}
-              className="h-[360]"
+              style={{width: width, height: width / 2}}
+              // className="h-[360]"
               resizeMode="contain"
             />
           </View>

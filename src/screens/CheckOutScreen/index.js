@@ -1,8 +1,5 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, useWindowDimensions, Alert} from 'react-native';
-import databaseOptions, {
-  updatedCollectionDataSchema,
-} from '../../app/database/allSchema';
 import {
   Button,
   CardReport02,
@@ -22,13 +19,12 @@ export default function ({navigation, route}) {
 
   useEffect(() => {}, [name, allData, inputAmounts, total]);
 
-  console.log('allData: ', allData);
-  console.log('Checkout: ', inputAmounts);
-
   const totalAmount = total.toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+
+  console.log('allData: ', allData);
 
   const renderedItem = Object.keys(inputAmounts)
     .map(refNo => {
@@ -86,36 +82,7 @@ export default function ({navigation, route}) {
 
   // TODO: not finished yet, last touched here
   // TODO: auth user
-  const updateData = async updatedCollectionData => {
-    // Alert.alert('Confirm', 'Are you sure you want to proceed?', [
-    //   {
-    //     text: 'Cancel',
-    //     onPress: () => console.log('Cancel Pressed'),
-    //     style: 'cancel',
-    //   },
-    //   {
-    //     text: 'Yes',
-    //     onPress: async () => {
-    //       try {
-    //         const realm = await Realm.open(databaseOptions);
-    //         realm.write(() => {
-    //           updatedCollectionData.forEach(collection => {
-    //             realm.create(
-    //               updatedCollectionDataSchema,
-    //               collection,
-    //               'modified',
-    //             );
-    //           });
-    //         });
-    //         console.log('Data updated successfully!');
-    //         realm.close();
-    //       } catch (error) {
-    //         console.error('Error updating data: ', error);
-    //       }
-    //     },
-    //   },
-    // ]);
-
+  const updateData = async updatedClient => {
     Alert.alert('Confirm', 'Everything is working fine!', [
       {
         text: 'Cancel',
@@ -125,12 +92,38 @@ export default function ({navigation, route}) {
       {
         text: 'Yes',
         onPress: async () =>
-          navigation.navigate(ROUTES.PRINTOUT, {
-            name: name,
-            allData: allData,
-            inputAmounts: inputAmounts,
-            total: total,
-          }),
+          // navigation.navigate(ROUTES.PRINTOUT, {
+          //   name: name,
+          //   allData: allData,
+          //   inputAmounts: inputAmounts,
+          //   total: total,
+          // }),
+
+          {
+            try {
+              const realm = await Realm.open(databaseOptions);
+              realm.write(() => {
+                const existingClient = realm.objectForPrimaryKey(
+                  Client,
+                  updatedClient.ClientID,
+                );
+
+                if (!existingClient) {
+                  Alert.alert('Error', 'Client not found!');
+                  return;
+                }
+
+                // Update client properties
+                existingClient.isPaid = true;
+                realm.create(Client, existingClient, 'modified');
+              });
+
+              Alert.alert('Success', 'Data updated successfully!');
+              realm.close();
+            } catch (error) {
+              Alert.alert('Error', 'Error updating data!');
+            }
+          },
       },
     ]);
   };

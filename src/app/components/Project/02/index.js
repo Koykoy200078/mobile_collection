@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Image, TouchableOpacity, View} from 'react-native';
-import {useTheme} from '../../../config';
+import {Images, useTheme} from '../../../config';
 
 import Text from '../../../components/Text';
 import styles from './styles';
@@ -42,7 +42,7 @@ const Project02 = ({
               {isPaid ? (
                 <Image
                   source={{
-                    uri: 'https://www.iconfinder.com/icons/1930264/download/png/512',
+                    uri: Images.complete,
                   }}
                   style={{width: 20, height: 20}}
                 />

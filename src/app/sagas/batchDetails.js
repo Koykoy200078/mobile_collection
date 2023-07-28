@@ -9,9 +9,8 @@ import {
 } from '../api/actions';
 
 export function* batchDetailsAsync(action) {
-  yield put({type: GET_BATCH_DETAILS_REQUEST});
-
   try {
+    yield put({type: GET_BATCH_DETAILS_REQUEST});
     const response = yield call(getBatchDetails, action.payload);
 
     if (response !== undefined && response.error) {

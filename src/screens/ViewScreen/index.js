@@ -45,8 +45,6 @@ export default function ({navigation, route}) {
     }));
   };
 
-  console.log('inputAmounts: ', inputAmounts);
-
   const handleInputChange = (index, name, value) => {
     setInputAmounts(prevState => ({
       ...prevState,

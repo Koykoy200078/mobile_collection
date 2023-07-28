@@ -23,6 +23,7 @@ const authPersistConfig = {
 
 import auth from './auth';
 import batchDetails from './batchDetails';
+import upload from './upload';
 
 const rootReducer = combineReducers({
   // authLogin: persistReducer(authPersistConfig, authLogin),
@@ -30,6 +31,7 @@ const rootReducer = combineReducers({
   auth: persistReducer(authPersistConfig, auth),
   application: ApplicationReducer,
   batchDetails,
+  upload,
 });
 
 const persistedReducer = persistReducer(rootPersistConfig, rootReducer);

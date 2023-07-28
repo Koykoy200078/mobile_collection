@@ -14,7 +14,8 @@ import * as Utils from './src/app/utils';
 import AppNavigation from './src/navigations/AppNavigation';
 
 Utils.setupLayoutAnimation();
-export default function () {
+
+const App = () => {
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
@@ -24,4 +25,6 @@ export default function () {
       </PersistGate>
     </Provider>
   );
-}
+};
+
+export default App;

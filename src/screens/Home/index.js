@@ -19,7 +19,7 @@ import {getDetails} from '../../app/reducers/batchDetails';
 import {useDispatch, useSelector} from 'react-redux';
 import {FlashList} from '@shopify/flash-list';
 
-export default function ({navigation}) {
+const Home = ({navigation}) => {
   const {colors} = useTheme();
   const {width, height} = useWindowDimensions();
   const tabs = [
@@ -30,14 +30,14 @@ export default function ({navigation}) {
   ];
 
   const batchData = useSelector(state => state.batchDetails.data);
-  const batchLoading = useSelector(state => state.batchDetails.isLoading);
+  const {isLoading, error, isSuccess} = useSelector(
+    state => state.batchDetails,
+  );
   const dispatch = useDispatch();
   const [tab, setTab] = useState(tabs[0]);
   // const [hasData, setHasData] = useState(false);
   const [clientData, setClientData] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  console.log('clientData: ', clientData);
+  const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
     Alert.alert(
@@ -56,21 +56,10 @@ export default function ({navigation}) {
               getDetails({
                 branchid: 0,
                 collectorid: 1,
-                clientid: 1974,
-                slclass: [12, 13],
+                // clientid: 1974,
+                // slclass: [12, 13],
               }),
             );
-
-            {
-              batchLoading
-                ? Alert.alert('Info', 'Downloading, Please wait . . .')
-                : Alert.alert('Info', 'Successfully Downloaded', [
-                    {
-                      text: 'Next',
-                      onPress: () => saveData(),
-                    },
-                  ]);
-            }
           },
         },
       ],
@@ -81,7 +70,13 @@ export default function ({navigation}) {
     if (batchData) {
       showData();
     }
-  }, [batchData, saveData, fetchData]);
+
+    if (isSuccess) {
+      saveData();
+    }
+  }, [batchData, saveData, fetchData, isSuccess]);
+
+  console.log('batchLoading: ', isLoading);
 
   const saveData = useCallback(async () => {
     Alert.alert('Saving Data', 'Are you sure you want to save the data?', [
@@ -244,4 +239,6 @@ export default function ({navigation}) {
       </SafeAreaView>
     </View>
   );
-}
+};
+
+export default Home;
