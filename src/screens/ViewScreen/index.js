@@ -184,7 +184,7 @@ const ViewScreen = ({navigation, route}) => {
                     .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
                 };
 
-                const id = collection.REF_NO; // Unique identifier for the item
+                const id = collection.REF_TARGET; // Unique identifier for the item
                 const name = collection.SLDESCR;
 
                 return (
@@ -192,7 +192,7 @@ const ViewScreen = ({navigation, route}) => {
                     key={index}
                     style={{flex: 1, width: width - 30, marginVertical: 10}}
                     title={name}
-                    description={'REF# ' + collection.REF_NO}
+                    description={collection.REF_TARGET}
                     placeholder="0.00"
                     checkedBoxLabel="Input Amount"
                     value={inputAmounts[id]?.SLDESCR || ''}
@@ -207,76 +207,6 @@ const ViewScreen = ({navigation, route}) => {
                     interest={formatNumber(collection.INTDUE)}
                     penalty={formatNumber(collection.PENDUE)}
                     total={formatNumber(total.toFixed(2))}
-                  />
-                );
-              })}
-          </View>
-
-          <View style={styles.specifications}>
-            {item &&
-              item.collections &&
-              item.collections.map((collection, index) => {
-                const a = parseFloat(collection.PRINDUE);
-                const b = parseFloat(collection.INTDUE);
-                const c = parseFloat(collection.PENDUE);
-
-                const total = a + b + c;
-                const formatNumber = number => {
-                  return number
-                    .toString()
-                    .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                };
-
-                const id = collection.REF_NO; // Unique identifier for the item
-
-                return (
-                  <CardReport02
-                    key={index}
-                    style={{flex: 1, width: width - 30, marginVertical: 10}}
-                    title={'Share Capital'}
-                    description={'REF# ' + collection.REF_NO}
-                    placeholder="0.00"
-                    checkedBoxLabel="Input Amount"
-                    value={inputAmounts[id]?.SHARECAPITAL || ''}
-                    onChangeText={val =>
-                      handleInputChange(id, 'SHARECAPITAL', val)
-                    }
-                    checkBoxEnabled={true}
-                    checkBox={!!inputAmounts[id]?.SHARECAPITAL}
-                  />
-                );
-              })}
-          </View>
-
-          <View style={styles.specifications}>
-            {item &&
-              item.collections &&
-              item.collections.map((collection, index) => {
-                const a = parseFloat(collection.PRINDUE);
-                const b = parseFloat(collection.INTDUE);
-                const c = parseFloat(collection.PENDUE);
-
-                const total = a + b + c;
-                const formatNumber = number => {
-                  return number
-                    .toString()
-                    .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                };
-
-                const id = collection.REF_NO; // Unique identifier for the item
-
-                return (
-                  <CardReport02
-                    key={index}
-                    style={{flex: 1, width: width - 30, marginVertical: 10}}
-                    title={'Deposit'}
-                    description={'REF# ' + collection.REF_NO}
-                    placeholder="0.00"
-                    checkedBoxLabel="Input Amount"
-                    value={inputAmounts[id]?.DEPOSIT || ''}
-                    onChangeText={val => handleInputChange(id, 'DEPOSIT', val)}
-                    checkBoxEnabled={true}
-                    checkBox={!!inputAmounts[id]?.DEPOSIT}
                   />
                 );
               })}

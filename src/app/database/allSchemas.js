@@ -21,13 +21,12 @@ export const ClientSchema = {
 export const CollectionSchema = {
   name: Collection,
   properties: {
-    ID: 'string',
-    CLIENTNAME: 'string',
+    BRCODE: 'int',
     SLC: 'int',
     SLT: 'int',
     REF: 'int',
     SLDESCR: 'string',
-    REF_NO: 'string',
+    REF_TARGET: 'string',
     PRINCIPAL: 'string',
     BALANCE: 'string',
     PRINDUE: 'string',
@@ -35,8 +34,6 @@ export const CollectionSchema = {
     PENDUE: 'string',
     INSDUE: 'string',
     TOTALDUE: 'string',
-    SHARECAPITAL: 'string',
-    DEPOSIT: 'string',
   },
 };
 

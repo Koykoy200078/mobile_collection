@@ -38,30 +38,43 @@ const CheckOutScreen = ({navigation, route}) => {
     maximumFractionDigits: 2,
   });
 
-  console.log('allData: ', allData);
+  console.log('total: ', total);
 
   const renderedItem = Object.keys(inputAmounts)
     .map(refNo => {
-      const {SLDESCR, DEPOSIT, SHARECAPITAL} = inputAmounts[refNo];
+      const {REF_TARGET, SLDESCR, DEPOSIT, SHARECAPITAL} = inputAmounts[refNo];
+
+      console.log('inputAmounts: ', inputAmounts, refNo);
 
       const matchingItem = allData.collections.find(
-        item => item.REF_NO === refNo,
+        item => item.REF_TARGET === refNo,
       );
 
       if (!matchingItem) {
         return null; // Skip if there is no matching item in the API data
       }
 
-      if (!SLDESCR && !DEPOSIT && !SHARECAPITAL) {
+      if (!REF_TARGET && !SLDESCR && !DEPOSIT && !SHARECAPITAL) {
         return null; // Skip if name is missing or both deposit and share capital are empty
       }
       return (
         <View key={refNo}>
+          {REF_TARGET ? (
+            <CardReport02
+              style={{flex: 1, width: width - 30, marginVertical: 10}}
+              title={matchingItem.REF_TARGET}
+              description={refNo}
+              checkedBoxLabel="Total Amount Paid"
+              value={REF_TARGET}
+              editable={false}
+            />
+          ) : null}
+
           {SLDESCR ? (
             <CardReport02
               style={{flex: 1, width: width - 30, marginVertical: 10}}
               title={matchingItem.SLDESCR}
-              description={`REF# ${refNo}`}
+              description={refNo}
               checkedBoxLabel="Total Amount Paid"
               value={SLDESCR}
               editable={false}
@@ -72,7 +85,7 @@ const CheckOutScreen = ({navigation, route}) => {
             <CardReport02
               style={{flex: 1, width: width - 30, marginVertical: 10}}
               title="Share Capital"
-              description={`REF# ${refNo}`}
+              description={refNo}
               checkedBoxLabel="Total Amount Paid"
               value={SHARECAPITAL}
               editable={false}
@@ -83,7 +96,7 @@ const CheckOutScreen = ({navigation, route}) => {
             <CardReport02
               style={{flex: 1, width: width - 30, marginVertical: 10}}
               title="Deposit"
-              description={`REF# ${refNo}`}
+              description={refNo}
               checkedBoxLabel="Total Amount Paid"
               value={DEPOSIT}
               editable={false}
@@ -146,20 +159,18 @@ const CheckOutScreen = ({navigation, route}) => {
           REF: collection.REF,
           SLDESCR: collection.SLDESCR,
           REF_NO: collection.REF_NO,
-          AMT: '1000.00', // You can add any other dynamic data here
+          AMT: totalAmount,
           SHARECAPITAL: collection.SHARECAPITAL,
           DEPOSIT: collection.DEPOSIT,
-          REMARKS: 'Paid Due', // You can add any other dynamic data here
+          REMARKS: 'Paid Due',
         })),
       };
 
       // Begin a write transaction
       realm.write(() => {
-        // Create or update the 'UploadData' object in the database
         realm.create(UploadData, transformedData, Realm.UpdateMode.Modified);
       });
       transactionData();
-      // Close the Realm after use
     } catch (error) {
       Alert.alert('Error', 'Error saving data!');
       console.error('Error: ', error);

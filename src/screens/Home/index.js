@@ -119,6 +119,7 @@ const Home = ({navigation}) => {
             showData();
           } catch (error) {
             Alert.alert('Error', 'Error saving data!');
+            console.error(error);
           }
         },
       },
@@ -132,6 +133,7 @@ const Home = ({navigation}) => {
       setClientData(Array.from(clients));
     } catch (error) {
       Alert.alert('Error retrieving data', error);
+      console.error(error);
     }
   }, []);
 
@@ -180,7 +182,11 @@ const Home = ({navigation}) => {
             const clientName = lName + fName + ' ' + mName + ' ' + sName;
 
             const handlePress = item => {
-              navigation.navigate(ROUTES.VIEW, {item: item});
+              if (item.collections.length === 0) {
+                Alert.alert('Info', 'This client has no collection data');
+              } else {
+                navigation.navigate(ROUTES.VIEW, {item: item});
+              }
             };
 
             return (
