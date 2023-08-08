@@ -146,7 +146,7 @@ const Home = ({navigation}) => {
             return (
               <TouchableOpacity onPress={fetchData}>
                 <Icons.Ionicons
-                  name="md-cloud-download-outline"
+                  name="cloud-download-outline"
                   size={24}
                   color={colors.primaryLight}
                 />

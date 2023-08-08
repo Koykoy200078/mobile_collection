@@ -1,4 +1,4 @@
-package com.collector;
+package coop.sacredheart.collector;
 
 import android.os.Bundle;
 import com.facebook.react.ReactActivity;

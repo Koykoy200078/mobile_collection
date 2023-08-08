@@ -1,4 +1,4 @@
-package com.collector;
+package coop.sacredheart.collector;
 
 import android.app.Application;
 import com.facebook.react.PackageList;
