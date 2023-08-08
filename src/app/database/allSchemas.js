@@ -58,22 +58,19 @@ export const uploadSchema = {
 export const uploadDataCollection = {
   name: UploadDataCollection,
   properties: {
-    ID: 'string',
-    CLIENTNAME: 'string',
+    BRCODE: 'int',
     SLC: 'int',
     SLT: 'int',
     REF: 'int',
     SLDESCR: 'string',
-    REF_NO: 'string',
+    REF_TARGET: 'string',
     AMT: 'string',
-    SHARECAPITAL: 'string',
-    DEPOSIT: 'string',
     REMARKS: 'string',
   },
 };
 
 const databaseOptions = {
-  path: 'collectorList.realm',
+  path: 'CollectorList.realm',
   schema: [ClientSchema, CollectionSchema, uploadSchema, uploadDataCollection],
   schemaVersion: 1,
 };

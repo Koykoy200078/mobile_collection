@@ -44,8 +44,6 @@ const CheckOutScreen = ({navigation, route}) => {
     .map(refNo => {
       const {REF_TARGET, SLDESCR, DEPOSIT, SHARECAPITAL} = inputAmounts[refNo];
 
-      console.log('inputAmounts: ', inputAmounts, refNo);
-
       const matchingItem = allData.collections.find(
         item => item.REF_TARGET === refNo,
       );
@@ -152,16 +150,13 @@ const CheckOutScreen = ({navigation, route}) => {
         DateOfBirth: targetClient.DateOfBirth,
         SMSNumber: targetClient.SMSNumber,
         collections: targetClient.collections.map(collection => ({
-          ID: collection.ID,
-          CLIENTNAME: collection.CLIENTNAME,
+          BRCODE: collection.BRCODE,
           SLC: collection.SLC,
           SLT: collection.SLT,
           REF: collection.REF,
           SLDESCR: collection.SLDESCR,
-          REF_NO: collection.REF_NO,
+          REF_TARGET: collection.REF_TARGET,
           AMT: totalAmount,
-          SHARECAPITAL: collection.SHARECAPITAL,
-          DEPOSIT: collection.DEPOSIT,
           REMARKS: 'Paid Due',
         })),
       };

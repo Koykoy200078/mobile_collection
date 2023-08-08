@@ -21,24 +21,19 @@ import {Icons} from '../../app/config/icons';
 import databaseOptions, {Client} from '../../app/database/allSchemas';
 
 const ViewScreen = ({navigation, route}) => {
-  const dispatch = useDispatch();
   const {width} = useWindowDimensions();
   const {colors} = useTheme();
-  const myRef = useRef(null);
   const [item, setItem] = useState('');
   const [isCollapsed, setIsCollapsed] = useState({});
   const [inputAmounts, setInputAmounts] = useState({});
   const [totalValue, setTotalValue] = useState(0);
-  const [collectionData, setCollectionData] = useState(null);
-
-  console.log('item: ', item);
 
   useEffect(() => {
     calculateTotalValue();
   }, [isCollapsed, inputAmounts]);
 
   useEffect(() => {
-    if (route?.params?.item) {
+    if (route.params?.item) {
       setItem(route.params.item);
     }
   }, [route]);
@@ -142,6 +137,7 @@ const ViewScreen = ({navigation, route}) => {
                         });
 
                         Alert.alert('Success', 'Data updated successfully!');
+                        navigation.goBack();
                       } catch (error) {
                         Alert.alert('Error', 'Error updating data!');
                         console.error('Error: ', error);
@@ -163,9 +159,9 @@ const ViewScreen = ({navigation, route}) => {
             title3
             body1
             className="text-xl font-bold text-black dark:text-white">
-            {item.isPaid ? (
+            {item.isPaid && (
               <Image source={Images.complete} style={{width: 20, height: 20}} />
-            ) : null}{' '}
+            )}{' '}
             {getName}
           </Text>
 
@@ -184,21 +180,20 @@ const ViewScreen = ({navigation, route}) => {
                     .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
                 };
 
-                const id = collection.REF_TARGET; // Unique identifier for the item
-                const name = collection.SLDESCR;
-
                 return (
                   <CardReport02
                     key={index}
                     style={{flex: 1, width: width - 30, marginVertical: 10}}
-                    title={name}
+                    title={collection.SLDESCR}
                     description={collection.REF_TARGET}
                     placeholder="0.00"
                     checkedBoxLabel="Input Amount"
-                    value={inputAmounts[id]?.SLDESCR || ''}
-                    onChangeText={val => handleInputChange(id, 'SLDESCR', val)}
+                    value={inputAmounts[collection.REF_TARGET]?.SLDESCR || ''}
+                    onChangeText={val =>
+                      handleInputChange(collection.REF_TARGET, 'SLDESCR', val)
+                    }
                     checkBoxEnabled={true}
-                    checkBox={!!inputAmounts[id]?.SLDESCR}
+                    checkBox={!!inputAmounts[collection.REF_TARGET]?.SLDESCR}
                     isActive={isCollapsed[index] ? 'angle-down' : 'angle-up'}
                     enableTooltip={true}
                     toggleAccordion={() => handleAccordionToggle(index)}

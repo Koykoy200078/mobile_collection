@@ -7,6 +7,7 @@ import {Button} from '../../app/components';
 import {imageUri} from './imageUri';
 import {ROUTES} from '../../app/config';
 import RNPrint from 'react-native-print';
+import {ScrollView} from 'react-native-gesture-handler';
 
 const PrintOutScreen = ({navigation, route}) => {
   const [data, setData] = useState(null);
@@ -66,21 +67,38 @@ const PrintOutScreen = ({navigation, route}) => {
 
   const renderedItem = Object.keys(inputAmounts)
     .map(refNo => {
-      const {SLDESCR, DEPOSIT, SHARECAPITAL} = inputAmounts[refNo];
+      const {REF_TARGET, SLDESCR, DEPOSIT, SHARECAPITAL} = inputAmounts[refNo];
       const matchingItem = allData.collections.find(
-        item => item.REF_NO === refNo,
+        item => item.REF_TARGET === refNo,
       );
+
+      console.log('refNo: ', refNo);
+      console.log('matchingItem: ', matchingItem);
 
       if (!matchingItem) {
         return null; // Skip if there is no matching item in the API data
       }
 
-      if (!SLDESCR && !DEPOSIT && !SHARECAPITAL) {
+      if (!REF_TARGET && !SLDESCR && !DEPOSIT && !SHARECAPITAL) {
         return null; // Skip if name is missing or both deposit and share capital are empty
       }
 
       // Generate the HTML markup for each item
       let itemHTML = '';
+      if (REF_TARGET) {
+        let ref_target = parseFloat(REF_TARGET).toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+        itemHTML += `
+          <div class="flex-column"
+            style="justify-content: flex-start">
+            <div class="section-title" style="font-size: 12px">${matchingItem.REF_TARGET}</div>
+            <div class="section-value" style="margin-left: 10px; font-size: 12px">${refNo}</div>
+            <div class="section-value" style="margin-left: 10px; font-size: 12px">Amount Paid: ${ref_target}</div>
+          </div>
+        `;
+      }
 
       if (SLDESCR) {
         let sldescr = parseFloat(SLDESCR).toLocaleString('en-US', {
@@ -91,7 +109,7 @@ const PrintOutScreen = ({navigation, route}) => {
           <div class="flex-column"
             style="justify-content: flex-start">
             <div class="section-title" style="font-size: 12px">${matchingItem.SLDESCR}</div>
-            <div class="section-value" style="margin-left: 10px; font-size: 12px">REF# ${refNo}</div>
+            <div class="section-value" style="margin-left: 10px; font-size: 12px">${refNo}</div>
             <div class="section-value" style="margin-left: 10px; font-size: 12px">Amount Paid: ${sldescr}</div>
           </div>
         `;
@@ -106,7 +124,7 @@ const PrintOutScreen = ({navigation, route}) => {
           <div class="flex-column"
             style="justify-content: flex-start">
             <div class="section-title" style="font-size: 12px">Share Capital</div>
-            <div class="section-value" style="margin-left: 10px; font-size: 12px">REF# ${refNo}</div>
+            <div class="section-value" style="margin-left: 10px; font-size: 12px">${refNo}</div>
             <div class="section-value" style="margin-left: 10px; font-size: 12px">Amount Paid: ${sharecapital}</div>
           </div>
         `;
@@ -121,7 +139,7 @@ const PrintOutScreen = ({navigation, route}) => {
           <div class="flex-column"
             style="justify-content: flex-start">
             <div class="section-title" style="font-size: 12px">Deposit</div>
-            <div class="section-value" style="margin-left: 10px; font-size: 12px">REF# ${refNo}</div>
+            <div class="section-value" style="margin-left: 10px; font-size: 12px">${refNo}</div>
             <div class="section-value" style="margin-left: 10px; font-size: 12px">Amount Paid: ${deposit}</div>
           </div>
         `;
@@ -130,7 +148,69 @@ const PrintOutScreen = ({navigation, route}) => {
       return itemHTML;
     })
     .filter(Boolean)
-    .join(''); // Filter out null values and join the rendered items into a string
+    .join('');
+
+  // RenderData
+  const renderData = Object.keys(inputAmounts)
+    .map(refNo => {
+      const {REF_TARGET, SLDESCR, DEPOSIT, SHARECAPITAL} = inputAmounts[refNo];
+      const matchingItem = allData.collections.find(
+        item => item.REF_TARGET.toString() === refNo.toString(),
+      );
+
+      console.log('refNo2: ', refNo);
+      console.log('matchingItem2: ', matchingItem);
+
+      if (
+        !matchingItem ||
+        (!REF_TARGET && !SLDESCR && !DEPOSIT && !SHARECAPITAL)
+      ) {
+        return null; // Skip if there is no matching item or missing refNo
+      }
+
+      const ref_targetAmount = parseFloat(SLDESCR).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+      return (
+        <View key={refNo} className="items-start">
+          <Text
+            className="text-center text-base font-bold"
+            style={{color: '#000'}}>
+            {matchingItem.SLDESCR}
+          </Text>
+          <View style={{flexDirection: 'row'}}>
+            <View style={{width: '50%'}}>
+              <Text style={{flexShrink: 1, fontWeight: 'bold', color: '#000'}}>
+                Reference No.
+              </Text>
+            </View>
+            <View>
+              <Text
+                className="text-center"
+                style={{flexShrink: 1, color: '#000'}}>
+                {matchingItem.REF_TARGET}
+              </Text>
+            </View>
+          </View>
+
+          <View style={{flexDirection: 'row'}}>
+            <View style={{width: '50%'}}>
+              <Text style={{flexShrink: 1, fontWeight: 'bold', color: '#000'}}>
+                Amount Paid
+              </Text>
+            </View>
+            <View>
+              <Text className="text-sm" style={{flexShrink: 1, color: '#000'}}>
+                {ref_targetAmount}
+              </Text>
+            </View>
+          </View>
+        </View>
+      );
+    })
+    .filter(Boolean);
 
   const printHTML = async () => {
     await RNPrint.print({
@@ -305,147 +385,155 @@ const PrintOutScreen = ({navigation, route}) => {
 
   return (
     <SafeAreaView className="flex-1 p-5">
-      <View className="space-y-10">
-        <View className="">
-          <Text
-            className="text-center text-2xl font-bold"
-            style={{color: '#000'}}>
-            SUMMARY REPORT
-          </Text>
-          <Text
-            className="text-center text-xs font-bold"
-            style={{color: '#000'}}>
-            Amount has been sent to the biller.
-          </Text>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View className="space-y-10">
+          <View className="">
+            <Text
+              className="text-center text-2xl font-bold"
+              style={{color: '#000'}}>
+              COLLECTION RECEIPT
+            </Text>
+            <Text
+              className="text-center text-xs font-bold"
+              style={{color: '#000'}}>
+              Amount has been sent to the biller.
+            </Text>
+          </View>
+
+          <View className="space-y-4">
+            <View className="items-start">
+              <Text
+                className="text-center text-base font-bold"
+                style={{color: '#000'}}>
+                BILLER
+              </Text>
+              <View style={{flexDirection: 'row', padding: 5}}>
+                <View style={{width: '45%'}}>
+                  <Text
+                    style={{flexShrink: 1, fontWeight: 'bold', color: '#000'}}>
+                    Account Name
+                  </Text>
+                </View>
+                <View
+                  style={{width: '60%'}}
+                  numberOfLines={1}
+                  ellipsizeMode="tail">
+                  <Text style={{flexShrink: 1, color: '#000'}}>{name}</Text>
+                </View>
+              </View>
+              <View style={{flexDirection: 'row', padding: 5}}>
+                <View style={{width: '45%'}}>
+                  <Text
+                    style={{flexShrink: 1, fontWeight: 'bold', color: '#000'}}>
+                    Account ID
+                  </Text>
+                </View>
+                <View>
+                  <Text
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    style={{flexShrink: 1, color: '#000'}}>
+                    {allData.ClientID || 'N/A'}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View className="h-[1] w-full border" />
+
+            {renderData}
+
+            <View className="items-start">
+              <Text
+                className="text-center text-base font-bold"
+                style={{color: '#000'}}>
+                TOTAL PAID
+              </Text>
+              <View style={{flexDirection: 'row', padding: 5}}>
+                <View style={{width: '50%'}}>
+                  <Text
+                    style={{flexShrink: 1, fontWeight: 'bold', color: '#000'}}>
+                    Amount
+                  </Text>
+                </View>
+                <View>
+                  <Text style={{flexShrink: 1, color: '#000'}}>
+                    {totalAmount}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View className="h-[1] w-full border" />
+
+            <View className="items-start">
+              <Text
+                className="text-center text-base font-bold"
+                style={{color: '#000'}}>
+                TRANSACTIONS DETAILS
+              </Text>
+
+              <View style={{flexDirection: 'row', padding: 5}}>
+                <View style={{width: '50%'}}>
+                  <Text
+                    style={{flexShrink: 1, fontWeight: 'bold', color: '#000'}}>
+                    Receipt No.
+                  </Text>
+                </View>
+                <View>
+                  <Text style={{flexShrink: 1, color: '#000'}}>
+                    {receiptNo}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={{flexDirection: 'row', padding: 5}}>
+                <View style={{width: '50%'}}>
+                  <Text
+                    style={{flexShrink: 1, fontWeight: 'bold', color: '#000'}}>
+                    Date
+                  </Text>
+                </View>
+                <View>
+                  <Text style={{flexShrink: 1, color: '#000'}}>
+                    {formattedDate}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={{flexDirection: 'row', padding: 5}}>
+                <View style={{width: '50%'}}>
+                  <Text
+                    style={{flexShrink: 1, fontWeight: 'bold', color: '#000'}}>
+                    Reference ID
+                  </Text>
+                </View>
+                <View>
+                  <Text style={{flexShrink: 1, color: '#000'}}>
+                    {referenceID}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+
+      <View className="p-[10]" style={styles.container}>
+        <View style={styles.specifications}>
+          <Button full onPress={() => printHTML()}>
+            PRINT
+          </Button>
         </View>
 
-        <View className="space-y-4">
-          <View className="items-start">
-            <Text
-              className="text-center text-base font-bold"
-              style={{color: '#000'}}>
-              BILLER
-            </Text>
-            <View style={{flexDirection: 'row', padding: 5}}>
-              <View style={{width: '50%'}}>
-                <Text
-                  style={{flexShrink: 1, fontWeight: 'bold', color: '#000'}}>
-                  Account Name
-                </Text>
-              </View>
-              <View>
-                <Text style={{flexShrink: 1, color: '#000'}}>{name}</Text>
-              </View>
-            </View>
-            <View style={{flexDirection: 'row', padding: 5}}>
-              <View style={{width: '50%'}}>
-                <Text
-                  style={{flexShrink: 1, fontWeight: 'bold', color: '#000'}}>
-                  Account Number
-                </Text>
-              </View>
-              <View>
-                <Text style={{flexShrink: 1, color: '#000'}}>
-                  {filteredData.ID || 'N/A'}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          <View className="h-[1] w-full border" />
-
-          <View className="items-start">
-            <Text
-              className="text-center text-base font-bold"
-              style={{color: '#000'}}>
-              TOTAL PAID
-            </Text>
-            <View style={{flexDirection: 'row', padding: 5}}>
-              <View style={{width: '50%'}}>
-                <Text
-                  style={{flexShrink: 1, fontWeight: 'bold', color: '#000'}}>
-                  Amount
-                </Text>
-              </View>
-              <View>
-                <Text style={{flexShrink: 1, color: '#000'}}>
-                  {totalAmount}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          <View className="h-[1] w-full border" />
-
-          <View className="items-start">
-            <Text
-              className="text-center text-base font-bold"
-              style={{color: '#000'}}>
-              TRANSACTIONS DETAILS
-            </Text>
-
-            <View style={{flexDirection: 'row', padding: 5}}>
-              <View style={{width: '50%'}}>
-                <Text
-                  style={{flexShrink: 1, fontWeight: 'bold', color: '#000'}}>
-                  Receipt No.
-                </Text>
-              </View>
-              <View>
-                <Text style={{flexShrink: 1, color: '#000'}}>{receiptNo}</Text>
-              </View>
-            </View>
-
-            <View style={{flexDirection: 'row', padding: 5}}>
-              <View style={{width: '50%'}}>
-                <Text
-                  style={{flexShrink: 1, fontWeight: 'bold', color: '#000'}}>
-                  Date
-                </Text>
-              </View>
-              <View>
-                <Text style={{flexShrink: 1, color: '#000'}}>
-                  {formattedDate}
-                </Text>
-              </View>
-            </View>
-
-            <View style={{flexDirection: 'row', padding: 5}}>
-              <View style={{width: '50%'}}>
-                <Text
-                  style={{flexShrink: 1, fontWeight: 'bold', color: '#000'}}>
-                  Reference ID
-                </Text>
-              </View>
-              <View>
-                <Text style={{flexShrink: 1, color: '#000'}}>
-                  {referenceID}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        <View className="p-[10]" style={styles.container}>
-          <View style={styles.specifications}>
-            {/* onPress={() => printHTML()} */}
-            <Button full onPress={() => printHTML()}>
-              PRINT
-            </Button>
-          </View>
-        </View>
-
-        <View className="p-[10]" style={styles.container}>
-          <View style={styles.specifications}>
-            {/* onPress={() => printHTML()} */}
-            <Button
-              full
-              onPress={() => {
-                navigation.navigate(ROUTES.HOME);
-              }}>
-              GO BACK
-            </Button>
-          </View>
+        <View style={styles.specifications}>
+          <Button
+            full
+            onPress={() => {
+              navigation.navigate(ROUTES.HOME);
+            }}>
+            GO BACK
+          </Button>
         </View>
       </View>
     </SafeAreaView>

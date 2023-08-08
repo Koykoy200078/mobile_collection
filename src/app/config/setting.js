@@ -2,8 +2,8 @@
  * Basic Setting Variables Define
  */
 export const BaseSetting = {
-  name: 'collector',
-  displayName: 'collector',
+  name: 'Collector',
+  displayName: 'Collector',
   appVersion: '1.0',
   defaultLanguage: 'en',
   languageSupport: ['en'],
