@@ -10,7 +10,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import {BaseStyle, ROUTES, useTheme} from '../../app/config';
-import {Header, Project02, TabTag} from '../../app/components';
+import {Header, Project02, Search, TabTag} from '../../app/components';
 import {Icons} from '../../app/config/icons';
 import styles from './styles';
 import {Realm} from '@realm/react';
@@ -31,6 +31,9 @@ const Home = ({navigation}) => {
   const dispatch = useDispatch();
 
   const [clientData, setClientData] = useState([]);
+
+  const filterData =
+    clientData && clientData.filter(item => item.collections.length > 0);
 
   const fetchData = useCallback(async () => {
     Alert.alert(
@@ -140,8 +143,8 @@ const Home = ({navigation}) => {
   const renderContent = useCallback(() => {
     return (
       <View style={{flex: 1}}>
-        <Header
-          title={'Collector List'}
+        {/* <Header
+          title={'Client List'}
           renderLeft={() => {
             return (
               <TouchableOpacity onPress={fetchData}>
@@ -153,14 +156,19 @@ const Home = ({navigation}) => {
               </TouchableOpacity>
             );
           }}
-        />
+          renderRight={() => {
+            return <Search />;
+          }}
+        /> */}
+
+        <Search title={'Client Collection'} onPress={fetchData} />
 
         <View className="mt-2" />
 
         <FlashList
           contentContainerStyle={styles.paddingFlatList}
           estimatedItemSize={200}
-          data={clientData}
+          data={filterData}
           keyExtractor={(_item, index) => index.toString()}
           renderItem={({item}) => {
             const {FName, MName, LName, SName, collections, SLDESCR} = item;

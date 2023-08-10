@@ -10,3 +10,5 @@ export {default as Tag} from './Tag';
 export {default as CardReport02} from './Card/Report02';
 export {default as CheckBox} from './CheckBox';
 export {default as ProductSpecGrid} from './Product/SpecGrid';
+
+export {default as Search} from './Search';

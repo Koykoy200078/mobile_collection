@@ -63,11 +63,6 @@ export default function Header(props) {
       </View>
       <View style={[styles.right, styleRight]}>
         <TouchableOpacity
-          style={[styles.contentRightSecond, styleRightSecond]}
-          onPress={onPressRightSecond}>
-          {renderRightSecond()}
-        </TouchableOpacity>
-        <TouchableOpacity
           style={[styles.contentRight, styleContentRight]}
           onPress={onPressRight}>
           {renderRight()}

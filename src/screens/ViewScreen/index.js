@@ -46,13 +46,40 @@ const ViewScreen = ({navigation, route}) => {
   };
 
   const handleInputChange = (index, name, value) => {
-    setInputAmounts(prevState => ({
-      ...prevState,
-      [index]: {
-        ...prevState[index],
-        [name]: value,
-      },
-    }));
+    const collection = item.collections.find(c => c.REF_TARGET === index);
+
+    console.log('collection: ', collection);
+
+    // setInputAmounts(prevState => ({
+    //   ...prevState,
+    //   [index]: {
+    //     ...prevState[index],
+    //     [name]: value,
+    //   },
+    // }));
+    if (collection) {
+      const balance = parseFloat(collection.TOTALDUE);
+      const inputValue = parseFloat(value);
+
+      const newBal = balance.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+      if (inputValue > balance) {
+        Alert.alert(
+          'Warning',
+          `The input amount should not exceed the total due of ${newBal}`,
+        );
+      } else {
+        setInputAmounts(prevState => ({
+          ...prevState,
+          [index]: {
+            ...prevState[index],
+            [name]: value,
+          },
+        }));
+      }
+    }
   };
 
   const calculateTotalValue = () => {
