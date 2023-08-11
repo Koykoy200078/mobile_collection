@@ -23,6 +23,8 @@ import {useFocusEffect} from '@react-navigation/native';
 const Home = ({navigation}) => {
   const {colors} = useTheme();
   const {width, height} = useWindowDimensions();
+  const [search, setSearch] = useState('');
+  const [filteredClients, setFilteredClients] = useState([]);
 
   const batchData = useSelector(state => state.batchDetails.data);
   const {isLoading, error, isSuccess} = useSelector(
@@ -64,7 +66,7 @@ const Home = ({navigation}) => {
 
   useEffect(() => {
     showData();
-  }, [batchData]);
+  }, [batchData, search, filteredClients]);
 
   useEffect(() => {
     if (isSuccess) {
@@ -140,6 +142,21 @@ const Home = ({navigation}) => {
     }
   }, []);
 
+  const handleSearch = query => {
+    const normalizedQuery = query.toLowerCase();
+    const data = filterData.filter(
+      client =>
+        client.FName.toLowerCase().includes(normalizedQuery) ||
+        client.MName.toLowerCase().includes(normalizedQuery) ||
+        client.LName.toLowerCase().includes(normalizedQuery),
+    );
+    setFilteredClients(data);
+  };
+
+  const aa = () => {
+    setSearch(null);
+    setFilteredClients(null);
+  };
   const renderContent = useCallback(() => {
     return (
       <View style={{flex: 1}}>
@@ -161,14 +178,23 @@ const Home = ({navigation}) => {
           }}
         /> */}
 
-        <Search title={'Client Collection'} onPress={fetchData} />
+        <Search
+          title={'Client Collection'}
+          onPress={fetchData}
+          value={search}
+          onChangeText={val => {
+            setSearch(val);
+            handleSearch(val);
+          }}
+          clearStatus={true ? aa : false}
+        />
 
         <View className="mt-2" />
 
         <FlashList
           contentContainerStyle={styles.paddingFlatList}
           estimatedItemSize={200}
-          data={filterData}
+          data={filteredClients ? filteredClients : filterData} //search ? search :
           keyExtractor={(_item, index) => index.toString()}
           renderItem={({item}) => {
             const {FName, MName, LName, SName, collections, SLDESCR} = item;

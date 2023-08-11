@@ -10,6 +10,7 @@ import {
   ScrollView,
   Animated,
   Easing,
+  useWindowDimensions,
 } from 'react-native';
 
 import {Text} from '..';
@@ -17,13 +18,13 @@ import {Text} from '..';
 import {Images} from '../../config';
 import {Icons} from '../../config/icons';
 import {TouchableOpacity} from 'react-native-gesture-handler';
+import {FlashList} from '@shopify/flash-list';
 const {Value, timing} = Animated;
 
-const {width, height} = Dimensions.get('window');
-
-const Search = ({title, onPress}) => {
+const Search = ({title, onPress, value, onChangeText, clearStatus = false}) => {
+  const {width, height} = useWindowDimensions();
   const [isFocused, setIsFocused] = useState(false);
-  const [searchText, setSearchText] = useState('');
+  // const [searchText, setSearchText] = useState('');
 
   const _inputBoxTranslateX = useRef(new Animated.Value(width)).current;
   const _backButtonOpacity = useRef(new Animated.Value(0)).current;
@@ -31,6 +32,7 @@ const Search = ({title, onPress}) => {
   const _contentOpacity = useRef(new Animated.Value(0)).current;
 
   const refInput = useRef(null);
+  useEffect(() => {}, [isFocused]);
 
   const animateInputBox = (toValue, duration) => {
     return Animated.timing(_inputBoxTranslateX, {
@@ -77,6 +79,7 @@ const Search = ({title, onPress}) => {
 
   const _onBlur = () => {
     setIsFocused(false);
+    clearStatus(true);
     Animated.parallel([
       animateInputBox(width, 200),
       animateBackButton(0, 50),
@@ -105,11 +108,13 @@ const Search = ({title, onPress}) => {
             ) : (
               <>
                 <TouchableOpacity onPress={onPress}>
-                  <Icons.Feather
-                    name="download-cloud"
-                    size={30}
-                    color="#161924"
-                  />
+                  <View className="mx-2">
+                    <Icons.Feather
+                      name="download-cloud"
+                      size={30}
+                      color="#161924"
+                    />
+                  </View>
                 </TouchableOpacity>
 
                 <Text
@@ -150,8 +155,8 @@ const Search = ({title, onPress}) => {
                   ref={refInput}
                   placeholder="Search"
                   clearButtonMode="always"
-                  value={searchText}
-                  onChangeText={text => setSearchText(text)}
+                  value={value}
+                  onChangeText={onChangeText}
                   className="h-[45] px-3 text-base text-black dark:text-black"
                 />
               </View>
@@ -160,7 +165,7 @@ const Search = ({title, onPress}) => {
         </View>
       </SafeAreaView>
 
-      <Animated.View
+      {/* <Animated.View
         className="absolute left-0 bottom-0 z-[999]"
         style={{
           width: width,
@@ -169,48 +174,78 @@ const Search = ({title, onPress}) => {
           transform: [{translateY: _contentTranslateY}],
         }}>
         <SafeAreaView className="flex-1">
-          <View className="flex-1">
-            <View className="h-1" />
-            {searchText.length < 0 ? (
-              <View className="flex-1 flex-col justify-center items-center mt-[250]">
-                <Image
-                  source={Images.logo}
-                  style={{
-                    width: 100,
-                    height: 100,
-                  }}
-                />
-                <Text className="text-center mt-2">
-                  Search for items, brands and inspiration
-                </Text>
-              </View>
-            ) : (
-              <ScrollView className="border border-red-500 mt-[250] h-[250]">
-                <View className="flex-col h-10 items-center border-b ml-4">
-                  <Text
-                    headline
-                    numberOfLines={1}
-                    className="text-black dark:text-white">
-                    asdadasdasds
-                  </Text>
-                  <Text
-                    headline
-                    numberOfLines={1}
-                    className="text-black dark:text-white">
-                    asdadasdasds
-                  </Text>
-                  <Text
-                    headline
-                    numberOfLines={1}
-                    className="text-black dark:text-white">
-                    asdadasdasds
+          {searchText === '' ? (
+            <View className="flex-col justify-center items-center mt-[100] bg-white">
+              <Image
+                source={Images.logo}
+                style={{
+                  width: 100,
+                  height: 100,
+                }}
+              />
+              <Text className="text-center mt-2 text-black">
+                Search for items, brands and inspiration
+              </Text>
+            </View>
+          ) : (
+            <FlashList
+              contentContainerStyle={{paddingHorizontal: 20}}
+              estimatedItemSize={200}
+              data={filterData}
+              keyExtractor={(_item, index) => index.toString()}
+              renderItem={({item}) => {
+                const {FName, MName, LName, SName, collections, SLDESCR} = item;
+
+                const fName = FName || '';
+                const mName = MName || '';
+                const lName = LName ? LName + ', ' : '';
+                const sName = SName || '';
+
+                const totalDue = collections.reduce(
+                  (acc, data) => acc + parseFloat(data.TOTALDUE),
+                  0,
+                );
+
+                const formatNumber = number => {
+                  return number
+                    .toString()
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                };
+
+                const clientName = lName + fName + ' ' + mName + ' ' + sName;
+
+                const handlePress = item => {
+                  if (item.collections.length === 0) {
+                    Alert.alert('Info', 'This client has no collection data');
+                  } else {
+                    navigation.navigate(ROUTES.VIEW, {item: item});
+                  }
+                };
+
+                return (
+                  <Project02
+                    title={clientName}
+                    description={item.DateOfBirth}
+                    isPaid={item.isPaid}
+                    total_loans={totalDue ? formatNumber(totalDue) : ''}
+                    onPress={() => handlePress(item)}
+                    style={{
+                      marginBottom: 10,
+                    }}
+                  />
+                );
+              }}
+              ListEmptyComponent={
+                <View className="flex-1 items-center justify-center">
+                  <Text className="text-black dark:text-white font-bold">
+                    No data found.
                   </Text>
                 </View>
-              </ScrollView>
-            )}
-          </View>
+              }
+            />
+          )}
         </SafeAreaView>
-      </Animated.View>
+      </Animated.View> */}
     </>
   );
 };
