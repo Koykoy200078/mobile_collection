@@ -8,4 +8,7 @@ export const Images = {
   logo: require('../../assets/images/logo.png'),
 
   complete: require('../../assets/images/complete.png'),
+
+  cashIn: require('../../assets/images/cashIn.png'),
+  cashOut: require('../../assets/images/cashOut.png'),
 };

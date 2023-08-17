@@ -13,12 +13,14 @@ import {
   Platform,
   StatusBar,
   View,
+  Image,
 } from 'react-native';
 import {useSelector} from 'react-redux';
-import {BaseColor, BaseStyle, ROUTES, useTheme} from '../app/config';
+import {BaseColor, BaseStyle, Images, ROUTES, useTheme} from '../app/config';
 
 import Login from '../screens/Auth/Login';
-import Home from '../screens/Home';
+import Dashboard from '../screens/Dashboard';
+import CashIn from '../screens/CashIn';
 import {Icons} from '../app/config/icons';
 import ViewScreen from '../screens/ViewScreen';
 import CheckOutScreen from '../screens/CheckOutScreen';
@@ -35,7 +37,7 @@ const options = {
     open: {animation: 'timing', duration: 300, easing: Easing},
     close: {animation: 'timing', duration: 300, easing: Easing},
   },
-  cardStyleInterpolator: CardStyleInterpolators.forFadeFromCenter,
+  // cardStyleInterpolator: CardStyleInterpolators.forFadeFromCenter,
 };
 
 const AuthStack = createStackNavigator();
@@ -52,11 +54,14 @@ const Auth = () => {
 const MainStack = createStackNavigator();
 const Main = () => {
   return (
-    <MainStack.Navigator initialRouteName={ROUTES.HOME} screenOptions={options}>
+    <MainStack.Navigator
+      initialRouteName={ROUTES.DASHBOARD}
+      screenOptions={options}>
       <MainStack.Screen name={ROUTES.TAB} component={TabBar} />
       <MainStack.Screen name={ROUTES.VIEW} component={ViewScreen} />
       <MainStack.Screen name={ROUTES.CHECKOUT} component={CheckOutScreen} />
       <MainStack.Screen name={ROUTES.PRINTOUT} component={PrintOutScreen} />
+      <MainStack.Screen name={ROUTES.CASHIN} component={CashIn} />
     </MainStack.Navigator>
   );
 };
@@ -66,17 +71,24 @@ const TabBar = () => {
   const {colors} = useTheme();
   return (
     <Tab.Navigator
-      initialRouteName={ROUTES.HOME}
+      initialRouteName={ROUTES.DASHBOARD}
       screenOptions={({route}) => ({
         headerShown: false,
         tabBarIcon: ({focused, color, size}) => {
           let iconName;
-          if (route.name === ROUTES.HOME) {
-            iconName = focused ? 'home-outline' : 'home-sharp';
+          if (route.name === ROUTES.DASHBOARD) {
+            iconName = focused ? 'view-dashboard-outline' : 'view-dashboard';
+            return (
+              <Icons.MaterialCommunityIcons
+                name={iconName}
+                size={size}
+                color={color}
+              />
+            );
           } else if (route.name === ROUTES.ACCOUNT) {
             iconName = focused ? 'person-outline' : 'person-sharp';
+            return <Icons.Ionicons name={iconName} size={size} color={color} />;
           }
-          return <Icons.Ionicons name={iconName} size={size} color={color} />;
         },
         activeTintColor: '#000',
         inactiveTintColor: 'gray',
@@ -87,7 +99,7 @@ const TabBar = () => {
           fontSize: 12,
         },
       })}>
-      <Tab.Screen name={ROUTES.HOME} component={Home} />
+      <Tab.Screen name={ROUTES.DASHBOARD} component={Dashboard} />
       <Tab.Screen name={ROUTES.ACCOUNT} component={Account} />
     </Tab.Navigator>
   );

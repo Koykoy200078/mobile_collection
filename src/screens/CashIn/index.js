@@ -20,7 +20,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {FlashList} from '@shopify/flash-list';
 import {useFocusEffect} from '@react-navigation/native';
 
-const Home = ({navigation}) => {
+const CashIn = ({navigation}) => {
   const {colors} = useTheme();
   const {width, height} = useWindowDimensions();
   const [search, setSearch] = useState('');
@@ -157,6 +157,7 @@ const Home = ({navigation}) => {
     setSearch(null);
     setFilteredClients(null);
   };
+
   const renderContent = useCallback(() => {
     return (
       <View style={{flex: 1}}>
@@ -281,4 +282,4 @@ const Home = ({navigation}) => {
   );
 };
 
-export default Home;
+export default CashIn;

@@ -1,7 +1,8 @@
 export default {
   LOGIN: 'Login',
 
-  HOME: 'Home',
+  DASHBOARD: 'Dashboard',
+  CASHIN: 'CashIn',
   VIEW: 'View Client',
   CHECKOUT: 'Checkout',
   PRINTOUT: 'Printout',
