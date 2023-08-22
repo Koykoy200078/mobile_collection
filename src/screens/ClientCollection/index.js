@@ -1,14 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import {
-	View,
-	Text,
-	SafeAreaView,
-	TouchableOpacity,
-	FlatList,
-	Alert,
-	ActivityIndicator,
-	useWindowDimensions,
-} from 'react-native'
+import { View, Text, SafeAreaView, TouchableOpacity, FlatList, Alert, ActivityIndicator, useWindowDimensions } from 'react-native'
 import { BaseStyle, ROUTES, useTheme } from '../../app/config'
 import { Header, Project02, Search, TabTag } from '../../app/components'
 import { Icons } from '../../app/config/icons'
@@ -27,41 +18,34 @@ const ClientCollection = ({ navigation }) => {
 	const [filteredClients, setFilteredClients] = useState([])
 
 	const batchData = useSelector((state) => state.batchDetails.data)
-	const { isLoading, error, isSuccess } = useSelector(
-		(state) => state.batchDetails
-	)
+	const { isLoading, error, isSuccess } = useSelector((state) => state.batchDetails)
 	const dispatch = useDispatch()
 
 	const [clientData, setClientData] = useState([])
 
-	const filterData =
-		clientData && clientData.filter((item) => item.collections.length > 0)
+	const filterData = clientData && clientData.filter((item) => item.collections.length > 0)
 
 	const fetchData = useCallback(async () => {
-		Alert.alert(
-			'Downloading Data',
-			'Are you sure you want to download the data?',
-			[
-				{
-					text: 'NO',
-					onPress: () => Alert.alert('Cancelled', 'Data not downloaded'),
-					style: 'cancel',
+		Alert.alert('Downloading Data', 'Are you sure you want to download the data?', [
+			{
+				text: 'NO',
+				onPress: () => Alert.alert('Cancelled', 'Data not downloaded'),
+				style: 'cancel',
+			},
+			{
+				text: 'YES',
+				onPress: async () => {
+					dispatch(
+						getDetails({
+							branchid: 0,
+							collectorid: 1,
+							// clientid: 1974,
+							// slclass: [12, 13],
+						})
+					)
 				},
-				{
-					text: 'YES',
-					onPress: async () => {
-						dispatch(
-							getDetails({
-								branchid: 0,
-								collectorid: 1,
-								// clientid: 1974,
-								// slclass: [12, 13],
-							})
-						)
-					},
-				},
-			]
-		)
+			},
+		])
 	}, [dispatch])
 
 	useEffect(() => {
@@ -94,14 +78,7 @@ const ClientCollection = ({ navigation }) => {
 								}))
 
 								const dateOfBirth = new Date(client.DateOfBirth)
-								const formattedDateOfBirth = `${dateOfBirth.getFullYear()}-${(
-									dateOfBirth.getMonth() + 1
-								)
-									.toString()
-									.padStart(2, '0')}-${dateOfBirth
-									.getDate()
-									.toString()
-									.padStart(2, '0')}`
+								const formattedDateOfBirth = `${dateOfBirth.getFullYear()}-${(dateOfBirth.getMonth() + 1).toString().padStart(2, '0')}-${dateOfBirth.getDate().toString().padStart(2, '0')}`
 
 								const clientData = {
 									ClientID: client.ClientID,
@@ -144,26 +121,10 @@ const ClientCollection = ({ navigation }) => {
 		}
 	}, [search])
 
-	// const handleSearch = (query) => {
-	// 	const normalizedQuery = query.toLowerCase()
-	// 	const data = filterData.filter(
-	// 		(client) =>
-	// 			client.FName.toLowerCase().includes(normalizedQuery) ||
-	// 			client.MName.toLowerCase().includes(normalizedQuery) ||
-	// 			client.LName.toLowerCase().includes(normalizedQuery)
-	// 	)
-	// 	setFilteredClients(data)
-	// }
-
 	const handleSearch = useCallback(
 		(query) => {
 			const normalizedQuery = query.toLowerCase()
-			const data = filterData.filter(
-				(client) =>
-					client.FName.toLowerCase().includes(normalizedQuery) ||
-					client.MName.toLowerCase().includes(normalizedQuery) ||
-					client.LName.toLowerCase().includes(normalizedQuery)
-			)
+			const data = filterData.filter((client) => client.FName.toLowerCase().includes(normalizedQuery) || client.MName.toLowerCase().includes(normalizedQuery) || client.LName.toLowerCase().includes(normalizedQuery))
 			setFilteredClients(data)
 		},
 		[filterData]
@@ -177,24 +138,6 @@ const ClientCollection = ({ navigation }) => {
 	const renderContent = useCallback(() => {
 		return (
 			<View style={{ flex: 1 }}>
-				{/* <Header
-          title={'Client List'}
-          renderLeft={() => {
-            return (
-              <TouchableOpacity onPress={fetchData}>
-                <Icons.Ionicons
-                  name="cloud-download-outline"
-                  size={24}
-                  color={colors.primaryLight}
-                />
-              </TouchableOpacity>
-            );
-          }}
-          renderRight={() => {
-            return <Search />;
-          }}
-        /> */}
-
 				<Search
 					title={'Client Collection'}
 					onPress={fetchData}
@@ -221,10 +164,7 @@ const ClientCollection = ({ navigation }) => {
 						const lName = LName ? LName + ', ' : ''
 						const sName = SName || ''
 
-						const totalDue = collections.reduce(
-							(acc, data) => acc + parseFloat(data.TOTALDUE),
-							0
-						)
+						const totalDue = collections.reduce((acc, data) => acc + parseFloat(data.TOTALDUE), 0)
 
 						const formatNumber = (number) => {
 							return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
@@ -245,7 +185,7 @@ const ClientCollection = ({ navigation }) => {
 								title={clientName}
 								description={item.DateOfBirth}
 								isPaid={item.isPaid}
-								total_loans={totalDue ? formatNumber(totalDue) : ''}
+								total_loans={totalDue ? formatNumber(totalDue.toFixed(2)) : ''}
 								onPress={() => handlePress(item)}
 								style={{
 									marginBottom: 10,
@@ -255,22 +195,13 @@ const ClientCollection = ({ navigation }) => {
 					}}
 					ListEmptyComponent={
 						<View className='flex-1 items-center justify-center'>
-							<Text className='text-black dark:text-white font-bold'>
-								No data found.
-							</Text>
+							<Text className='text-black dark:text-white font-bold'>No data found.</Text>
 						</View>
 					}
 				/>
 			</View>
 		)
-	}, [
-		colors.primary,
-		colors.primaryLight,
-		fetchData,
-		saveData,
-		clientData,
-		navigation,
-	])
+	}, [colors.primary, colors.primaryLight, fetchData, saveData, clientData, navigation])
 
 	// Fetch data when the component mounts
 	useEffect(() => {
@@ -289,9 +220,7 @@ const ClientCollection = ({ navigation }) => {
 
 	return (
 		<View style={{ flex: 1 }}>
-			<SafeAreaView
-				style={BaseStyle.safeAreaView}
-				edges={['right', 'top', 'left']}>
+			<SafeAreaView style={BaseStyle.safeAreaView} edges={['right', 'top', 'left']}>
 				{renderContent()}
 			</SafeAreaView>
 		</View>

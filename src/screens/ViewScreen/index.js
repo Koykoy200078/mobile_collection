@@ -1,22 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
-import {
-	View,
-	Text,
-	useWindowDimensions,
-	SafeAreaView,
-	ScrollView,
-	Image,
-	Alert,
-} from 'react-native'
+import { View, Text, useWindowDimensions, SafeAreaView, ScrollView, Image, Alert } from 'react-native'
 import { useDispatch } from 'react-redux'
 import { BaseStyle, Images, ROUTES, useTheme } from '../../app/config'
 import styles from './styles'
-import {
-	Button,
-	CardReport02,
-	Header,
-	ProductSpecGrid,
-} from '../../app/components'
+import { Button, CardReport02, Header, ProductSpecGrid } from '../../app/components'
 import { Icons } from '../../app/config/icons'
 import databaseOptions, { Client } from '../../app/database/allSchemas'
 
@@ -64,10 +51,7 @@ const ViewScreen = ({ navigation, route }) => {
 				maximumFractionDigits: 2,
 			})
 			if (inputValue > balance) {
-				Alert.alert(
-					'Warning',
-					`The input amount should not exceed the total due of ${newBal}`
-				)
+				Alert.alert('Warning', `The input amount should not exceed the total due of ${newBal}`)
 			} else {
 				setInputAmounts((prevState) => ({
 					...prevState,
@@ -104,93 +88,57 @@ const ViewScreen = ({ navigation, route }) => {
 	let getName = lName + fName + ' ' + mName + ' ' + sName
 
 	return (
-		<SafeAreaView
-			style={[BaseStyle.safeAreaView, { flex: 1 }]}
-			edges={['right', 'top', 'left']}>
+		<SafeAreaView style={[BaseStyle.safeAreaView, { flex: 1 }]} edges={['right', 'top', 'left']}>
 			<Header
 				title='Account View'
-				renderLeft={() => (
-					<Icons.FontAwesome5
-						name='angle-left'
-						size={20}
-						color={colors.text}
-						enableRTL={true}
-					/>
-				)}
+				renderLeft={() => <Icons.FontAwesome5 name='angle-left' size={20} color={colors.text} enableRTL={true} />}
 				onPressLeft={() => {
 					navigation.goBack()
 				}}
-				renderRight={() =>
-					item.isPaid ? (
-						<Icons.Entypo name='check' size={20} color={'green'} />
-					) : null
-				}
+				renderRight={() => (item.isPaid ? <Icons.Entypo name='check' size={20} color={'green'} /> : null)}
 				onPressRight={async () => {
 					item.isPaid
-						? Alert.alert(
-								'This client is already paid',
-								'Are you sure you want to unpaid this client?',
-								[
-									{
-										text: 'Cancel',
-										onPress: () => console.log('Cancel Pressed'),
-										style: 'cancel',
+						? Alert.alert('This client is already paid', 'Are you sure you want to unpaid this client?', [
+								{
+									text: 'Cancel',
+									onPress: () => console.log('Cancel Pressed'),
+									style: 'cancel',
+								},
+								{
+									text: 'Yes',
+									onPress: async () => {
+										try {
+											const realm = await Realm.open(databaseOptions)
+											realm.write(() => {
+												const existingClient = realm.objectForPrimaryKey(Client, item.ClientID)
+
+												if (!existingClient) {
+													Alert.alert('Error', 'Client not found!')
+													return
+												}
+
+												// Update client properties
+												existingClient.isPaid = false
+												realm.create(Client, existingClient, Realm.UpdateMode.Modified)
+											})
+
+											Alert.alert('Success', 'Data updated successfully!')
+											navigation.goBack()
+										} catch (error) {
+											Alert.alert('Error', 'Error updating data!')
+											console.error('Error: ', error)
+										}
 									},
-									{
-										text: 'Yes',
-										onPress: async () => {
-											try {
-												const realm = await Realm.open(databaseOptions)
-												realm.write(() => {
-													const existingClient = realm.objectForPrimaryKey(
-														Client,
-														item.ClientID
-													)
-
-													if (!existingClient) {
-														Alert.alert('Error', 'Client not found!')
-														return
-													}
-
-													// Update client properties
-													existingClient.isPaid = false
-													realm.create(
-														Client,
-														existingClient,
-														Realm.UpdateMode.Modified
-													)
-												})
-
-												Alert.alert('Success', 'Data updated successfully!')
-												navigation.goBack()
-											} catch (error) {
-												Alert.alert('Error', 'Error updating data!')
-												console.error('Error: ', error)
-											}
-										},
-									},
-								]
-						  )
+								},
+						  ])
 						: null
 				}}
 			/>
 
-			<ScrollView
-				contentContainerStyle={styles.container}
-				showsHorizontalScrollIndicator={false}
-				showsVerticalScrollIndicator={false}>
+			<ScrollView contentContainerStyle={styles.container} showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false}>
 				<View key={item.id}>
-					<Text
-						title3
-						body1
-						className='text-xl font-bold text-black dark:text-white'>
-						{item.isPaid && (
-							<Image
-								source={Images.complete}
-								style={{ width: 20, height: 20 }}
-							/>
-						)}{' '}
-						{getName}
+					<Text title3 body1 className='text-xl font-bold text-black dark:text-white'>
+						{item.isPaid && <Image source={Images.complete} style={{ width: 20, height: 20 }} />} {getName}
 					</Text>
 
 					<View style={styles.specifications}>
@@ -215,9 +163,7 @@ const ViewScreen = ({ navigation, route }) => {
 										placeholder='0.00'
 										checkedBoxLabel='Input Amount'
 										value={inputAmounts[collection.REF_TARGET]?.SLDESCR || ''}
-										onChangeText={(val) =>
-											handleInputChange(collection.REF_TARGET, 'SLDESCR', val)
-										}
+										onChangeText={(val) => handleInputChange(collection.REF_TARGET, 'SLDESCR', val)}
 										checkBoxEnabled={true}
 										checkBox={!!inputAmounts[collection.REF_TARGET]?.SLDESCR}
 										isActive={isCollapsed[index] ? 'angle-down' : 'angle-up'}
@@ -234,25 +180,24 @@ const ViewScreen = ({ navigation, route }) => {
 					</View>
 
 					<View style={styles.specifications}>
-						<ProductSpecGrid
-							style={{ flex: 1 }}
-							title={totalAmount ? totalAmount : '0.00'}
-							description={'Total Amount Due'}
-							isEnable={false}
-						/>
+						<ProductSpecGrid style={{ flex: 1 }} title={totalAmount ? totalAmount : '0.00'} description={'Total Amount Due'} isEnable={false} />
 					</View>
 
 					<View style={styles.buttonContainer}>
 						<Button
 							full
-							onPress={() =>
-								navigation.navigate(ROUTES.CHECKOUT, {
-									name: getName,
-									allData: item,
-									inputAmounts: inputAmounts,
-									total: parseFloat(totalValue),
-								})
-							}>
+							onPress={() => {
+								if (totalAmount.trim() === '' || totalAmount !== '0.00') {
+									navigation.navigate(ROUTES.CHECKOUT, {
+										name: getName,
+										allData: item,
+										inputAmounts: inputAmounts,
+										total: parseFloat(totalValue),
+									})
+								} else {
+									Alert.alert('Error', 'Please input an amount before proceeding.')
+								}
+							}}>
 							Checkout
 						</Button>
 					</View>

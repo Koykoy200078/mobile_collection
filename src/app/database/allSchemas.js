@@ -6,13 +6,13 @@ export const ClientSchema = {
 	name: Client,
 	primaryKey: 'ClientID',
 	properties: {
-		ClientID: 'int',
-		FName: 'string?',
-		LName: 'string?',
-		MName: 'string?',
-		SName: 'string?',
-		DateOfBirth: 'string?',
-		SMSNumber: 'string?',
+		ClientID: { type: 'int' },
+		FName: { type: 'string', optional: true },
+		LName: { type: 'string', optional: true },
+		MName: { type: 'string', optional: true },
+		SName: { type: 'string', optional: true },
+		DateOfBirth: { type: 'string', optional: true },
+		SMSNumber: { type: 'string', optional: true },
 		isPaid: { type: 'bool', default: false },
 		collections: { type: 'list', objectType: Collection },
 	},
@@ -21,19 +21,19 @@ export const ClientSchema = {
 export const CollectionSchema = {
 	name: Collection,
 	properties: {
-		BRCODE: 'int',
-		SLC: 'int',
-		SLT: 'int',
-		REF: 'int',
-		SLDESCR: 'string',
-		REF_TARGET: 'string',
-		PRINCIPAL: 'string',
-		BALANCE: 'string',
-		PRINDUE: 'string',
-		INTDUE: 'string',
-		PENDUE: 'string',
-		INSDUE: 'string',
-		TOTALDUE: 'string',
+		BRCODE: { type: 'int' },
+		SLC: { type: 'int' },
+		SLT: { type: 'int' },
+		REF: { type: 'int' },
+		SLDESCR: { type: 'string' },
+		REF_TARGET: { type: 'string' },
+		PRINCIPAL: { type: 'string' },
+		BALANCE: { type: 'string' },
+		PRINDUE: { type: 'string' },
+		INTDUE: { type: 'string' },
+		PENDUE: { type: 'string' },
+		INSDUE: { type: 'string' },
+		TOTALDUE: { type: 'string' },
 	},
 }
 
@@ -44,13 +44,13 @@ export const uploadSchema = {
 	name: UploadData,
 	primaryKey: 'ClientID',
 	properties: {
-		ClientID: 'int',
-		FName: 'string?',
-		LName: 'string?',
-		MName: 'string?',
-		SName: 'string?',
-		DateOfBirth: 'string?',
-		SMSNumber: 'string?',
+		ClientID: { type: 'int' },
+		FName: { type: 'string', optional: true },
+		LName: { type: 'string', optional: true },
+		MName: { type: 'string', optional: true },
+		SName: { type: 'string', optional: true },
+		DateOfBirth: { type: 'string', optional: true },
+		SMSNumber: { type: 'string', optional: true },
 		collections: { type: 'list', objectType: UploadDataCollection },
 	},
 }
@@ -58,14 +58,14 @@ export const uploadSchema = {
 export const uploadDataCollection = {
 	name: UploadDataCollection,
 	properties: {
-		BRCODE: 'int',
-		SLC: 'int',
-		SLT: 'int',
-		REF: 'int',
-		SLDESCR: 'string',
-		REF_TARGET: 'string',
-		AMT: 'string',
-		REMARKS: 'string',
+		BRCODE: { type: 'int' },
+		SLC: { type: 'int' },
+		SLT: { type: 'int' },
+		REF: { type: 'int' },
+		SLDESCR: { type: 'string' },
+		REF_TARGET: { type: 'string' },
+		AMT: { type: 'string' },
+		REMARKS: { type: 'string' },
 	},
 }
 
@@ -75,10 +75,5 @@ const databaseOptions = {
 	schemaVersion: 1,
 }
 
-export const getSchema = [
-	ClientSchema,
-	CollectionSchema,
-	uploadSchema,
-	uploadDataCollection,
-]
+export const getSchema = [ClientSchema, CollectionSchema, uploadSchema, uploadDataCollection]
 export default databaseOptions

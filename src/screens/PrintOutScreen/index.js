@@ -296,7 +296,7 @@ const PrintOutScreen = ({ navigation, route }) => {
         <div class="receipt-details">
           <div class="flex-row">
             <div class="section-title">Account Number:</div>
-            <div class="section-value">${filteredData.ID}</div>
+            <div class="section-value">${allData.ClientID}</div>
           </div>
 
           <div class="flex-row">
