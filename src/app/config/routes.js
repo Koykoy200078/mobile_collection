@@ -1,13 +1,13 @@
 export default {
-  LOGIN: 'Login',
+	LOGIN: 'Login',
 
-  DASHBOARD: 'Dashboard',
-  CASHIN: 'CashIn',
-  VIEW: 'View Client',
-  CHECKOUT: 'Checkout',
-  PRINTOUT: 'Printout',
+	DASHBOARD: 'Dashboard',
+	CLIENT_COLLECTION: 'Client Collection',
+	VIEW: 'View Client',
+	CHECKOUT: 'Checkout',
+	PRINTOUT: 'Printout',
 
-  ACCOUNT: 'Account',
+	ACCOUNT: 'Account',
 
-  TAB: 'Tab',
-};
+	TAB: 'Tab',
+}
