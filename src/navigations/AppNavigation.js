@@ -1,20 +1,9 @@
 import React, { useEffect } from 'react'
 import { NavigationContainer } from '@react-navigation/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import {
-	CardStyleInterpolators,
-	createStackNavigator,
-} from '@react-navigation/stack'
+import { CardStyleInterpolators, createStackNavigator } from '@react-navigation/stack'
 
-import {
-	Dimensions,
-	Easing,
-	useColorScheme,
-	Platform,
-	StatusBar,
-	View,
-	Image,
-} from 'react-native'
+import { Dimensions, Easing, useColorScheme, Platform, StatusBar, View, Image } from 'react-native'
 import { useSelector } from 'react-redux'
 import { BaseColor, BaseStyle, Images, ROUTES, useTheme } from '../app/config'
 
@@ -26,6 +15,7 @@ import ViewScreen from '../screens/ViewScreen'
 import CheckOutScreen from '../screens/CheckOutScreen'
 import Account from '../screens/Account'
 import PrintOutScreen from '../screens/PrintOutScreen'
+import UploadData from '../screens/UploadData'
 
 const width = Dimensions.get('window').width
 
@@ -43,9 +33,7 @@ const options = {
 const AuthStack = createStackNavigator()
 const Auth = () => {
 	return (
-		<AuthStack.Navigator
-			initialRouteName={ROUTES.LOGIN}
-			screenOptions={options}>
+		<AuthStack.Navigator initialRouteName={ROUTES.LOGIN} screenOptions={options}>
 			<AuthStack.Screen name={ROUTES.LOGIN} component={Login} />
 		</AuthStack.Navigator>
 	)
@@ -54,13 +42,12 @@ const Auth = () => {
 const MainStack = createStackNavigator()
 const Main = () => {
 	return (
-		<MainStack.Navigator
-			initialRouteName={ROUTES.DASHBOARD}
-			screenOptions={options}>
+		<MainStack.Navigator initialRouteName={ROUTES.DASHBOARD} screenOptions={options}>
 			<MainStack.Screen name={ROUTES.TAB} component={TabBar} />
 			<MainStack.Screen name={ROUTES.VIEW} component={ViewScreen} />
 			<MainStack.Screen name={ROUTES.CHECKOUT} component={CheckOutScreen} />
 			<MainStack.Screen name={ROUTES.PRINTOUT} component={PrintOutScreen} />
+			<MainStack.Screen name={ROUTES.UPLOAD_DATA} component={UploadData} />
 		</MainStack.Navigator>
 	)
 }
@@ -77,18 +64,10 @@ const TabBar = () => {
 					let iconName
 					if (route.name === ROUTES.DASHBOARD) {
 						iconName = focused ? 'view-dashboard-outline' : 'view-dashboard'
-						return (
-							<Icons.MaterialCommunityIcons
-								name={iconName}
-								size={size}
-								color={color}
-							/>
-						)
+						return <Icons.MaterialCommunityIcons name={iconName} size={size} color={color} />
 					} else if (route.name === ROUTES.CLIENT_COLLECTION) {
 						iconName = focused ? 'collections-bookmark' : 'collections-bookmark'
-						return (
-							<Icons.MaterialIcons name={iconName} size={size} color={color} />
-						)
+						return <Icons.MaterialIcons name={iconName} size={size} color={color} />
 					} else if (route.name === ROUTES.ACCOUNT) {
 						iconName = focused ? 'person-outline' : 'person-sharp'
 						return <Icons.Ionicons name={iconName} size={size} color={color} />
@@ -126,16 +105,7 @@ export default () => {
 
 	return (
 		<View style={{ flex: 1, position: 'relative' }}>
-			<NavigationContainer theme={theme}>
-				{authData !== null &&
-				authData !== undefined &&
-				authData.token !== null &&
-				error === false ? (
-					<Main />
-				) : (
-					<Auth />
-				)}
-			</NavigationContainer>
+			<NavigationContainer theme={theme}>{authData !== null && authData !== undefined && authData.token !== null && error === false ? <Main /> : <Auth />}</NavigationContainer>
 		</View>
 	)
 }

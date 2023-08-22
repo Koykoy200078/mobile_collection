@@ -9,5 +9,7 @@ export default {
 
 	ACCOUNT: 'Account',
 
+	UPLOAD_DATA: 'Upload Data',
+
 	TAB: 'Tab',
 }

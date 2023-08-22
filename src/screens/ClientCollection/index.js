@@ -1,5 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, Text, SafeAreaView, TouchableOpacity, FlatList, Alert, ActivityIndicator, useWindowDimensions } from 'react-native'
+import {
+	View,
+	Text,
+	SafeAreaView,
+	TouchableOpacity,
+	FlatList,
+	Alert,
+	ActivityIndicator,
+	useWindowDimensions,
+} from 'react-native'
 import { BaseStyle, ROUTES, useTheme } from '../../app/config'
 import { Header, Project02, Search, TabTag } from '../../app/components'
 import { Icons } from '../../app/config/icons'
@@ -11,6 +20,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { FlashList } from '@shopify/flash-list'
 import { useFocusEffect } from '@react-navigation/native'
 
+import { FloatingAction } from 'react-native-floating-action'
+
 const ClientCollection = ({ navigation }) => {
 	const { colors } = useTheme()
 	const { width, height } = useWindowDimensions()
@@ -18,39 +29,54 @@ const ClientCollection = ({ navigation }) => {
 	const [filteredClients, setFilteredClients] = useState([])
 
 	const batchData = useSelector((state) => state.batchDetails.data)
-	const { isLoading, error, isSuccess } = useSelector((state) => state.batchDetails)
+	const { isLoading, error, isSuccess } = useSelector(
+		(state) => state.batchDetails
+	)
 	const dispatch = useDispatch()
 
 	const [clientData, setClientData] = useState([])
 
-	const filterData = clientData && clientData.filter((item) => item.collections.length > 0)
+	const filterData =
+		clientData && clientData.filter((item) => item.collections.length > 0)
+
+	const [showAll, setShowAll] = useState(false)
+
+	const toggleShowAll = () => {
+		setShowAll(!showAll)
+	}
+
+	const dataToShow = showAll ? clientData : filterData
 
 	const fetchData = useCallback(async () => {
-		Alert.alert('Downloading Data', 'Are you sure you want to download the data?', [
-			{
-				text: 'NO',
-				onPress: () => Alert.alert('Cancelled', 'Data not downloaded'),
-				style: 'cancel',
-			},
-			{
-				text: 'YES',
-				onPress: async () => {
-					dispatch(
-						getDetails({
-							branchid: 0,
-							collectorid: 1,
-							// clientid: 1974,
-							// slclass: [12, 13],
-						})
-					)
+		Alert.alert(
+			'Downloading Data',
+			'Are you sure you want to download the data?',
+			[
+				{
+					text: 'NO',
+					onPress: () => Alert.alert('Cancelled', 'Data not downloaded'),
+					style: 'cancel',
 				},
-			},
-		])
+				{
+					text: 'YES',
+					onPress: async () => {
+						dispatch(
+							getDetails({
+								branchid: 0,
+								collectorid: 1,
+								// clientid: 1974,
+								// slclass: [12, 13],
+							})
+						)
+					},
+				},
+			]
+		)
 	}, [dispatch])
 
 	useEffect(() => {
 		showData()
-	}, [batchData, search, filteredClients])
+	}, [batchData, search, filteredClients, showAll])
 
 	useEffect(() => {
 		if (isSuccess) {
@@ -78,7 +104,14 @@ const ClientCollection = ({ navigation }) => {
 								}))
 
 								const dateOfBirth = new Date(client.DateOfBirth)
-								const formattedDateOfBirth = `${dateOfBirth.getFullYear()}-${(dateOfBirth.getMonth() + 1).toString().padStart(2, '0')}-${dateOfBirth.getDate().toString().padStart(2, '0')}`
+								const formattedDateOfBirth = `${dateOfBirth.getFullYear()}-${(
+									dateOfBirth.getMonth() + 1
+								)
+									.toString()
+									.padStart(2, '0')}-${dateOfBirth
+									.getDate()
+									.toString()
+									.padStart(2, '0')}`
 
 								const clientData = {
 									ClientID: client.ClientID,
@@ -124,10 +157,15 @@ const ClientCollection = ({ navigation }) => {
 	const handleSearch = useCallback(
 		(query) => {
 			const normalizedQuery = query.toLowerCase()
-			const data = filterData.filter((client) => client.FName.toLowerCase().includes(normalizedQuery) || client.MName.toLowerCase().includes(normalizedQuery) || client.LName.toLowerCase().includes(normalizedQuery))
+			const data = dataToShow.filter(
+				(client) =>
+					client.FName.toLowerCase().includes(normalizedQuery) ||
+					client.MName.toLowerCase().includes(normalizedQuery) ||
+					client.LName.toLowerCase().includes(normalizedQuery)
+			)
 			setFilteredClients(data)
 		},
-		[filterData]
+		[filterData, dataToShow]
 	)
 
 	const clearSearch = () => {
@@ -141,6 +179,7 @@ const ClientCollection = ({ navigation }) => {
 				<Search
 					title={'Client Collection'}
 					onPress={fetchData}
+					isDownload={true}
 					value={search}
 					onChangeText={(val) => {
 						setSearch(val)
@@ -154,7 +193,7 @@ const ClientCollection = ({ navigation }) => {
 				<FlashList
 					contentContainerStyle={styles.paddingFlatList}
 					estimatedItemSize={200}
-					data={filteredClients.length > 0 ? filteredClients : filterData}
+					data={filteredClients.length > 0 ? filteredClients : dataToShow}
 					keyExtractor={(_item, index) => index.toString()}
 					renderItem={({ item }) => {
 						const { FName, MName, LName, SName, collections, SLDESCR } = item
@@ -164,7 +203,10 @@ const ClientCollection = ({ navigation }) => {
 						const lName = LName ? LName + ', ' : ''
 						const sName = SName || ''
 
-						const totalDue = collections.reduce((acc, data) => acc + parseFloat(data.TOTALDUE), 0)
+						const totalDue = collections.reduce(
+							(acc, data) => acc + parseFloat(data.TOTALDUE),
+							0
+						)
 
 						const formatNumber = (number) => {
 							return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
@@ -195,13 +237,22 @@ const ClientCollection = ({ navigation }) => {
 					}}
 					ListEmptyComponent={
 						<View className='flex-1 items-center justify-center'>
-							<Text className='text-black dark:text-white font-bold'>No data found.</Text>
+							<Text className='text-black dark:text-white font-bold'>
+								No data found.
+							</Text>
 						</View>
 					}
 				/>
 			</View>
 		)
-	}, [colors.primary, colors.primaryLight, fetchData, saveData, clientData, navigation])
+	}, [
+		colors.primary,
+		colors.primaryLight,
+		fetchData,
+		saveData,
+		clientData,
+		navigation,
+	])
 
 	// Fetch data when the component mounts
 	useEffect(() => {
@@ -220,8 +271,27 @@ const ClientCollection = ({ navigation }) => {
 
 	return (
 		<View style={{ flex: 1 }}>
-			<SafeAreaView style={BaseStyle.safeAreaView} edges={['right', 'top', 'left']}>
-				{renderContent()}
+			<SafeAreaView
+				style={BaseStyle.safeAreaView}
+				edges={['right', 'top', 'left']}>
+				{renderContent(dataToShow)}
+				<FloatingAction
+					// actions={actions}
+					// onPressItem={(name) => {
+					// 	if (name === 'bt_showAll') {
+					// 		toggleShowAll()
+					// 	}
+					// }}
+					showBackground={false}
+					floatingIcon={
+						showAll ? (
+							<Icons.Octicons name='eye' size={20} color='#FFFFFF' />
+						) : (
+							<Icons.Octicons name='eye-closed' size={20} color='#FFFFFF' />
+						)
+					}
+					onPressMain={() => toggleShowAll()}
+				/>
 			</SafeAreaView>
 		</View>
 	)
