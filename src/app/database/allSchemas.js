@@ -6,13 +6,9 @@ export const ClientSchema = {
 	name: Client,
 	primaryKey: 'ClientID',
 	properties: {
+		ClientIDBrCode: { type: 'int' },
 		ClientID: { type: 'int' },
-		FName: { type: 'string', optional: true },
-		LName: { type: 'string', optional: true },
-		MName: { type: 'string', optional: true },
-		SName: { type: 'string', optional: true },
-		DateOfBirth: { type: 'string', optional: true },
-		SMSNumber: { type: 'string', optional: true },
+		Fullname: { type: 'string' },
 		isPaid: { type: 'bool', default: false },
 		collections: { type: 'list', objectType: Collection },
 	},
@@ -34,6 +30,7 @@ export const CollectionSchema = {
 		PENDUE: { type: 'string' },
 		INSDUE: { type: 'string' },
 		TOTALDUE: { type: 'string' },
+		is_default: { type: 'bool' },
 	},
 }
 
@@ -75,5 +72,10 @@ const databaseOptions = {
 	schemaVersion: 1,
 }
 
-export const getSchema = [ClientSchema, CollectionSchema, uploadSchema, uploadDataCollection]
+export const getSchema = [
+	ClientSchema,
+	CollectionSchema,
+	uploadSchema,
+	uploadDataCollection,
+]
 export default databaseOptions

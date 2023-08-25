@@ -11,5 +11,7 @@ export default {
 
 	UPLOAD_DATA: 'Upload Data',
 
+	OTHERSLSCREEN: 'Other SL Screen',
+
 	TAB: 'Tab',
 }

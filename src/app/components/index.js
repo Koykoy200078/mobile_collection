@@ -12,4 +12,7 @@ export { default as CheckBox } from './CheckBox'
 export { default as ProductSpecGrid } from './Product/SpecGrid'
 export { default as Show } from './Card/Show'
 
+export { default as AlertMessage } from './AlertMessage'
+export { default as alertMsgConfig } from './AlertMessage/config'
+
 export { default as Search } from './Search'

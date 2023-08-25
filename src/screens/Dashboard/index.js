@@ -4,24 +4,16 @@ import {
 	useWindowDimensions,
 	Platform,
 	SafeAreaView,
-	ScrollView,
-	TouchableOpacity,
-	TouchableWithoutFeedback,
-	Image,
-	FlatList,
 	Alert,
 } from 'react-native'
-import { Images, ROUTES } from '../../app/config'
 import { Show, Text } from '../../app/components'
 import { Icons } from '../../app/config/icons'
 import { Shadow } from 'react-native-shadow-2'
-import colors from '../../app/config/colors'
 import databaseOptions, {
 	Client,
 	UploadData,
 } from '../../app/database/allSchemas'
 
-import { FloatingAction } from 'react-native-floating-action'
 
 const isWithinTimeRangeGoodMorning = (hour, minute) => {
 	return hour >= 5 && hour < 12 // 5:00 AM to 11:59 AM
@@ -55,21 +47,6 @@ const Dashboard = ({ navigation }) => {
 		setLocalHour(hours < 10 ? `0${hours}` : hours)
 		setLocalMinute(minutes < 10 ? `0${minutes}` : minutes)
 	}
-
-	const actions = [
-		{
-			text: 'New Transaction',
-			icon: (
-				<Icons.MaterialCommunityIcons
-					name='draw-pen'
-					size={25}
-					color='#FFFFFF'
-				/>
-			),
-			name: 'bt_newTransact',
-			position: 1,
-		},
-	]
 
 	useEffect(() => {
 		if (isWithinTimeRangeGoodMorning(localHour, localMinute)) {
@@ -272,15 +249,6 @@ const Dashboard = ({ navigation }) => {
 					)
 				}}
 			/> */}
-
-			<FloatingAction
-				actions={actions}
-				onPressItem={(name) => {
-					if (name === 'bt_newTransact') {
-						console.log('pressed')
-					}
-				}}
-			/>
 		</View>
 	)
 }

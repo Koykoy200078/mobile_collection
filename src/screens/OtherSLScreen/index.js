@@ -9,6 +9,7 @@ import {
 	ActivityIndicator,
 	useWindowDimensions,
 	Animated,
+	ScrollView,
 } from 'react-native'
 import { BaseStyle, ROUTES, useTheme } from '../../app/config'
 import { Header, Project02, Search, TabTag } from '../../app/components'
@@ -23,7 +24,7 @@ import { useFocusEffect } from '@react-navigation/native'
 
 import { FloatingAction } from 'react-native-floating-action'
 
-const ClientCollection = ({ navigation }) => {
+const OtherSLScreen = ({ navigation }) => {
 	const { colors } = useTheme()
 	const { width, height } = useWindowDimensions()
 	const [search, setSearch] = useState('')
@@ -38,7 +39,7 @@ const ClientCollection = ({ navigation }) => {
 	const [clientData, setClientData] = useState([])
 
 	const filterData =
-		clientData && clientData.filter((item) => item.is_default === true) //item.collections.length > 0
+		clientData && clientData.filter((item) => item.is_default === false) //item.collections.length > 0
 
 	const [showAll, setShowAll] = useState(false)
 
@@ -52,42 +53,9 @@ const ClientCollection = ({ navigation }) => {
 
 	const dataToShow = showAll ? clientData : filterData
 
-	const fetchData = useCallback(async () => {
-		Alert.alert(
-			'Downloading Data',
-			'Are you sure you want to download the data?',
-			[
-				{
-					text: 'NO',
-					onPress: () => Alert.alert('Cancelled', 'Data not downloaded'),
-					style: 'cancel',
-				},
-				{
-					text: 'YES',
-					onPress: async () => {
-						dispatch(
-							getDetails({
-								branchid: 0,
-								collectorid: 1,
-								// clientid: 1974,
-								// slclass: [12, 13],
-							})
-						)
-					},
-				},
-			]
-		)
-	}, [dispatch])
-
 	useEffect(() => {
 		showData()
 	}, [batchData, search, filteredClients, showAll, animation, visible])
-
-	useEffect(() => {
-		if (isSuccess) {
-			saveData()
-		}
-	}, [isSuccess])
 
 	const handleScroll = Animated.event(
 		[{ nativeEvent: { contentOffset: { y: scrollY } } }],
@@ -116,61 +84,6 @@ const ClientCollection = ({ navigation }) => {
 		opacity: animation,
 		transform: [{ scale: animation }],
 	}
-
-	const saveData = useCallback(async () => {
-		Alert.alert('Saving Data', 'Are you sure you want to save the data?', [
-			{
-				text: 'NO',
-				onPress: () => Alert.alert('Cancelled', 'Data not saved'),
-				style: 'cancel',
-			},
-			{
-				text: 'YES',
-				onPress: async () => {
-					try {
-						const realm = await Realm.open(databaseOptions)
-						realm.write(() => {
-							batchData.data.forEach((client) => {
-								const collections = client.collections.map((collection) => ({
-									...collection,
-									id: `${client.ClientID}-${collection.ID}`,
-								}))
-
-								const dateOfBirth = new Date(client.DateOfBirth)
-								const formattedDateOfBirth = `${dateOfBirth.getFullYear()}-${(
-									dateOfBirth.getMonth() + 1
-								)
-									.toString()
-									.padStart(2, '0')}-${dateOfBirth
-									.getDate()
-									.toString()
-									.padStart(2, '0')}`
-
-								const clientData = {
-									ClientID: client.ClientID,
-									FName: client.FName || '',
-									LName: client.LName || '',
-									MName: client.MName || '',
-									SName: client.SName || '',
-									collections,
-									is_default: client.is_default,
-								}
-
-								realm.create(Client, clientData, Realm.UpdateMode.Modified)
-							})
-						})
-						Alert.alert('Success', 'Data saved successfully!')
-						dispatch(resetGetDetails())
-						realm.close()
-						showData()
-					} catch (error) {
-						Alert.alert('Error', 'Error saving data!')
-						console.error(error)
-					}
-				},
-			},
-		])
-	}, [batchData, showData])
 
 	const showData = useCallback(async () => {
 		try {
@@ -208,9 +121,8 @@ const ClientCollection = ({ navigation }) => {
 		return (
 			<View style={{ flex: 1 }}>
 				<Search
-					title={'Client Collection'}
-					onPress={fetchData}
-					isDownload={true}
+					title={'SL Accounts'}
+					// onPress={fetchData}
 					value={search}
 					onChangeText={(val) => {
 						setSearch(val)
@@ -219,7 +131,7 @@ const ClientCollection = ({ navigation }) => {
 					clearStatus={true ? clearSearch : false}
 				/>
 
-				<View className='mt-2' />
+				<View className='my-1' />
 
 				<FlashList
 					contentContainerStyle={styles.paddingFlatList}
@@ -253,6 +165,8 @@ const ClientCollection = ({ navigation }) => {
 							} else {
 								navigation.navigate(ROUTES.VIEW, { item: item })
 							}
+
+							// navigation.navigate(ROUTES.VIEW, { item: item })
 						}
 
 						return (
@@ -278,14 +192,7 @@ const ClientCollection = ({ navigation }) => {
 				/>
 			</View>
 		)
-	}, [
-		colors.primary,
-		colors.primaryLight,
-		fetchData,
-		saveData,
-		clientData,
-		navigation,
-	])
+	}, [colors.primary, colors.primaryLight, clientData, navigation])
 
 	// Fetch data when the component mounts
 	useEffect(() => {
@@ -325,7 +232,7 @@ const ClientCollection = ({ navigation }) => {
 					}
 					onPressMain={() => toggleShowAll()}
 				/> */}
-				{visible && (
+				{/* {visible && (
 					<Animated.View style={floatingActionStyle}>
 						<FloatingAction
 							showBackground={false}
@@ -339,10 +246,10 @@ const ClientCollection = ({ navigation }) => {
 							onPressMain={() => toggleShowAll()}
 						/>
 					</Animated.View>
-				)}
+				)} */}
 			</SafeAreaView>
 		</View>
 	)
 }
 
-export default ClientCollection
+export default OtherSLScreen
