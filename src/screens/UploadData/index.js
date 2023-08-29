@@ -1,5 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, Text, SafeAreaView, TouchableOpacity, FlatList, Alert, ActivityIndicator, useWindowDimensions } from 'react-native'
+import {
+	View,
+	Text,
+	SafeAreaView,
+	TouchableOpacity,
+	FlatList,
+	Alert,
+	ActivityIndicator,
+	useWindowDimensions,
+} from 'react-native'
 import { BaseStyle, ROUTES, useTheme } from '../../app/config'
 import { Header, Project02, Search, TabTag } from '../../app/components'
 import { Icons } from '../../app/config/icons'
@@ -49,7 +58,12 @@ const UploadData = ({ navigation }) => {
 	const handleSearch = useCallback(
 		(query) => {
 			const normalizedQuery = query.toLowerCase()
-			const data = filterData.filter((client) => client.FName.toLowerCase().includes(normalizedQuery) || client.MName.toLowerCase().includes(normalizedQuery) || client.LName.toLowerCase().includes(normalizedQuery))
+			const data = filterData.filter(
+				(client) =>
+					client.FName.toLowerCase().includes(normalizedQuery) ||
+					client.MName.toLowerCase().includes(normalizedQuery) ||
+					client.LName.toLowerCase().includes(normalizedQuery)
+			)
 			setFilteredClients(data)
 		},
 		[filterData]
@@ -82,20 +96,16 @@ const UploadData = ({ navigation }) => {
 					data={filteredClients.length > 0 ? filteredClients : filterData}
 					keyExtractor={(_item, index) => index.toString()}
 					renderItem={({ item }) => {
-						const { FName, MName, LName, SName, collections, SLDESCR } = item
+						const { Fullname, collections, SLDESCR } = item
 
-						const fName = FName || ''
-						const mName = MName || ''
-						const lName = LName ? LName + ', ' : ''
-						const sName = SName || ''
-
-						const totalDue = collections.reduce((acc, data) => acc + parseFloat(data.TOTALDUE), 0)
+						const totalDue = collections.reduce(
+							(acc, data) => acc + parseFloat(data.TOTALDUE),
+							0
+						)
 
 						const formatNumber = (number) => {
 							return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 						}
-
-						const clientName = lName + fName + ' ' + mName + ' ' + sName
 
 						const handlePress = (item) => {
 							if (item.collections.length === 0) {
@@ -107,8 +117,8 @@ const UploadData = ({ navigation }) => {
 
 						return (
 							<Project02
-								title={clientName}
-								description={item.DateOfBirth}
+								title={Fullname}
+								description={item.ClientID.toString()}
 								isPaid={item.isPaid}
 								total_loans={totalDue ? formatNumber(totalDue.toFixed(2)) : ''}
 								onPress={() => handlePress(item)}
@@ -120,7 +130,9 @@ const UploadData = ({ navigation }) => {
 					}}
 					ListEmptyComponent={
 						<View className='flex-1 items-center justify-center'>
-							<Text className='text-black dark:text-white font-bold'>No data found.</Text>
+							<Text className='text-black dark:text-white font-bold'>
+								No data found.
+							</Text>
 						</View>
 					}
 				/>
@@ -130,7 +142,9 @@ const UploadData = ({ navigation }) => {
 
 	return (
 		<View style={{ flex: 1 }}>
-			<SafeAreaView style={BaseStyle.safeAreaView} edges={['right', 'top', 'left']}>
+			<SafeAreaView
+				style={BaseStyle.safeAreaView}
+				edges={['right', 'top', 'left']}>
 				{renderContent()}
 			</SafeAreaView>
 		</View>

@@ -81,7 +81,15 @@ const ClientCollection = ({ navigation }) => {
 
 	useEffect(() => {
 		showData()
-	}, [batchData, search, filteredClients, showAll, animation, visible])
+	}, [
+		batchData,
+		search,
+		filteredClients,
+		showAll,
+		animation,
+		visible,
+		isLoading,
+	])
 
 	useEffect(() => {
 		if (isSuccess) {
@@ -250,9 +258,20 @@ const ClientCollection = ({ navigation }) => {
 					}}
 					ListEmptyComponent={
 						<View className='flex-1 items-center justify-center'>
-							<Text className='text-black dark:text-white font-bold'>
-								No data found.
-							</Text>
+							{isLoading ? (
+								<View className='flex-1 items-center justify-center space-y-2'>
+									<ActivityIndicator size='large' color={colors.primary} />
+									<Text className='text-black dark:text-white font-bold'>
+										Downloading data...
+									</Text>
+								</View>
+							) : (
+								<>
+									<Text className='text-black dark:text-white font-bold'>
+										No data found.
+									</Text>
+								</>
+							)}
 						</View>
 					}
 				/>

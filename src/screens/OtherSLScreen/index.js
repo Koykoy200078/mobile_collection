@@ -1,254 +1,304 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import {
 	View,
 	Text,
-	SafeAreaView,
-	TouchableOpacity,
-	FlatList,
-	Alert,
-	ActivityIndicator,
 	useWindowDimensions,
-	Animated,
+	SafeAreaView,
 	ScrollView,
+	Image,
+	Alert,
+	Animated,
+	TextInput,
 } from 'react-native'
-import { BaseStyle, ROUTES, useTheme } from '../../app/config'
-import { Header, Project02, Search, TabTag } from '../../app/components'
-import { Icons } from '../../app/config/icons'
+import { useDispatch } from 'react-redux'
+import { BaseStyle, Images, ROUTES, useTheme } from '../../app/config'
 import styles from './styles'
-import { Realm } from '@realm/react'
+import {
+	Button,
+	CardReport02,
+	Header,
+	ProductSpecGrid,
+	Search,
+} from '../../app/components'
+import { Icons } from '../../app/config/icons'
 import databaseOptions, { Client } from '../../app/database/allSchemas'
-import { getDetails, resetGetDetails } from '../../app/reducers/batchDetails'
-import { useDispatch, useSelector } from 'react-redux'
-import { FlashList } from '@shopify/flash-list'
-import { useFocusEffect } from '@react-navigation/native'
-
 import { FloatingAction } from 'react-native-floating-action'
+import { showInfo } from '../../app/components/AlertMessage'
 
-const OtherSLScreen = ({ navigation }) => {
+const OtherSLScreen = ({ navigation, route }) => {
+	const { width } = useWindowDimensions()
 	const { colors } = useTheme()
-	const { width, height } = useWindowDimensions()
+	// const [item, setItem] = useState('')
 	const [search, setSearch] = useState('')
 	const [filteredClients, setFilteredClients] = useState([])
 
-	const batchData = useSelector((state) => state.batchDetails.data)
-	const { isLoading, error, isSuccess } = useSelector(
-		(state) => state.batchDetails
-	)
-	const dispatch = useDispatch()
+	const [isCollapsed, setIsCollapsed] = useState({})
+	const [inputAmounts, setInputAmounts] = useState({})
+	const [totalValue, setTotalValue] = useState(0)
 
-	const [clientData, setClientData] = useState([])
+	const { clientData } = route.params
 
-	const filterData =
-		clientData && clientData.filter((item) => item.is_default === false) //item.collections.length > 0
-
-	const [showAll, setShowAll] = useState(false)
-
-	const scrollY = new Animated.Value(0) // Animated value to track scroll position
-	const [visible, setVisible] = useState(true) // State to track FloatingAction visibility
-	const [animation, setAnimation] = useState(new Animated.Value(1))
-
-	const toggleShowAll = () => {
-		setShowAll(!showAll)
-	}
-
-	const dataToShow = showAll ? clientData : filterData
+	const item = clientData
 
 	useEffect(() => {
-		showData()
-	}, [batchData, search, filteredClients, showAll, animation, visible])
+		calculateTotalValue()
+	}, [isCollapsed, inputAmounts, search])
 
-	const handleScroll = Animated.event(
-		[{ nativeEvent: { contentOffset: { y: scrollY } } }],
-		{ useNativeDriver: false }
-	)
+	useEffect(() => {
+		// if (route.params?.item) {
+		// 	setItem(route.params.item)
+		// }
+	}, [route])
 
-	scrollY.addListener((value) => {
-		if (value.value > 0 && visible) {
-			setVisible(false)
-			Animated.timing(animation, {
-				toValue: 0,
-				duration: 300, // Adjust the duration as needed
-				useNativeDriver: false,
-			}).start()
-		} else if (value.value <= 0 && !visible) {
-			setVisible(true)
-			Animated.timing(animation, {
-				toValue: 1,
-				duration: 300,
-				useNativeDriver: false,
-			}).start()
-		}
-	})
-
-	const floatingActionStyle = {
-		opacity: animation,
-		transform: [{ scale: animation }],
+	const handleAccordionToggle = (index) => {
+		setIsCollapsed((prevState) => ({
+			...prevState,
+			[index]: !prevState[index],
+		}))
 	}
 
-	const showData = useCallback(async () => {
-		try {
-			const realm = await Realm.open(databaseOptions)
-			const clients = realm.objects(Client)
-			setClientData(Array.from(clients))
+	const handleInputChange = (index, name, value) => {
+		const collection = item.collections.find((c) => c.REF_TARGET === index)
 
-			// realm.close()
-		} catch (error) {
-			Alert.alert('Error retrieving data', error)
-			console.error(error)
+		if (collection) {
+			const balance = parseFloat(collection.TOTALDUE)
+			const inputValue = parseFloat(value)
+
+			const newBal = balance.toLocaleString('en-US', {
+				minimumFractionDigits: 2,
+				maximumFractionDigits: 2,
+			})
+			if (inputValue > balance) {
+				Alert.alert(
+					'Warning',
+					`The input amount should not exceed the total due of ${newBal}`
+				)
+			} else {
+				setInputAmounts((prevState) => ({
+					...prevState,
+					[index]: {
+						...prevState[index],
+						[name]: value,
+					},
+				}))
+			}
 		}
-	}, [search])
+	}
 
-	const handleSearch = useCallback(
-		(query) => {
-			const normalizedQuery = query.toLowerCase()
-			const data = dataToShow.filter(
-				(client) =>
-					client.FName.toLowerCase().includes(normalizedQuery) ||
-					client.MName.toLowerCase().includes(normalizedQuery) ||
-					client.LName.toLowerCase().includes(normalizedQuery)
-			)
-			setFilteredClients(data)
-		},
-		[filterData, dataToShow]
-	)
+	const calculateTotalValue = () => {
+		let total = 0
+		Object.values(inputAmounts).forEach((values) => {
+			Object.values(values).forEach((value) => {
+				if (value) {
+					total += parseFloat(value)
+				}
+			})
+		})
+		setTotalValue(total)
+	}
+
+	const totalAmount = totalValue.toLocaleString('en-US', {
+		minimumFractionDigits: 2,
+		maximumFractionDigits: 2,
+	})
+
+	// const handleSearch = useCallback(
+	// 	(query) => {
+	// 		const normalizedQuery = query.toLowerCase()
+	// 		const data = dataToShow.filter(
+	// 			(client) =>
+	// 				client.Fullname.toLowerCase().includes(normalizedQuery) ||
+	// 				client.MName.toLowerCase().includes(normalizedQuery) ||
+	// 				client.LName.toLowerCase().includes(normalizedQuery)
+	// 		)
+	// 		setFilteredClients(data)
+	// 	},
+	// 	[dataToShow]
+	// )
 
 	const clearSearch = () => {
 		setSearch('')
 		setFilteredClients([])
 	}
 
-	const renderContent = useCallback(() => {
-		return (
-			<View style={{ flex: 1 }}>
-				<Search
-					title={'SL Accounts'}
-					// onPress={fetchData}
-					value={search}
-					onChangeText={(val) => {
-						setSearch(val)
-						handleSearch(val)
-					}}
-					clearStatus={true ? clearSearch : false}
-				/>
-
-				<View className='my-1' />
-
-				<FlashList
-					contentContainerStyle={styles.paddingFlatList}
-					estimatedItemSize={200}
-					scrollEventThrottle={16}
-					onScroll={handleScroll}
-					data={filteredClients.length > 0 ? filteredClients : dataToShow}
-					keyExtractor={(_item, index) => index.toString()}
-					renderItem={({ item }) => {
-						const { FName, MName, LName, SName, collections, SLDESCR } = item
-
-						const fName = FName || ''
-						const mName = MName || ''
-						const lName = LName ? LName + ', ' : ''
-						const sName = SName || ''
-
-						const totalDue = collections.reduce(
-							(acc, data) => acc + parseFloat(data.TOTALDUE),
-							0
-						)
-
-						const formatNumber = (number) => {
-							return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-						}
-
-						const clientName = lName + fName + ' ' + mName + ' ' + sName
-
-						const handlePress = (item) => {
-							if (item.collections.length === 0) {
-								Alert.alert('Info', 'This client has no collection data')
-							} else {
-								navigation.navigate(ROUTES.VIEW, { item: item })
-							}
-
-							// navigation.navigate(ROUTES.VIEW, { item: item })
-						}
-
-						return (
-							<Project02
-								title={clientName}
-								description={'TEST'}
-								isPaid={item.isPaid}
-								total_loans={totalDue ? formatNumber(totalDue.toFixed(2)) : ''}
-								onPress={() => handlePress(item)}
-								style={{
-									marginBottom: 10,
-								}}
-							/>
-						)
-					}}
-					ListEmptyComponent={
-						<View className='flex-1 items-center justify-center'>
-							<Text className='text-black dark:text-white font-bold'>
-								No data found.
-							</Text>
-						</View>
-					}
-				/>
-			</View>
-		)
-	}, [colors.primary, colors.primaryLight, clientData, navigation])
-
-	// Fetch data when the component mounts
-	useEffect(() => {
-		showData()
-	}, [])
-
-	// Fetch data when the component gains focus
-	useFocusEffect(
-		useCallback(() => {
-			showData()
-			return () => {
-				// Cleanup function (if needed)
-			}
-		}, [])
-	)
-
 	return (
-		<View style={{ flex: 1 }}>
-			<SafeAreaView
-				style={BaseStyle.safeAreaView}
-				edges={['right', 'top', 'left']}>
-				{renderContent()}
-				{/* <FloatingAction
-					// actions={actions}
-					// onPressItem={(name) => {
-					// 	if (name === 'bt_showAll') {
-					// 		toggleShowAll()
-					// 	}
-					// }}
-					showBackground={false}
-					floatingIcon={
-						showAll ? (
-							<Icons.Octicons name='eye' size={20} color='#FFFFFF' />
-						) : (
-							<Icons.Octicons name='eye-closed' size={20} color='#FFFFFF' />
-						)
-					}
-					onPressMain={() => toggleShowAll()}
-				/> */}
-				{/* {visible && (
-					<Animated.View style={floatingActionStyle}>
-						<FloatingAction
-							showBackground={false}
-							floatingIcon={
-								showAll ? (
-									<Icons.Octicons name='eye' size={20} color='#FFFFFF' />
-								) : (
-									<Icons.Octicons name='eye-closed' size={20} color='#FFFFFF' />
+		<SafeAreaView
+			style={[BaseStyle.safeAreaView, { flex: 1 }]}
+			edges={['right', 'top', 'left']}>
+			{/* <Header
+				title='Other SL Account'
+				renderLeft={() => (
+					<Icons.FontAwesome5
+						name='angle-left'
+						size={20}
+						color={colors.text}
+						enableRTL={true}
+					/>
+				)}
+				onPressLeft={() => {
+					navigation.goBack()
+				}}
+				// renderRight={() =>
+				// 	item.isPaid ? (
+				// 		<Icons.Entypo name='check' size={20} color={'green'} />
+				// 	) : null
+				// }
+				// onPressRight={async () => {
+				// 	item.isPaid
+				// 		? Alert.alert(
+				// 				'This client is already paid',
+				// 				'Are you sure you want to unpaid this client?',
+				// 				[
+				// 					{
+				// 						text: 'Cancel',
+				// 						onPress: () => console.log('Cancel Pressed'),
+				// 						style: 'cancel',
+				// 					},
+				// 					{
+				// 						text: 'Yes',
+				// 						onPress: async () => {
+				// 							try {
+				// 								const realm = await Realm.open(databaseOptions)
+				// 								realm.write(() => {
+				// 									const existingClient = realm.objectForPrimaryKey(
+				// 										Client,
+				// 										item.ClientID
+				// 									)
+
+				// 									if (!existingClient) {
+				// 										Alert.alert('Error', 'Client not found!')
+				// 										return
+				// 									}
+
+				// 									// Update client properties
+				// 									existingClient.isPaid = false
+				// 									realm.create(
+				// 										Client,
+				// 										existingClient,
+				// 										Realm.UpdateMode.Modified
+				// 									)
+				// 								})
+
+				// 								Alert.alert('Success', 'Data updated successfully!')
+				// 								navigation.goBack()
+				// 							} catch (error) {
+				// 								Alert.alert('Error', 'Error updating data!')
+				// 								console.error('Error: ', error)
+				// 							}
+				// 						},
+				// 					},
+				// 				]
+				// 		  )
+				// 		: null
+				// }}
+			/> */}
+
+			<Search
+				title={'Other SL Account'}
+				// onPress={fetchData}
+				// isDownload={true}
+				value={search}
+				onChangeText={(val) => {
+					setSearch(val)
+					// handleSearch(val)
+				}}
+				clearStatus={true ? clearSearch : false}
+			/>
+
+			<ScrollView
+				contentContainerStyle={styles.container}
+				showsHorizontalScrollIndicator={false}
+				showsVerticalScrollIndicator={false}>
+				<View key={item.id}>
+					{/* <Text
+						title3
+						body1
+						className='text-xl font-bold text-black dark:text-white'>
+						{item.isPaid && (
+							<Image
+								source={Images.complete}
+								style={{ width: 20, height: 20 }}
+							/>
+						)}{' '}
+						{item.Fullname}
+					</Text> */}
+
+					<View style={styles.specifications}>
+						{item &&
+							item.collections &&
+							item.collections.map((collection, index) => {
+								const a = parseFloat(collection.PRINDUE)
+								const b = parseFloat(collection.INTDUE)
+								const c = parseFloat(collection.PENDUE)
+
+								const total = a + b + c
+								const formatNumber = (number) => {
+									return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+								}
+
+								return (
+									<CardReport02
+										key={index}
+										style={{ flex: 1, width: width - 30, marginVertical: 10 }}
+										title={collection.SLDESCR}
+										description={collection.REF_TARGET}
+										placeholder='0.00'
+										checkedBoxLabel='Input Amount'
+										value={inputAmounts[collection.REF_TARGET]?.SLDESCR || ''}
+										onChangeText={(val) =>
+											handleInputChange(collection.REF_TARGET, 'SLDESCR', val)
+										}
+										checkBoxEnabled={true}
+										checkBox={!!inputAmounts[collection.REF_TARGET]?.SLDESCR}
+										isActive={isCollapsed[index] ? 'angle-down' : 'angle-up'}
+										enableTooltip={true}
+										toggleAccordion={() => handleAccordionToggle(index)}
+										isCollapsed={isCollapsed[index]}
+										principal={formatNumber(collection.PRINDUE)}
+										interest={formatNumber(collection.INTDUE)}
+										penalty={formatNumber(collection.PENDUE)}
+										total={formatNumber(total.toFixed(2))}
+									/>
 								)
+							})}
+					</View>
+				</View>
+			</ScrollView>
+
+			<View style={styles.container}>
+				<View className=' h-9' style={styles.specifications}>
+					<ProductSpecGrid
+						style={{ flex: 1 }}
+						title={totalAmount ? totalAmount : '0.00'}
+						description={'Total Amount Due'}
+						isEnable={false}
+					/>
+				</View>
+
+				<View style={styles.buttonContainer}>
+					<Button
+						full
+						onPress={() => {
+							if (totalAmount.trim() === '' || totalAmount !== '0.00') {
+								navigation.navigate(ROUTES.CHECKOUT, {
+									name: getName,
+									allData: item,
+									inputAmounts: inputAmounts,
+									total: parseFloat(totalValue),
+								})
+							} else {
+								showInfo({
+									message: 'Input Amount',
+									description:
+										'Input the amount you want to pay for this collection.',
+								})
 							}
-							onPressMain={() => toggleShowAll()}
-						/>
-					</Animated.View>
-				)} */}
-			</SafeAreaView>
-		</View>
+						}}>
+						Checkout
+					</Button>
+				</View>
+			</View>
+		</SafeAreaView>
 	)
 }
 

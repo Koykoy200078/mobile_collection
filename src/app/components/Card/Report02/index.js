@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { TouchableOpacity, View } from 'react-native'
 import { useTheme } from '../../../config'
@@ -9,6 +9,8 @@ import Collapsible from 'react-native-collapsible'
 import { Icons } from '../../../config/icons'
 
 const CardReport02 = ({
+	props,
+
 	title = '',
 	description,
 	checkedBoxLabel = '',
@@ -21,9 +23,6 @@ const CardReport02 = ({
 	value,
 	onChangeText,
 	editable,
-	isVisible,
-	onClose,
-	onPressView,
 
 	principal,
 	interest,
@@ -36,8 +35,13 @@ const CardReport02 = ({
 	toggleAccordion,
 	isCollapsed,
 	isActive,
+
+	inputRef,
+	onFocus,
+	onBlur,
 }) => {
 	const { colors } = useTheme()
+	const textInputRef = useRef(null)
 
 	useEffect(() => {}, [isCollapsed])
 	return (
@@ -137,6 +141,7 @@ const CardReport02 = ({
 						</View>
 
 						<TextInput
+							ref={textInputRef}
 							style={[
 								{
 									height: 40,
@@ -154,6 +159,8 @@ const CardReport02 = ({
 							keyboardType='numeric'
 							editable={editable}
 							onChangeText={onChangeText}
+							onFocus={() => textInputRef.current.focus()}
+							onBlur={() => textInputRef.current.blur()}
 						/>
 					</View>
 				</View>

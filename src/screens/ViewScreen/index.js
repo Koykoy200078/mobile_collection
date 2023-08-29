@@ -9,6 +9,7 @@ import {
 	Alert,
 	Animated,
 	TextInput,
+	Keyboard,
 } from 'react-native'
 import { useDispatch } from 'react-redux'
 import { BaseStyle, Images, ROUTES, useTheme } from '../../app/config'
@@ -32,19 +33,56 @@ const ViewScreen = ({ navigation, route }) => {
 	const [inputAmounts, setInputAmounts] = useState({})
 	const [totalValue, setTotalValue] = useState(0)
 
+	const [textInputFocused, setTextInputFocused] = useState(false)
+
 	const scrollY = new Animated.Value(0) // Animated value to track scroll position
 	const [visible, setVisible] = useState(true) // State to track FloatingAction visibility
 	const [animation, setAnimation] = useState(new Animated.Value(1))
 
 	useEffect(() => {
 		calculateTotalValue()
-	}, [isCollapsed, inputAmounts, visible, animation])
+	}, [isCollapsed, inputAmounts, visible, animation, textInputFocused])
 
 	useEffect(() => {
 		if (route.params?.item) {
 			setItem(route.params.item)
 		}
 	}, [route])
+
+	useEffect(() => {
+		const keyboardDidShowListener = Keyboard.addListener(
+			'keyboardDidShow',
+			() => {
+				if (visible) {
+					setVisible(false)
+					Animated.timing(animation, {
+						toValue: 0,
+						duration: 300,
+						useNativeDriver: false,
+					}).start()
+				}
+			}
+		)
+
+		const keyboardDidHideListener = Keyboard.addListener(
+			'keyboardDidHide',
+			() => {
+				if (!visible && !textInputFocused) {
+					setVisible(true)
+					Animated.timing(animation, {
+						toValue: 1,
+						duration: 300,
+						useNativeDriver: false,
+					}).start()
+				}
+			}
+		)
+
+		return () => {
+			keyboardDidShowListener.remove()
+			keyboardDidHideListener.remove()
+		}
+	}, [visible, animation, textInputFocused])
 
 	const actions = [
 		{
@@ -79,14 +117,14 @@ const ViewScreen = ({ navigation, route }) => {
 	)
 
 	scrollY.addListener((value) => {
-		if (value.value > 0 && visible) {
+		if ((value.value > 0 && visible) || textInputFocused) {
 			setVisible(false)
 			Animated.timing(animation, {
 				toValue: 0,
-				duration: 300, // Adjust the duration as needed
+				duration: 300,
 				useNativeDriver: false,
 			}).start()
-		} else if (value.value <= 0 && !visible) {
+		} else if (value.value <= 0 && !visible && !textInputFocused) {
 			setVisible(true)
 			Animated.timing(animation, {
 				toValue: 1,
@@ -125,6 +163,7 @@ const ViewScreen = ({ navigation, route }) => {
 					`The input amount should not exceed the total due of ${newBal}`
 				)
 			} else {
+				setTextInputFocused(true)
 				setInputAmounts((prevState) => ({
 					...prevState,
 					[index]: {
@@ -267,9 +306,9 @@ const ViewScreen = ({ navigation, route }) => {
 										placeholder='0.00'
 										checkedBoxLabel='Input Amount'
 										value={inputAmounts[collection.REF_TARGET]?.SLDESCR || ''}
-										onChangeText={(val) =>
+										onChangeText={(val) => {
 											handleInputChange(collection.REF_TARGET, 'SLDESCR', val)
-										}
+										}}
 										checkBoxEnabled={true}
 										checkBox={!!inputAmounts[collection.REF_TARGET]?.SLDESCR}
 										isActive={isCollapsed[index] ? 'angle-down' : 'angle-up'}
@@ -291,11 +330,14 @@ const ViewScreen = ({ navigation, route }) => {
 				<Animated.View style={floatingActionStyle}>
 					<FloatingAction
 						actions={actions}
+						// visible={textInputRef.current && !textInputRef.current.isFocused()}
 						onPressItem={(name) => {
 							if (name === 'bt_newTransact') {
 								// navigation.navigate(ROUTES.OTHERSLSCREEN)
 							} else if (name === 'bt_SLAccounts') {
-								navigation.navigate(ROUTES.OTHERSLSCREEN)
+								navigation.navigate(ROUTES.OTHERSLSCREEN, {
+									clientData: item,
+								})
 							}
 						}}
 					/>
@@ -318,7 +360,7 @@ const ViewScreen = ({ navigation, route }) => {
 						onPress={() => {
 							if (totalAmount.trim() === '' || totalAmount !== '0.00') {
 								navigation.navigate(ROUTES.CHECKOUT, {
-									name: getName,
+									name: item.Fullname,
 									allData: item,
 									inputAmounts: inputAmounts,
 									total: parseFloat(totalValue),

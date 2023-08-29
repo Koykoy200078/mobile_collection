@@ -1,12 +1,20 @@
 import { StyleSheet } from 'react-native'
+import { BaseColor } from '../../app/config'
 
 export default StyleSheet.create({
-	paddingSrollView: { padding: 20, marginTop: 10 },
-	paddingFlatList: {
-		paddingHorizontal: 20,
+	container: {
+		padding: 20,
+		paddingTop: 0,
 	},
-	topicsView: {
-		marginVertical: 24,
+	specifications: {
+		marginVertical: 10,
+		flexDirection: 'column',
+		alignItems: 'flex-start',
 	},
-	title: { marginBottom: 5 },
+	wrapContent: {
+		flexWrap: 'wrap',
+		flexDirection: 'column',
+		borderColor: BaseColor.dividerColor,
+		marginBottom: 20,
+	},
 })
