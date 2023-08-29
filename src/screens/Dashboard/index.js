@@ -5,6 +5,7 @@ import {
 	Platform,
 	SafeAreaView,
 	Alert,
+	useColorScheme,
 } from 'react-native'
 import { Show, Text } from '../../app/components'
 import { Icons } from '../../app/config/icons'
@@ -13,7 +14,6 @@ import databaseOptions, {
 	Client,
 	UploadData,
 } from '../../app/database/allSchemas'
-
 
 const isWithinTimeRangeGoodMorning = (hour, minute) => {
 	return hour >= 5 && hour < 12 // 5:00 AM to 11:59 AM
@@ -28,13 +28,16 @@ const isWithinTimeRangeGoodEvening = (hour, minute) => {
 }
 
 const Dashboard = ({ navigation }) => {
+	const isDarkMode = useColorScheme() === 'dark'
 	const { width, height } = useWindowDimensions()
 	const ios = Platform.OS === 'ios'
 	const [localHour, setLocalHour] = useState(null)
 	const [localMinute, setLocalMinute] = useState(null)
 	const [isCollapsed, setIsCollapsed] = useState(false)
-	const [totalCashIn, setTotalCashIn] = useState(0.0)
-	const [totalCashOut, setTotalCashOut] = useState(0.0)
+
+	const [totalCashOnHand, setTotalCashOnHand] = useState(0.0)
+
+	const [totalCollectedAmount, setTotalCollectedAmount] = useState(0.0)
 	const [greetings, setGreetings] = useState('Hello')
 
 	const intervalRef = useRef(null)
@@ -67,7 +70,7 @@ const Dashboard = ({ navigation }) => {
 		return () => {
 			clearInterval(intervalRef.current)
 		}
-	}, [totalCashIn, totalCashOut, localHour, localMinute, greetings])
+	}, [localHour, localMinute, greetings, totalCashOnHand, totalCollectedAmount])
 
 	const checkAndShowData = useCallback(async () => {
 		try {
@@ -78,8 +81,8 @@ const Dashboard = ({ navigation }) => {
 			const uploadDataArray = Array.from(uploadData)
 
 			if (clientsArray.length > 0 || uploadDataArray.length > 0) {
-				showData(clientsArray)
-				showDataUpload(uploadDataArray)
+				showCollectedAmount(uploadDataArray)
+				showCashOnHandData(clientsArray)
 			} else {
 				// No data, do nothing
 			}
@@ -90,42 +93,23 @@ const Dashboard = ({ navigation }) => {
 		}
 	}, [])
 
-	const cashIn = totalCashIn
-	const cashOut = totalCashOut
-	const newBalCashIn = totalCashIn.toLocaleString('en-US', {
+	const newBalTotalCashOnHand = totalCashOnHand.toLocaleString('en-US', {
 		minimumFractionDigits: 2,
 		maximumFractionDigits: 2,
 	})
 
-	const newBalCashOut = totalCashOut.toLocaleString('en-US', {
+	const newBalCollected = totalCollectedAmount.toLocaleString('en-US', {
 		minimumFractionDigits: 2,
 		maximumFractionDigits: 2,
 	})
 
-	const totalAmount = parseFloat(cashIn) - parseFloat(cashOut)
+	const totalAmount = parseFloat(totalCashOnHand)
 	const newBalTotal = totalAmount.toLocaleString('en-US', {
 		minimumFractionDigits: 2,
 		maximumFractionDigits: 2,
 	})
 
-	const showData = (data) => {
-		const filteredData = data.filter((item) => item.collections.length > 0)
-		const totalDueArray = filteredData.map((item) =>
-			item.collections.map((collection) => parseFloat(collection.TOTALDUE))
-		)
-
-		const flatTotalDueArray = totalDueArray.flat()
-		const totalDueSum = flatTotalDueArray.reduce(
-			(acc, currentValue) => acc + currentValue,
-			0
-		)
-
-		setTotalCashIn(totalDueSum)
-
-		return null
-	}
-
-	const showDataUpload = (data) => {
+	const showCollectedAmount = (data) => {
 		const filteredData = data.filter((item) => item.collections.length > 0)
 		const totalDueArray = filteredData.map((item) =>
 			item.collections.map((collection) => parseFloat(collection.AMT))
@@ -137,7 +121,24 @@ const Dashboard = ({ navigation }) => {
 			0
 		)
 
-		setTotalCashOut(totalDueSum)
+		setTotalCollectedAmount(totalDueSum)
+
+		return null
+	}
+
+	const showCashOnHandData = (data) => {
+		const filteredData = data.filter((item) => item.collections.length > 0)
+		const totalDueArray = filteredData.map((item) =>
+			item.collections.map((collection) => parseFloat(collection.TOTALDUE))
+		)
+
+		const flatTotalDueArray = totalDueArray.flat()
+		const totalDueSum = flatTotalDueArray.reduce(
+			(acc, currentValue) => acc + currentValue,
+			0
+		)
+
+		setTotalCashOnHand(totalDueSum)
 
 		return null
 	}
@@ -166,7 +167,8 @@ const Dashboard = ({ navigation }) => {
 
 			<View className='mx-2 p-2'>
 				<Shadow
-					distance={5}
+					distance={2}
+					startColor={isDarkMode ? '#f1f1f1' : '#00000020'}
 					style={{
 						padding: 10,
 						width: width - 35,
@@ -180,12 +182,12 @@ const Dashboard = ({ navigation }) => {
 							toggleAccordion={() => setIsCollapsed(!isCollapsed)}
 							isCollapsed={isCollapsed}
 							isActive={!isCollapsed ? 'angle-down' : 'angle-up'}
-							totalCashIn={newBalCashIn}
-							totalCashout={newBalCashOut}
-							total={newBalTotal}
+							totalCollectedAmount={newBalCollected}
+							totalRemittedAmount={parseFloat(0).toFixed(2)}
+							total={newBalTotalCashOnHand}
 						/>
 					</View>
-					<Text title1>₱ {newBalTotal}</Text>
+					<Text title1>₱ {newBalTotalCashOnHand}</Text>
 				</Shadow>
 			</View>
 

@@ -281,7 +281,7 @@ const OtherSLScreen = ({ navigation, route }) => {
 						onPress={() => {
 							if (totalAmount.trim() === '' || totalAmount !== '0.00') {
 								navigation.navigate(ROUTES.CHECKOUT, {
-									name: getName,
+									name: item.Fullname,
 									allData: item,
 									inputAmounts: inputAmounts,
 									total: parseFloat(totalValue),

@@ -58,15 +58,12 @@ const UploadData = ({ navigation }) => {
 	const handleSearch = useCallback(
 		(query) => {
 			const normalizedQuery = query.toLowerCase()
-			const data = filterData.filter(
-				(client) =>
-					client.FName.toLowerCase().includes(normalizedQuery) ||
-					client.MName.toLowerCase().includes(normalizedQuery) ||
-					client.LName.toLowerCase().includes(normalizedQuery)
+			const data = filterData.filter((client) =>
+				client.Fullname.toLowerCase().includes(normalizedQuery)
 			)
 			setFilteredClients(data)
 		},
-		[filterData]
+		[filterData, search]
 	)
 
 	const clearSearch = () => {
@@ -81,6 +78,9 @@ const UploadData = ({ navigation }) => {
 					title={'Paid Client'}
 					value={search}
 					isUpload={true}
+					onPressUpload={() => {
+						Alert.alert('Upload', 'Are you sure you want to upload data?')
+					}}
 					onChangeText={(val) => {
 						setSearch(val)
 						handleSearch(val)

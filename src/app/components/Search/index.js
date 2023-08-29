@@ -1,5 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { SafeAreaView, Dimensions, StyleSheet, View, TextInput, Image, TouchableHighlight, ScrollView, Animated, Easing, useWindowDimensions } from 'react-native'
+import {
+	SafeAreaView,
+	Dimensions,
+	StyleSheet,
+	View,
+	TextInput,
+	Image,
+	TouchableHighlight,
+	ScrollView,
+	Animated,
+	Easing,
+	useWindowDimensions,
+	useColorScheme,
+} from 'react-native'
 
 import { Text } from '..'
 
@@ -9,7 +22,17 @@ import { TouchableOpacity } from 'react-native-gesture-handler'
 import { FlashList } from '@shopify/flash-list'
 const { Value, timing } = Animated
 
-const Search = ({ title, onPress, value, onChangeText, clearStatus = false, isDownload = false, isUpload = false }) => {
+const Search = ({
+	title,
+	onPress,
+	onPressUpload,
+	value,
+	onChangeText,
+	clearStatus = false,
+	isDownload = false,
+	isUpload = false,
+}) => {
+	const isDarkMode = useColorScheme() === 'dark'
 	const { width, height } = useWindowDimensions()
 	const [isFocused, setIsFocused] = useState(false)
 	// const [searchText, setSearchText] = useState('');
@@ -98,27 +121,46 @@ const Search = ({ title, onPress, value, onChangeText, clearStatus = false, isDo
 								{isDownload ? (
 									<TouchableOpacity onPress={onPress}>
 										<View className='mx-2'>
-											<Icons.Feather name='download-cloud' size={30} color='#161924' />
+											<Icons.Feather
+												name='download-cloud'
+												size={30}
+												color={isDarkMode ? '#f1f1f1' : '#161924'}
+											/>
 										</View>
 									</TouchableOpacity>
 								) : null}
 
 								{isUpload ? (
-									<TouchableOpacity onPress={onPress}>
+									<TouchableOpacity onPress={onPressUpload}>
 										<View className='mx-2'>
-											<Icons.SimpleLineIcons name='cloud-upload' size={25} color='#161924' />
+											<Icons.SimpleLineIcons
+												name='cloud-upload'
+												size={25}
+												color={isDarkMode ? '#f1f1f1' : '#161924'}
+											/>
 										</View>
 									</TouchableOpacity>
 								) : null}
 
-								<Text headline numberOfLines={1} className='text-black dark:text-white'>
+								<Text
+									headline
+									numberOfLines={1}
+									className='text-black dark:text-white'>
 									{title}
 								</Text>
 							</>
 						)}
 
-						<TouchableHighlight activeOpacity={1} underlayColor={'#ccd0d5'} onPress={_onFocus} className='w-10 h-10 rounded-full flex-row justify-center items-center'>
-							<Icons.FontAwesome5 name='search' size={22} color='#000' />
+						<TouchableHighlight
+							activeOpacity={1}
+							underlayColor={'#ccd0d5'}
+							onPress={_onFocus}
+							className='w-10 h-10 rounded-full flex-row justify-center items-center'>
+							<Icons.FontAwesome5
+								name='search'
+								size={22}
+								color={isDarkMode ? '#f1f1f1' : '#161924'}
+							/>
 						</TouchableHighlight>
 
 						<Animated.View
@@ -128,13 +170,29 @@ const Search = ({ title, onPress, value, onChangeText, clearStatus = false, isDo
 								transform: [{ translateX: _inputBoxTranslateX }],
 							}}>
 							<Animated.View style={{ opacity: _backButtonOpacity }}>
-								<TouchableHighlight activeOpacity={1} underlayColor={'transparent'} onPress={_onBlur} className='w-10 h-40 rounded-md flex-row justify-center items-center mr-5'>
-									<Icons.FontAwesome name='close' size={20} color='#000' />
+								<TouchableHighlight
+									activeOpacity={1}
+									underlayColor={'transparent'}
+									onPress={_onBlur}
+									className='w-10 h-40 rounded-md flex-row justify-center items-center mr-5'>
+									<Icons.FontAwesome
+										name='close'
+										size={20}
+										color={isDarkMode ? '#f1f1f1' : '#161924'}
+									/>
 								</TouchableHighlight>
 							</Animated.View>
 
 							<View className='flex-1 bg-[#ccd0d5] rounded-md'>
-								<TextInput ref={refInput} placeholder='Search' clearButtonMode='always' value={value} onChangeText={onChangeText} className='h-[45] px-3 text-base text-black dark:text-black' />
+								<TextInput
+									ref={refInput}
+									placeholder='Search'
+									placeholderTextColor={isDarkMode ? '#161924' : '#161924'}
+									clearButtonMode='always'
+									value={value}
+									onChangeText={onChangeText}
+									className='h-[45] px-3 text-base text-black dark:text-black'
+								/>
 							</View>
 						</Animated.View>
 					</View>

@@ -95,7 +95,7 @@ const ClientCollection = ({ navigation }) => {
 		if (isSuccess) {
 			saveData()
 		}
-	}, [isSuccess])
+	}, [isSuccess, search])
 
 	const handleScroll = Animated.event(
 		[{ nativeEvent: { contentOffset: { y: scrollY } } }],
@@ -183,15 +183,13 @@ const ClientCollection = ({ navigation }) => {
 	const handleSearch = useCallback(
 		(query) => {
 			const normalizedQuery = query.toLowerCase()
-			const data = dataToShow.filter(
-				(client) =>
-					client.FName.toLowerCase().includes(normalizedQuery) ||
-					client.MName.toLowerCase().includes(normalizedQuery) ||
-					client.LName.toLowerCase().includes(normalizedQuery)
+			const data = dataToShow.filter((client) =>
+				client.Fullname.toLowerCase().includes(normalizedQuery)
 			)
+
 			setFilteredClients(data)
 		},
-		[filterData, dataToShow]
+		[filterData, dataToShow, search]
 	)
 
 	const clearSearch = () => {
