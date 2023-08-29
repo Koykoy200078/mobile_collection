@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class iMinPrinterModule extends ReactContextBaseJavaModule {
     public static final String NAME = "IminPrinter";
@@ -99,14 +100,14 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
                     e.printStackTrace();
                 }
             } else {
-                BluetoothUtil.openBluetooth(getCurrentActivity());
+                BluetoothUtil.openBluetooth(Objects.requireNonNull(getCurrentActivity()));
             }
         } else {
             show("Unknown's Device", Toast.LENGTH_SHORT);
         }
     }
 
-        @ReactMethod
+    @ReactMethod
     public void getStatus(Callback successCallback) {
         int status =
                 IminPrintUtils.getInstance(reactContext).getPrinterStatus(connectType);
@@ -155,17 +156,14 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void printAndLineFeed(final Promise promise) {
         final IminPrintUtils printUtils = mIminPrintUtils;
-        ThreadPoolManager.getInstance().executeTask(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    printUtils.printAndLineFeed();
-                    promise.resolve(null);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Log.i(TAG, "ERROR: " + e.getMessage());
-                    promise.reject("" + 0, e.getMessage());
-                }
+        ThreadPoolManager.getInstance().executeTask(() -> {
+            try {
+                printUtils.printAndLineFeed();
+                promise.resolve(null);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.i(TAG, "ERROR: " + e.getMessage());
+                promise.reject("" + 0, e.getMessage());
             }
         });
     }
@@ -178,17 +176,14 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
     public void printAndFeedPaper(int height, final Promise promise) {
         final IminPrintUtils printUtils = mIminPrintUtils;
         final int mHeight = height;
-        ThreadPoolManager.getInstance().executeTask(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    printUtils.printAndFeedPaper(mHeight);
-                    promise.resolve(null);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Log.i(TAG, "ERROR: " + e.getMessage());
-                    promise.reject("" + 0, e.getMessage());
-                }
+        ThreadPoolManager.getInstance().executeTask(() -> {
+            try {
+                printUtils.printAndFeedPaper(mHeight);
+                promise.resolve(null);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.i(TAG, "ERROR: " + e.getMessage());
+                promise.reject("" + 0, e.getMessage());
             }
         });
     }
@@ -196,17 +191,14 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void partialCut(final Promise promise) {
         final IminPrintUtils printUtils = mIminPrintUtils;
-        ThreadPoolManager.getInstance().executeTask(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    printUtils.partialCut();
-                    promise.resolve(null);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Log.i(TAG, "ERROR: " + e.getMessage());
-                    promise.reject("" + 0, e.getMessage());
-                }
+        ThreadPoolManager.getInstance().executeTask(() -> {
+            try {
+                printUtils.partialCut();
+                promise.resolve(null);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.i(TAG, "ERROR: " + e.getMessage());
+                promise.reject("" + 0, e.getMessage());
             }
         });
     }
@@ -219,17 +211,14 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
     public void setAlignment(int alignment, final Promise promise) {
         final IminPrintUtils printUtils = mIminPrintUtils;
         final int mAlignment = alignment;
-        ThreadPoolManager.getInstance().executeTask(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    printUtils.setAlignment(mAlignment);
-                    promise.resolve(null);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Log.i(TAG, "ERROR: " + e.getMessage());
-                    promise.reject("" + 0, e.getMessage());
-                }
+        ThreadPoolManager.getInstance().executeTask(() -> {
+            try {
+                printUtils.setAlignment(mAlignment);
+                promise.resolve(null);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.i(TAG, "ERROR: " + e.getMessage());
+                promise.reject("" + 0, e.getMessage());
             }
         });
     }
@@ -242,17 +231,14 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
     public void setTextSize(int size, final Promise promise) {
         final IminPrintUtils printUtils = mIminPrintUtils;
         final int mSize = size;
-        ThreadPoolManager.getInstance().executeTask(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    printUtils.setTextSize(mSize);
-                    promise.resolve(null);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Log.i(TAG, "ERROR: " + e.getMessage());
-                    promise.reject("" + 0, e.getMessage());
-                }
+        ThreadPoolManager.getInstance().executeTask(() -> {
+            try {
+                printUtils.setTextSize(mSize);
+                promise.resolve(null);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.i(TAG, "ERROR: " + e.getMessage());
+                promise.reject("" + 0, e.getMessage());
             }
         });
     }
@@ -265,17 +251,14 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
     public void setTextStyle(int style, final Promise promise) {
         final IminPrintUtils printUtils = mIminPrintUtils;
         final int mStyle = style;
-        ThreadPoolManager.getInstance().executeTask(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    printUtils.setTextStyle(mStyle);
-                    promise.resolve(null);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Log.i(TAG, "ERROR: " + e.getMessage());
-                    promise.reject("" + 0, e.getMessage());
-                }
+        ThreadPoolManager.getInstance().executeTask(() -> {
+            try {
+                printUtils.setTextStyle(mStyle);
+                promise.resolve(null);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.i(TAG, "ERROR: " + e.getMessage());
+                promise.reject("" + 0, e.getMessage());
             }
         });
     }
@@ -284,17 +267,14 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
     public void printTextWordWrap(String text, final Promise promise) {
         final IminPrintUtils printUtils = mIminPrintUtils;
         final String mText = text;
-        ThreadPoolManager.getInstance().executeTask(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    printUtils.printText(mText, 1);
-                    promise.resolve(null);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Log.i(TAG, "ERROR: " + e.getMessage());
-                    promise.reject("" + 0, e.getMessage());
-                }
+        ThreadPoolManager.getInstance().executeTask(() -> {
+            try {
+                printUtils.printText(mText, 1);
+                promise.resolve(null);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.i(TAG, "ERROR: " + e.getMessage());
+                promise.reject("" + 0, e.getMessage());
             }
         });
     }
@@ -315,19 +295,16 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
         final int[] mWidthArray = ArrayUtils.toArrayOfInteger(widthArray);
         final int[] mAlignArray = ArrayUtils.toArrayOfInteger(alignArray);
         final int[] mFontSizeArray = ArrayUtils.toArrayOfInteger(fontSizeArray);
-        ThreadPoolManager.getInstance().executeTask(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        printUtils.printColumnsText(mTextArray, mWidthArray, mAlignArray, mFontSizeArray);
-                    }
-                    promise.resolve(null);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Log.i(TAG, "ERROR: " + e.getMessage());
-                    promise.reject("" + 0, e.getMessage());
+        ThreadPoolManager.getInstance().executeTask(() -> {
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    printUtils.printColumnsText(mTextArray, mWidthArray, mAlignArray, mFontSizeArray);
                 }
+                promise.resolve(null);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.i(TAG, "ERROR: " + e.getMessage());
+                promise.reject("" + 0, e.getMessage());
             }
         });
     }
@@ -335,17 +312,14 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void openCashBox(final Promise promise) {
         final IminPrintUtils printUtils = mIminPrintUtils;
-        ThreadPoolManager.getInstance().executeTask(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    IminSDKManager.opencashBox();
-                    promise.resolve(null);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Log.i(TAG, "ERROR: " + e.getMessage());
-                    promise.reject("" + 0, e.getMessage());
-                }
+        ThreadPoolManager.getInstance().executeTask(() -> {
+            try {
+                IminSDKManager.opencashBox();
+                promise.resolve(null);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.i(TAG, "ERROR: " + e.getMessage());
+                promise.reject("" + 0, e.getMessage());
             }
         });
     }
@@ -360,22 +334,17 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
         byte[] decoded = Base64.decode(data, Base64.DEFAULT);
         final Bitmap bitmap = invert(BitmapFactory.decodeByteArray(decoded, 0, decoded.length));
 
-        ThreadPoolManager.getInstance().executeTask(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    printUtils.printSingleBitmap(bitmap, 1);
-                    promise.resolve(null);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Log.i(TAG, "ERROR: " + e.getMessage());
-                    promise.reject("" + 0, e.getMessage());
-                }
+        ThreadPoolManager.getInstance().executeTask(() -> {
+            try {
+                printUtils.printSingleBitmap(bitmap, 1);
+                promise.resolve(null);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.i(TAG, "ERROR: " + e.getMessage());
+                promise.reject("" + 0, e.getMessage());
             }
         });
     }
-
-
 
     protected Bitmap invert(Bitmap src)
     {

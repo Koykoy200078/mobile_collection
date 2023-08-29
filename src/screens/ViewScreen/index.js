@@ -153,12 +153,6 @@ const ViewScreen = ({ navigation, route }) => {
 		maximumFractionDigits: 2,
 	})
 
-	let fName = item.FName ? item.FName : ''
-	let mName = item.MName ? item.MName : ''
-	let lName = item.LName ? item.LName + ', ' : ''
-	let sName = item.SName ? item.SName : ''
-	let getName = lName + fName + ' ' + mName + ' ' + sName
-
 	return (
 		<SafeAreaView
 			style={[BaseStyle.safeAreaView, { flex: 1 }]}
@@ -248,7 +242,7 @@ const ViewScreen = ({ navigation, route }) => {
 								style={{ width: 20, height: 20 }}
 							/>
 						)}{' '}
-						{getName}
+						{item.Fullname}
 					</Text>
 
 					<View style={styles.specifications}>

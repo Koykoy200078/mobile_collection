@@ -46,10 +46,9 @@ const AuthStack = createStackNavigator()
 const Auth = () => {
 	return (
 		<AuthStack.Navigator
-			initialRouteName={ROUTES.PRINTOUT}
+			initialRouteName={ROUTES.LOGIN}
 			screenOptions={options}>
 			<AuthStack.Screen name={ROUTES.LOGIN} component={Login} />
-			<AuthStack.Screen name={ROUTES.PRINTOUT} component={PrintOutScreen} />
 		</AuthStack.Navigator>
 	)
 }

@@ -38,7 +38,7 @@ const ClientCollection = ({ navigation }) => {
 	const [clientData, setClientData] = useState([])
 
 	const filterData =
-		clientData && clientData.filter((item) => item.is_default === true) //item.collections.length > 0
+		clientData && clientData.filter((item) => item.collections.length > 0) //item.collections.length > 0
 
 	const [showAll, setShowAll] = useState(false)
 
@@ -136,24 +136,11 @@ const ClientCollection = ({ navigation }) => {
 									id: `${client.ClientID}-${collection.ID}`,
 								}))
 
-								const dateOfBirth = new Date(client.DateOfBirth)
-								const formattedDateOfBirth = `${dateOfBirth.getFullYear()}-${(
-									dateOfBirth.getMonth() + 1
-								)
-									.toString()
-									.padStart(2, '0')}-${dateOfBirth
-									.getDate()
-									.toString()
-									.padStart(2, '0')}`
-
 								const clientData = {
+									ClientIDBrCode: client.ClientIDBrCode,
 									ClientID: client.ClientID,
-									FName: client.FName || '',
-									LName: client.LName || '',
-									MName: client.MName || '',
-									SName: client.SName || '',
+									Fullname: client.Fullname,
 									collections,
-									is_default: client.is_default,
 								}
 
 								realm.create(Client, clientData, Realm.UpdateMode.Modified)
@@ -229,12 +216,7 @@ const ClientCollection = ({ navigation }) => {
 					data={filteredClients.length > 0 ? filteredClients : dataToShow}
 					keyExtractor={(_item, index) => index.toString()}
 					renderItem={({ item }) => {
-						const { FName, MName, LName, SName, collections, SLDESCR } = item
-
-						const fName = FName || ''
-						const mName = MName || ''
-						const lName = LName ? LName + ', ' : ''
-						const sName = SName || ''
+						const { ClientID, Fullname, isPaid, collections } = item
 
 						const totalDue = collections.reduce(
 							(acc, data) => acc + parseFloat(data.TOTALDUE),
@@ -244,8 +226,6 @@ const ClientCollection = ({ navigation }) => {
 						const formatNumber = (number) => {
 							return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 						}
-
-						const clientName = lName + fName + ' ' + mName + ' ' + sName
 
 						const handlePress = (item) => {
 							if (item.collections.length === 0) {
@@ -257,9 +237,9 @@ const ClientCollection = ({ navigation }) => {
 
 						return (
 							<Project02
-								title={clientName}
-								description={'TEST'}
-								isPaid={item.isPaid}
+								title={Fullname}
+								description={ClientID.toString()}
+								isPaid={isPaid}
 								total_loans={totalDue ? formatNumber(totalDue.toFixed(2)) : ''}
 								onPress={() => handlePress(item)}
 								style={{
