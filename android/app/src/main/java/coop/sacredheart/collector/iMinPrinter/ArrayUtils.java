@@ -126,8 +126,6 @@ public class ArrayUtils {
         return writableArray;
     }
 
-
-
     public static String[] toArrayOfString(ReadableArray readableArray) {
         String[] array = new String[readableArray.size()];
 
@@ -138,6 +136,28 @@ public class ArrayUtils {
 
         return array;
     }
+    // public static String[] toArrayOfString(ReadableArray readableArray) {
+    // String[] array = new String[readableArray.size()];
+
+    // for (int i = 0; i < readableArray.size(); i++) {
+    // ReadableType type = readableArray.getType(i);
+    // if (type == ReadableType.Array) {
+    // ReadableArray innerArray = readableArray.getArray(i);
+    // StringBuilder stringBuilder = new StringBuilder();
+    // for (int j = 0; j < innerArray.size(); j++) {
+    // if (j > 0) {
+    // stringBuilder.append(" "); // Add space between elements
+    // }
+    // stringBuilder.append(innerArray.getString(j));
+    // }
+    // array[i] = stringBuilder.toString();
+    // } else {
+    // array[i] = readableArray.getString(i);
+    // }
+    // }
+
+    // return array;
+    // }
 
     public static int[] toArrayOfInteger(ReadableArray readableArray) {
         int[] array = new int[readableArray.size()];

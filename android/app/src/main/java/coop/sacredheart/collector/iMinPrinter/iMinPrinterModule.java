@@ -48,8 +48,9 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
         connectTypeList = new ArrayList<>();
 
         String deviceModel = SystemPropManager.getModel();
-        Log.d("deviceModel",deviceModel);
-        if (TextUtils.equals("M2-202", deviceModel) || TextUtils.equals("M2-203", deviceModel) || TextUtils.equals("M2-Pro", deviceModel)) {
+        Log.d("deviceModel", deviceModel);
+        if (TextUtils.equals("M2-202", deviceModel) || TextUtils.equals("M2-203", deviceModel)
+                || TextUtils.equals("M2-Pro", deviceModel)) {
             connectTypeList.add("SPI");
             connectTypeList.add("Bluetooth");
         } else if (TextUtils.equals("S1-701", deviceModel) || TextUtils.equals("S1-702", deviceModel)) {
@@ -62,7 +63,8 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
                 || TextUtils.equals("D4-501", deviceModel) || TextUtils.equals("D4-502", deviceModel)
                 || TextUtils.equals("D4-503", deviceModel) || TextUtils.equals("D4-504", deviceModel)
                 || TextUtils.equals("D4-505", deviceModel) || TextUtils.equals("M2-Max", deviceModel)
-                || TextUtils.equals("D1", deviceModel) || TextUtils.equals("D1-Pro", deviceModel) || TextUtils.equals("Swift 1", deviceModel) || TextUtils.equals("I22T01", deviceModel)) {
+                || TextUtils.equals("D1", deviceModel) || TextUtils.equals("D1-Pro", deviceModel)
+                || TextUtils.equals("Swift 1", deviceModel) || TextUtils.equals("I22T01", deviceModel)) {
             connectTypeList.add("USB");
             connectTypeList.add("Bluetooth");
         }
@@ -94,9 +96,9 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
                 try {
                     connectType = IminPrintUtils.PrintConnectType.BLUETOOTH;
                     BluetoothDevice device = BluetoothUtil.getPairedDevices().get(0);
-                    mIminPrintUtils.initPrinter(IminPrintUtils.PrintConnectType.BLUETOOTH,device);
+                    mIminPrintUtils.initPrinter(IminPrintUtils.PrintConnectType.BLUETOOTH, device);
                     show("Connect Bluetooth Success", Toast.LENGTH_SHORT);
-                }catch (IOException e){
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             } else {
@@ -109,11 +111,10 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void getStatus(Callback successCallback) {
-        int status =
-                IminPrintUtils.getInstance(reactContext).getPrinterStatus(connectType);
+        int status = IminPrintUtils.getInstance(reactContext).getPrinterStatus(connectType);
         successCallback.invoke(status);
         String deviceModel = SystemPropManager.getModel();
-        show(deviceModel + ":" +status, Toast.LENGTH_SHORT);
+        show(deviceModel + ":" + status, Toast.LENGTH_SHORT);
     }
 
     @ReactMethod
@@ -127,28 +128,18 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
         successCallback.invoke(sn);
     }
 
-//    @ReactMethod
-//    public void printText(String text, Callback successCallback) {
-//        IminPrintUtils mIminPrintUtils = IminPrintUtils.getInstance(reactContext);
-//        mIminPrintUtils.printText(text + "   \n");
-//        successCallback.invoke("print text: " + text);
-//    }
-
     @ReactMethod
-    public void printText(String text, final Promise promise) {
-        final IminPrintUtils printUtils = mIminPrintUtils;
-        final String mText = text;
-        ThreadPoolManager.getInstance().executeTask(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    printUtils.printText(mText);
-                    promise.resolve(null);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Log.i(TAG, "ERROR: " + e.getMessage());
-                    promise.reject("" + 0, e.getMessage());
-                }
+    public void printText(String text, Callback successCallback) {
+        IminPrintUtils mIminPrintUtils = IminPrintUtils.getInstance(reactContext);
+
+        ThreadPoolManager.getInstance().executeTask(() -> {
+            try {
+                printUtils.printText(text.trim());
+                successCallback.invoke("print text: " + text);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.i(TAG, "ERROR: " + e.getMessage());
+                successCallback.invoke("error: " + e.getMessage());
             }
         });
     }
@@ -169,7 +160,7 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
     }
 
     /**
-     * @param height    0 - 255
+     * @param height  0 - 255
      * @param promise
      */
     @ReactMethod
@@ -204,7 +195,7 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
     }
 
     /**
-     * @param alignment   0 = Left, 1 = Center, 2 = Right (default 0)
+     * @param alignment 0 = Left, 1 = Center, 2 = Right (default 0)
      * @param promise
      */
     @ReactMethod
@@ -224,7 +215,7 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
     }
 
     /**
-     * @param size      Font Size (default 28)
+     * @param size    Font Size (default 28)
      * @param promise
      */
     @ReactMethod
@@ -244,7 +235,7 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
     }
 
     /**
-     * @param style      0 = Normal, 1 = Bold, 2 = Italic, 3 = Bold Italic
+     * @param style   0 = Normal, 1 = Bold, 2 = Italic, 3 = Bold Italic
      * @param promise
      */
     @ReactMethod
@@ -266,10 +257,10 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void printTextWordWrap(String text, final Promise promise) {
         final IminPrintUtils printUtils = mIminPrintUtils;
-        final String mText = text;
+        final String mText = text.trim();
         ThreadPoolManager.getInstance().executeTask(() -> {
             try {
-                printUtils.printText(mText, 1);
+                printUtils.printText(mText, 0);
                 promise.resolve(null);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -280,16 +271,16 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
     }
 
     /**
-     * @param textArray       Text Array (String)
-     * @param widthArray      Width of each Column, must be greater than 0 (Int)
-     * @param alignArray      Alignment Array (0 = Left, 1 = Center, 2 = Right)
-     * @param fontSizeArray   Font Size of each Column
+     * @param textArray     Text Array (String)
+     * @param widthArray    Width of each Column, must be greater than 0 (Int)
+     * @param alignArray    Alignment Array (0 = Left, 1 = Center, 2 = Right)
+     * @param fontSizeArray Font Size of each Column
      * @param promise
      */
     @ReactMethod
     public void printColumnsText(ReadableArray textArray, ReadableArray widthArray,
-                                 ReadableArray alignArray, ReadableArray fontSizeArray,
-                                 final Promise promise) {
+            ReadableArray alignArray, ReadableArray fontSizeArray,
+            final Promise promise) {
         final IminPrintUtils printUtils = mIminPrintUtils;
         final String[] mTextArray = ArrayUtils.toArrayOfString(textArray);
         final int[] mWidthArray = ArrayUtils.toArrayOfInteger(widthArray);
@@ -297,13 +288,13 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
         final int[] mFontSizeArray = ArrayUtils.toArrayOfInteger(fontSizeArray);
         ThreadPoolManager.getInstance().executeTask(() -> {
             try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    printUtils.printColumnsText(mTextArray, mWidthArray, mAlignArray, mFontSizeArray);
-                }
+                Log.d(TAG, "Printing columns...");
+                printUtils.printColumnsText(mTextArray, mWidthArray, mAlignArray, mFontSizeArray);
+                Log.d(TAG, "Columns printed successfully");
                 promise.resolve(null);
             } catch (Exception e) {
                 e.printStackTrace();
-                Log.i(TAG, "ERROR: " + e.getMessage());
+                Log.e(TAG, "ERROR: " + e.getMessage());
                 promise.reject("" + 0, e.getMessage());
             }
         });
@@ -325,7 +316,7 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
     }
 
     /**
-     * @param data      Base64 Image Data
+     * @param data    Base64 Image Data
      * @param promise
      */
     @ReactMethod
@@ -346,8 +337,7 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
         });
     }
 
-    protected Bitmap invert(Bitmap src)
-    {
+    protected Bitmap invert(Bitmap src) {
         int height = src.getHeight();
         int width = src.getWidth();
 
@@ -359,13 +349,12 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
         matrixGrayscale.setSaturation(0);
 
         ColorMatrix matrixInvert = new ColorMatrix();
-        matrixInvert.set(new float[]
-                {
-                        -1.0f, 0.0f, 0.0f, 0.0f, 255.0f,
-                        0.0f, -1.0f, 0.0f, 0.0f, 255.0f,
-                        0.0f, 0.0f, -1.0f, 0.0f, 255.0f,
-                        0.0f, 0.0f, 0.0f, 1.0f, 0.0f
-                });
+        matrixInvert.set(new float[] {
+                -1.0f, 0.0f, 0.0f, 0.0f, 255.0f,
+                0.0f, -1.0f, 0.0f, 0.0f, 255.0f,
+                0.0f, 0.0f, -1.0f, 0.0f, 255.0f,
+                0.0f, 0.0f, 0.0f, 1.0f, 0.0f
+        });
         matrixInvert.preConcat(matrixGrayscale);
 
         ColorMatrixColorFilter filter = new ColorMatrixColorFilter(matrixInvert);

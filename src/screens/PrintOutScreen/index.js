@@ -1,12 +1,14 @@
-import { View, Text } from 'react-native'
-import React, { useState } from 'react'
+import { View, Text, NativeModules } from 'react-native'
+import React, { useState, useEffect } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import styles from './styles'
 import { Button } from '../../app/components'
 import { imageUri } from './imageUri'
 import { ROUTES } from '../../app/config'
-import RNPrint from 'react-native-print'
+
 import { ScrollView } from 'react-native-gesture-handler'
+
+const iMinPrinter = NativeModules.IminPrinter
 
 const PrintOutScreen = ({ navigation, route }) => {
 	const [data, setData] = useState(null)
@@ -43,6 +45,8 @@ const PrintOutScreen = ({ navigation, route }) => {
 
 	const formattedDate = `${day} ${monthNames[monthIndex]} ${year}, ${formattedHour}:${formattedMinute} ${ampm}`
 
+	console.log(formattedDate)
+
 	// Function to generate a random number within a range
 	const getRandomNumber = (min, max) => {
 		return Math.floor(Math.random() * (max - min + 1) + min)
@@ -55,6 +59,22 @@ const PrintOutScreen = ({ navigation, route }) => {
 	const referenceID = getRandomNumber(100000000000, 999999999999)
 
 	const { name, allData, inputAmounts, total } = route.params
+
+	useEffect(() => {
+		const check = async () => {
+			await iMinPrinter.initPrinter()
+
+			await iMinPrinter.getStatus((status) => {
+				console.log('Printer status: ', status)
+			})
+
+			await iMinPrinter.getSn((sn) => {
+				console.log('Printer SN: ', sn)
+			})
+		}
+
+		check()
+	}, [])
 
 	const totalAmount = total.toLocaleString('en-US', {
 		minimumFractionDigits: 2,
@@ -86,14 +106,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2,
 				})
-				itemHTML += `
-          <div class="flex-column"
-            style="justify-content: flex-start">
-            <div class="section-title" style="font-size: 12px">${matchingItem.REF_TARGET}</div>
-            <div class="section-value" style="margin-left: 10px; font-size: 12px">${refNo}</div>
-            <div class="section-value" style="margin-left: 10px; font-size: 12px">Amount Paid: ${ref_target}</div>
-          </div>
-        `
+				itemHTML += `${matchingItem.REF_TARGET}\n${refNo}\nAmount Paid:							₱ ${ref_target}\n\n`
 			}
 
 			if (SLDESCR) {
@@ -101,14 +114,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2,
 				})
-				itemHTML += `
-          <div class="flex-column"
-            style="justify-content: flex-start">
-            <div class="section-title" style="font-size: 12px">${matchingItem.SLDESCR}</div>
-            <div class="section-value" style="margin-left: 10px; font-size: 12px">${refNo}</div>
-            <div class="section-value" style="margin-left: 10px; font-size: 12px">Amount Paid: ${sldescr}</div>
-          </div>
-        `
+				itemHTML += `${matchingItem.SLDESCR}\n${refNo}\nAmount Paid:							₱ ${sldescr}\n\n`
 			}
 
 			if (SHARECAPITAL) {
@@ -116,14 +122,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2,
 				})
-				itemHTML += `
-          <div class="flex-column"
-            style="justify-content: flex-start">
-            <div class="section-title" style="font-size: 12px">Share Capital</div>
-            <div class="section-value" style="margin-left: 10px; font-size: 12px">${refNo}</div>
-            <div class="section-value" style="margin-left: 10px; font-size: 12px">Amount Paid: ${sharecapital}</div>
-          </div>
-        `
+				itemHTML += `Share Capital\n${refNo}\nAmount Paid:							₱ ${sharecapital}\n\n`
 			}
 
 			if (DEPOSIT) {
@@ -131,14 +130,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2,
 				})
-				itemHTML += `
-          <div class="flex-column"
-            style="justify-content: flex-start">
-            <div class="section-title" style="font-size: 12px">Deposit</div>
-            <div class="section-value" style="margin-left: 10px; font-size: 12px">${refNo}</div>
-            <div class="section-value" style="margin-left: 10px; font-size: 12px">Amount Paid: ${deposit}</div>
-          </div>
-        `
+				itemHTML += `Deposit\n${refNo}\nAmount Paid:								₱ ${deposit}\n\n`
 			}
 
 			return itemHTML
@@ -207,175 +199,25 @@ const PrintOutScreen = ({ navigation, route }) => {
 		})
 		.filter(Boolean)
 
-	const printHTML = async () => {
-		await RNPrint.print({
-			html: `<!DOCTYPE html>
-  <html>
-    <head>
-      <title>Statement of Account</title>
-      <style>
-        * {
-          box-sizing: border-box;
-        }
-        body {
-          font-family: Arial, sans-serif;
-          margin: 0;
-          padding: 0;
-          background-color: #fff;
-        }
-        .container {
-          width: 58mm;
-          height: 160mm;
-          margin: 0 auto;
-          background-color: #fff;
-          box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
-        }
-        .text-center {
-          text-align: center;
-        }
-        .font-bold {
-          font-weight: bold;
-        }
-        .flex-row {
-          display: flex;
-          flex-direction: row;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 5px;
-        }
-        .receipt-header {
-          display: flex;
-          align-items: center;
-          flex-direction: column;
-          margin-bottom: 15px;
-        }
-        .receipt-header img {
-          height: 60px;
-          margin-right: 5px;
-        }
-        .company-details {
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-        }
-        .company-name {
-          font-size: 16px;
-          margin: 0;
-          margin-left: 5px;
-        }
-        .company-address {
-          font-size: 12px;
-          margin: 0;
-          margin-left: 5px;
-        }
-        .receipt-details {
-          margin-bottom: 15px;
-          background-color: #fff;
-          border-radius: 3px;
-        }
-        .receipt-total {
-          margin-top: 0;
-          margin-bottom: 15px;
-        }
-        .section-title {
-          font-size: 12px;
-          font-weight: bold;
-        }
-        .section-value {
-          font-size: 12px;
-        }
+	const checkPrinterStatus = async () => {
+		try {
+			const textArray = `					Statement of Account\n					   Sacred Heart Coop\nCruz na Daan 3008 San Rafael, Philippines\n----------------------------------------------------------------\nAccount Number: ${allData.ClientID}\nBiller Name: ${name}\n----------------------------------------------------------------\n${renderedItem}\nTotal Paid Amount:					₱ ${totalAmount}\n----------------------------------------------------------------\nReceipt No.: ${receiptNo}\nDate: ${formattedDate}\nReference ID: ${referenceID}\n----------------------------------------------------------------\n			Thank you for using our service!`
 
-        .separator {
-          border: none;
-          height: 2px;
-          background-color: #000;
-        }
-        @page {
-          size: 58mm 160mm;
-          margin: 0;
-        }
-        @media print and (-webkit-min-device-pixel-ratio: 0) {
-          /* Remove unnecessary page breaks for Chrome and Safari */
-          .container {
-            page-break-after: auto;
-          }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="receipt-header">
-          <div class="company-details">
-            <img src="${logoUri}" alt="Company Logo" width="65" height="100" />
-            <div>
-              <h1 class="company-name">Sacred Heart Coop</h1>
-              <p class="company-address">
-                Cruz na Daan 3008 San Rafael, Philippines
-              </p>
-            </div>
-          </div>
-        </div>
+			try {
+				await iMinPrinter.setTextSize(20)
+				await iMinPrinter.printText(textArray, () => {
+					iMinPrinter.printAndLineFeed()
+					iMinPrinter.printAndFeedPaper(100)
+					iMinPrinter.partialCut()
+				})
 
-        <h1
-          class="text-center"
-          style="font-size: 18px; font-weight: bold; margin-top: 10px"
-        >
-          STATEMENT OF ACCOUNT
-        </h1>
-
-        <div class="receipt-details">
-          <div class="flex-row">
-            <div class="section-title">Account Number:</div>
-            <div class="section-value">${allData.ClientID}</div>
-          </div>
-
-          <div class="flex-row">
-            <div class="section-title">Biller Name:</div>
-            <div class="section-value">${name}</div>
-          </div>
-
-          <hr class="separator" />
-          ${renderedItem}
-          <hr class="separator" />
-        </div>
-
-        <div class="receipt-total">
-          <div class="flex-row">
-            <div class="section-title">Total Paid Amount:</div>
-            <div class="section-value">${totalAmount}</div>
-          </div>
-        </div>
-
-        <div class="receipt-details">
-          <div class="flex-row">
-            <div class="section-title">Receipt No.:</div>
-            <div class="section-value">${receiptNo}</div>
-          </div>
-
-          <div class="flex-row">
-            <div class="section-title">Date:</div>
-            <div class="section-value">${formattedDate}</div>
-          </div>
-
-          <div class="flex-row">
-            <div class="section-title">Reference ID:</div>
-            <div class="section-value">${referenceID}</div>
-          </div>
-        </div>
-
-        <div class="receipt-footer">
-          <div
-            class="flex-row text-center"
-            style="justify-content: center; margin-top: 10px"
-          >
-            <div class="section-title">Thank you for using our service!</div>
-          </div>
-        </div>
-      </div>
-    </body>
-  </html>
-  `,
-		})
+				console.log(textArray)
+			} catch (error) {
+				console.error('Error printing text with word wrap: ', error)
+			}
+		} catch (error) {
+			console.error(error)
+		}
 	}
 
 	return (
@@ -403,7 +245,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 								BILLER
 							</Text>
 							<View style={{ flexDirection: 'row', padding: 5 }}>
-								<View style={{ width: '40%' }}>
+								<View style={{ width: '45%' }}>
 									<Text
 										style={{
 											flexShrink: 1,
@@ -421,7 +263,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 								</View>
 							</View>
 							<View style={{ flexDirection: 'row', padding: 5 }}>
-								<View style={{ width: '40%' }}>
+								<View style={{ width: '45%' }}>
 									<Text
 										style={{
 											flexShrink: 1,
@@ -540,7 +382,8 @@ const PrintOutScreen = ({ navigation, route }) => {
 
 			<View className='p-[10]' style={styles.container}>
 				<View style={styles.specifications}>
-					<Button full onPress={() => printHTML()}>
+					<Button full onPress={checkPrinterStatus}>
+						{/* onPress={() => printHTML()} */}
 						PRINT
 					</Button>
 				</View>
