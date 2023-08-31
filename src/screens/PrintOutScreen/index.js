@@ -334,48 +334,12 @@ const PrintOutScreen = ({ navigation, route }) => {
 											fontWeight: 'bold',
 											color: '#000',
 										}}>
-										Receipt No.
-									</Text>
-								</View>
-								<View>
-									<Text style={{ flexShrink: 1, color: '#000' }}>
-										{receiptNo}
-									</Text>
-								</View>
-							</View>
-
-							<View style={{ flexDirection: 'row', padding: 5 }}>
-								<View style={{ width: '45%' }}>
-									<Text
-										style={{
-											flexShrink: 1,
-											fontWeight: 'bold',
-											color: '#000',
-										}}>
-										Date
+										Transaction Date
 									</Text>
 								</View>
 								<View>
 									<Text style={{ flexShrink: 1, color: '#000' }}>
 										{formattedDate}
-									</Text>
-								</View>
-							</View>
-
-							<View style={{ flexDirection: 'row', padding: 5 }}>
-								<View style={{ width: '45%' }}>
-									<Text
-										style={{
-											flexShrink: 1,
-											fontWeight: 'bold',
-											color: '#000',
-										}}>
-										Reference ID
-									</Text>
-								</View>
-								<View>
-									<Text style={{ flexShrink: 1, color: '#000' }}>
-										{referenceID}
 									</Text>
 								</View>
 							</View>
