@@ -1,28 +1,34 @@
 package coop.sacredheart.collector.iMinPrinter;
 
+import android.Manifest;
+import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
-import android.graphics.Paint;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.hardware.display.DisplayManager;
+import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
+import android.provider.Settings;
 import android.text.TextUtils;
-import android.util.Base64;
 import android.util.Log;
+import android.view.Display;
+import android.view.Gravity;
+import android.view.View;
 import android.widget.Toast;
-
-import androidx.annotation.NonNull;
 
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Promise;
+import com.imin.library.SystemPropManager;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.ReadableArray;
-import com.imin.library.IminSDKManager;
-import com.imin.library.SystemPropManager;
 import com.imin.printerlib.IminPrintUtils;
 import com.imin.printerlib.util.BluetoothUtil;
 
@@ -31,13 +37,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class iMinPrinterModule extends ReactContextBaseJavaModule {
-    public static final String NAME = "IminPrinter";
+
     private static final String TAG = "IminInnerPrinterModule";
+
     private static ReactApplicationContext reactContext;
-    private IminPrintUtils.PrintConnectType connectType = IminPrintUtils.PrintConnectType.USB;
+    private IminPrintUtils.PrintConnectType connectType = null;
     private final IminPrintUtils mIminPrintUtils;
     private final List<String> connectTypeList;
 
@@ -73,7 +79,7 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
     @NonNull
     @Override
     public String getName() {
-        return NAME;
+        return "iMinPrinterModule";
     }
 
     @Override
@@ -102,7 +108,7 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
                     e.printStackTrace();
                 }
             } else {
-                BluetoothUtil.openBluetooth(Objects.requireNonNull(getCurrentActivity()));
+                BluetoothUtil.openBluetooth(getCurrentActivity());
             }
         } else {
             show("Unknown's Device", Toast.LENGTH_SHORT);
@@ -131,15 +137,26 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void printText(String text, Callback successCallback) {
         IminPrintUtils mIminPrintUtils = IminPrintUtils.getInstance(reactContext);
+        mIminPrintUtils.printText(text + "   \n");
+        successCallback.invoke("print text: " + text);
+    }
 
+    /**
+     * @param size    Font Size (default 28)
+     * @param promise
+     */
+    @ReactMethod
+    public void setTextSize(int size, final Promise promise) {
+        final IminPrintUtils printUtils = mIminPrintUtils;
+        final int mSize = size;
         ThreadPoolManager.getInstance().executeTask(() -> {
             try {
-                printUtils.printText(text.trim());
-                successCallback.invoke("print text: " + text);
+                printUtils.setTextSize(mSize);
+                promise.resolve(null);
             } catch (Exception e) {
                 e.printStackTrace();
                 Log.i(TAG, "ERROR: " + e.getMessage());
-                successCallback.invoke("error: " + e.getMessage());
+                promise.reject("" + 0, e.getMessage());
             }
         });
     }
@@ -192,176 +209,6 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
                 promise.reject("" + 0, e.getMessage());
             }
         });
-    }
-
-    /**
-     * @param alignment 0 = Left, 1 = Center, 2 = Right (default 0)
-     * @param promise
-     */
-    @ReactMethod
-    public void setAlignment(int alignment, final Promise promise) {
-        final IminPrintUtils printUtils = mIminPrintUtils;
-        final int mAlignment = alignment;
-        ThreadPoolManager.getInstance().executeTask(() -> {
-            try {
-                printUtils.setAlignment(mAlignment);
-                promise.resolve(null);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Log.i(TAG, "ERROR: " + e.getMessage());
-                promise.reject("" + 0, e.getMessage());
-            }
-        });
-    }
-
-    /**
-     * @param size    Font Size (default 28)
-     * @param promise
-     */
-    @ReactMethod
-    public void setTextSize(int size, final Promise promise) {
-        final IminPrintUtils printUtils = mIminPrintUtils;
-        final int mSize = size;
-        ThreadPoolManager.getInstance().executeTask(() -> {
-            try {
-                printUtils.setTextSize(mSize);
-                promise.resolve(null);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Log.i(TAG, "ERROR: " + e.getMessage());
-                promise.reject("" + 0, e.getMessage());
-            }
-        });
-    }
-
-    /**
-     * @param style   0 = Normal, 1 = Bold, 2 = Italic, 3 = Bold Italic
-     * @param promise
-     */
-    @ReactMethod
-    public void setTextStyle(int style, final Promise promise) {
-        final IminPrintUtils printUtils = mIminPrintUtils;
-        final int mStyle = style;
-        ThreadPoolManager.getInstance().executeTask(() -> {
-            try {
-                printUtils.setTextStyle(mStyle);
-                promise.resolve(null);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Log.i(TAG, "ERROR: " + e.getMessage());
-                promise.reject("" + 0, e.getMessage());
-            }
-        });
-    }
-
-    @ReactMethod
-    public void printTextWordWrap(String text, final Promise promise) {
-        final IminPrintUtils printUtils = mIminPrintUtils;
-        final String mText = text.trim();
-        ThreadPoolManager.getInstance().executeTask(() -> {
-            try {
-                printUtils.printText(mText, 0);
-                promise.resolve(null);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Log.i(TAG, "ERROR: " + e.getMessage());
-                promise.reject("" + 0, e.getMessage());
-            }
-        });
-    }
-
-    /**
-     * @param textArray     Text Array (String)
-     * @param widthArray    Width of each Column, must be greater than 0 (Int)
-     * @param alignArray    Alignment Array (0 = Left, 1 = Center, 2 = Right)
-     * @param fontSizeArray Font Size of each Column
-     * @param promise
-     */
-    @ReactMethod
-    public void printColumnsText(ReadableArray textArray, ReadableArray widthArray,
-            ReadableArray alignArray, ReadableArray fontSizeArray,
-            final Promise promise) {
-        final IminPrintUtils printUtils = mIminPrintUtils;
-        final String[] mTextArray = ArrayUtils.toArrayOfString(textArray);
-        final int[] mWidthArray = ArrayUtils.toArrayOfInteger(widthArray);
-        final int[] mAlignArray = ArrayUtils.toArrayOfInteger(alignArray);
-        final int[] mFontSizeArray = ArrayUtils.toArrayOfInteger(fontSizeArray);
-        ThreadPoolManager.getInstance().executeTask(() -> {
-            try {
-                Log.d(TAG, "Printing columns...");
-                printUtils.printColumnsText(mTextArray, mWidthArray, mAlignArray, mFontSizeArray);
-                Log.d(TAG, "Columns printed successfully");
-                promise.resolve(null);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Log.e(TAG, "ERROR: " + e.getMessage());
-                promise.reject("" + 0, e.getMessage());
-            }
-        });
-    }
-
-    @ReactMethod
-    public void openCashBox(final Promise promise) {
-        final IminPrintUtils printUtils = mIminPrintUtils;
-        ThreadPoolManager.getInstance().executeTask(() -> {
-            try {
-                IminSDKManager.opencashBox();
-                promise.resolve(null);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Log.i(TAG, "ERROR: " + e.getMessage());
-                promise.reject("" + 0, e.getMessage());
-            }
-        });
-    }
-
-    /**
-     * @param data    Base64 Image Data
-     * @param promise
-     */
-    @ReactMethod
-    public void printSingleBitmap(String data, final Promise promise) {
-        final IminPrintUtils printUtils = mIminPrintUtils;
-        byte[] decoded = Base64.decode(data, Base64.DEFAULT);
-        final Bitmap bitmap = invert(BitmapFactory.decodeByteArray(decoded, 0, decoded.length));
-
-        ThreadPoolManager.getInstance().executeTask(() -> {
-            try {
-                printUtils.printSingleBitmap(bitmap, 1);
-                promise.resolve(null);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Log.i(TAG, "ERROR: " + e.getMessage());
-                promise.reject("" + 0, e.getMessage());
-            }
-        });
-    }
-
-    protected Bitmap invert(Bitmap src) {
-        int height = src.getHeight();
-        int width = src.getWidth();
-
-        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        Paint paint = new Paint();
-
-        ColorMatrix matrixGrayscale = new ColorMatrix();
-        matrixGrayscale.setSaturation(0);
-
-        ColorMatrix matrixInvert = new ColorMatrix();
-        matrixInvert.set(new float[] {
-                -1.0f, 0.0f, 0.0f, 0.0f, 255.0f,
-                0.0f, -1.0f, 0.0f, 0.0f, 255.0f,
-                0.0f, 0.0f, -1.0f, 0.0f, 255.0f,
-                0.0f, 0.0f, 0.0f, 1.0f, 0.0f
-        });
-        matrixInvert.preConcat(matrixGrayscale);
-
-        ColorMatrixColorFilter filter = new ColorMatrixColorFilter(matrixInvert);
-        paint.setColorFilter(filter);
-
-        canvas.drawBitmap(src, 0, 0, paint);
-        return bitmap;
     }
 
     @ReactMethod

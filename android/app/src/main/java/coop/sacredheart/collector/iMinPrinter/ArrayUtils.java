@@ -97,9 +97,7 @@ public class ArrayUtils {
     public static WritableArray toWritableArray(Object[] array) {
         WritableArray writableArray = Arguments.createArray();
 
-        for (int i = 0; i < array.length; i++) {
-            Object value = array[i];
-
+        for (Object value : array) {
             if (value == null) {
                 writableArray.pushNull();
             }

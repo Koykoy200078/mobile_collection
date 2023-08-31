@@ -8,9 +8,9 @@ import { ROUTES } from '../../app/config'
 
 import { ScrollView } from 'react-native-gesture-handler'
 
-const iMinPrinter = NativeModules.IminPrinter
-
 const PrintOutScreen = ({ navigation, route }) => {
+	const iMinPrinter = NativeModules.iMinPrinterModule
+
 	const [data, setData] = useState(null)
 	const [selectedPrinter, setSelectedPrinter] = useState(null)
 
@@ -62,15 +62,19 @@ const PrintOutScreen = ({ navigation, route }) => {
 
 	useEffect(() => {
 		const check = async () => {
-			await iMinPrinter.initPrinter()
+			try {
+				await iMinPrinter.initPrinter()
 
-			await iMinPrinter.getStatus((status) => {
-				console.log('Printer status: ', status)
-			})
+				iMinPrinter.getStatus((status) => {
+					console.log('Printer status: ', status)
+				})
 
-			await iMinPrinter.getSn((sn) => {
-				console.log('Printer SN: ', sn)
-			})
+				iMinPrinter.getSn((sn) => {
+					console.log('Printer SN: ', sn)
+				})
+			} catch (error) {
+				console.error('Error initializing printer: ', error)
+			}
 		}
 
 		check()
@@ -106,7 +110,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2,
 				})
-				itemHTML += `${matchingItem.REF_TARGET}\n${refNo}\nAmount Paid:							₱ ${ref_target}\n\n`
+				itemHTML += `${matchingItem.REF_TARGET}\n${refNo}\nAmount Paid 							${ref_target}\n\n`
 			}
 
 			if (SLDESCR) {
@@ -114,7 +118,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2,
 				})
-				itemHTML += `${matchingItem.SLDESCR}\n${refNo}\nAmount Paid:							₱ ${sldescr}\n\n`
+				itemHTML += `${matchingItem.SLDESCR}\n${refNo}\nAmount Paid 							${sldescr}\n\n`
 			}
 
 			if (SHARECAPITAL) {
@@ -122,7 +126,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2,
 				})
-				itemHTML += `Share Capital\n${refNo}\nAmount Paid:							₱ ${sharecapital}\n\n`
+				itemHTML += `Share Capital\n${refNo}\nAmount Paid 							${sharecapital}\n\n`
 			}
 
 			if (DEPOSIT) {
@@ -130,7 +134,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2,
 				})
-				itemHTML += `Deposit\n${refNo}\nAmount Paid:								₱ ${deposit}\n\n`
+				itemHTML += `Deposit\n${refNo}\nAmount Paid 										${deposit}\n\n`
 			}
 
 			return itemHTML
@@ -201,10 +205,10 @@ const PrintOutScreen = ({ navigation, route }) => {
 
 	const checkPrinterStatus = async () => {
 		try {
-			const textArray = `					Statement of Account\n					   Sacred Heart Coop\nCruz na Daan 3008 San Rafael, Philippines\n----------------------------------------------------------------\nAccount Number: ${allData.ClientID}\nBiller Name: ${name}\n----------------------------------------------------------------\n${renderedItem}\nTotal Paid Amount:					₱ ${totalAmount}\n----------------------------------------------------------------\nReceipt No.: ${receiptNo}\nDate: ${formattedDate}\nReference ID: ${referenceID}\n----------------------------------------------------------------\n			Thank you for using our service!`
+			const textArray = `					Statement of Account\n					   Sacred Heart Coop\nCruz na Daan 3008 San Rafael, Philippines\n----------------------------------------------------------------\nAccount Number: ${allData.ClientID}\nBiller Name: ${name}\n----------------------------------------------------------------\n${renderedItem}\nTotal Paid Amount					${totalAmount}\n----------------------------------------------------------------\nDate Printed: ${formattedDate}\n----------------------------------------------------------------\n			Thank you for using our service!`
 
 			try {
-				await iMinPrinter.setTextSize(20)
+				iMinPrinter.setTextSize(20)
 				await iMinPrinter.printText(textArray, () => {
 					iMinPrinter.printAndLineFeed()
 					iMinPrinter.printAndFeedPaper(100)

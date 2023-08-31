@@ -56,7 +56,9 @@ const Auth = () => {
 const MainStack = createStackNavigator()
 const Main = () => {
 	return (
-		<MainStack.Navigator initialRouteName={ROUTES.TAB} screenOptions={options}>
+		<MainStack.Navigator
+			initialRouteName={ROUTES.TAB}
+			screenOptions={options}>
 			<MainStack.Screen name={ROUTES.TAB} component={TabBar} />
 			<MainStack.Screen name={ROUTES.VIEW} component={ViewScreen} />
 			<MainStack.Screen name={ROUTES.CHECKOUT} component={CheckOutScreen} />
