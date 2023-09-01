@@ -6,6 +6,7 @@ import {
 	SafeAreaView,
 	Alert,
 	useColorScheme,
+	NativeModules,
 } from 'react-native'
 import { Show, Text } from '../../app/components'
 import { Icons } from '../../app/config/icons'
@@ -28,6 +29,7 @@ const isWithinTimeRangeGoodEvening = (hour, minute) => {
 }
 
 const Dashboard = ({ navigation }) => {
+	const iMinPrinter = NativeModules.iMinPrinterModule
 	const isDarkMode = useColorScheme() === 'dark'
 	const { width, height } = useWindowDimensions()
 	const ios = Platform.OS === 'ios'
@@ -50,6 +52,26 @@ const Dashboard = ({ navigation }) => {
 		setLocalHour(hours < 10 ? `0${hours}` : hours)
 		setLocalMinute(minutes < 10 ? `0${minutes}` : minutes)
 	}
+
+	useEffect(() => {
+		const check = async () => {
+			try {
+				await iMinPrinter.initPrinter()
+
+				iMinPrinter.getStatus((status) => {
+					console.log('Printer status: ', status)
+				})
+
+				iMinPrinter.getSn((sn) => {
+					console.log('Printer SN: ', sn)
+				})
+			} catch (error) {
+				console.error('Error initializing printer: ', error)
+			}
+		}
+
+		check()
+	}, [])
 
 	useEffect(() => {
 		if (isWithinTimeRangeGoodMorning(localHour, localMinute)) {

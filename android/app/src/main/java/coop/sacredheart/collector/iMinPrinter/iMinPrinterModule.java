@@ -137,7 +137,7 @@ public class iMinPrinterModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void printText(String text, Callback successCallback) {
         IminPrintUtils mIminPrintUtils = IminPrintUtils.getInstance(reactContext);
-        mIminPrintUtils.printText(text + "   \n");
+        mIminPrintUtils.printText(text + "");
         successCallback.invoke("print text: " + text);
     }
 
