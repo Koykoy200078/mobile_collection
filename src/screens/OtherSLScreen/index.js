@@ -102,26 +102,26 @@ const OtherSLScreen = ({ navigation, route }) => {
 		maximumFractionDigits: 2,
 	})
 
-	const handleSearch = useCallback(
-		(query) => {
-			const normalizedQuery = query.toLowerCase()
-			const data = dataToShow.filter((client) => {
-				const lnameMatch =
-					client.LName && client.LName.toLowerCase().includes(normalizedQuery)
-				const fnameMatch =
-					client.FName && client.FName.toLowerCase().includes(normalizedQuery)
-				const mnameMatch =
-					client.Mname && client.Mname.toLowerCase().includes(normalizedQuery)
-				const snameMatch =
-					client.SName && client.SName.toLowerCase().includes(normalizedQuery)
+	// const handleSearch = useCallback(
+	// 	(query) => {
+	// 		const normalizedQuery = query.toLowerCase()
+	// 		const data = dataToShow.filter((client) => {
+	// 			const lnameMatch =
+	// 				client.LName && client.LName.toLowerCase().includes(normalizedQuery)
+	// 			const fnameMatch =
+	// 				client.FName && client.FName.toLowerCase().includes(normalizedQuery)
+	// 			const mnameMatch =
+	// 				client.Mname && client.Mname.toLowerCase().includes(normalizedQuery)
+	// 			const snameMatch =
+	// 				client.SName && client.SName.toLowerCase().includes(normalizedQuery)
 
-				// Return true if any of the properties match the query
-				return lnameMatch || fnameMatch || mnameMatch || snameMatch
-			})
-			setFilteredClients(data)
-		},
-		[dataToShow]
-	)
+	// 			// Return true if any of the properties match the query
+	// 			return lnameMatch || fnameMatch || mnameMatch || snameMatch
+	// 		})
+	// 		setFilteredClients(data)
+	// 	},
+	// 	[dataToShow]
+	// )
 
 	const clearSearch = () => {
 		setSearch('')
