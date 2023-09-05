@@ -15,6 +15,10 @@ import databaseOptions, {
 	Client,
 	UploadData,
 } from '../../app/database/allSchemas'
+import DeviceInfo from 'react-native-device-info'
+import { showError, showInfo } from '../../app/components/AlertMessage'
+import { isDeviceSupported } from '../../app/config/DeviceSupport'
+import { BleManager } from 'react-native-ble-plx'
 
 const isWithinTimeRangeGoodMorning = (hour, minute) => {
 	return hour >= 5 && hour < 12 // 5:00 AM to 11:59 AM
@@ -29,7 +33,6 @@ const isWithinTimeRangeGoodEvening = (hour, minute) => {
 }
 
 const Dashboard = ({ navigation }) => {
-	const iMinPrinter = NativeModules.iMinPrinterModule
 	const isDarkMode = useColorScheme() === 'dark'
 	const { width, height } = useWindowDimensions()
 	const ios = Platform.OS === 'ios'
@@ -41,6 +44,9 @@ const Dashboard = ({ navigation }) => {
 
 	const [totalCollectedAmount, setTotalCollectedAmount] = useState(0.0)
 	const [greetings, setGreetings] = useState('Hello')
+
+	const [isBluetoothEnabled, setIsBluetoothEnabled] = useState(false)
+	const [manager, setManager] = useState(null)
 
 	const intervalRef = useRef(null)
 
@@ -54,23 +60,36 @@ const Dashboard = ({ navigation }) => {
 	}
 
 	useEffect(() => {
-		const check = async () => {
+		const initBluetoothManager = async () => {
+			const bleManager = new BleManager()
+			setManager(bleManager)
+
 			try {
-				await iMinPrinter.initPrinter()
-
-				iMinPrinter.getStatus((status) => {
-					console.log('Printer status: ', status)
-				})
-
-				iMinPrinter.getSn((sn) => {
-					console.log('Printer SN: ', sn)
-				})
+				const state = await bleManager.state()
+				setIsBluetoothEnabled(state === 'PoweredOn')
 			} catch (error) {
-				console.error('Error initializing printer: ', error)
+				console.error('Error checking Bluetooth status: ', error)
 			}
 		}
 
-		check()
+		initBluetoothManager()
+
+		return () => {
+			// Clean up the BleManager instance when the component unmounts
+			if (manager) {
+				manager.destroy()
+				setManager(null)
+			}
+		}
+	}, [])
+
+	useEffect(() => {
+		if (isBluetoothEnabled === false) {
+			showInfo({
+				message: 'Bluetooth',
+				description: 'Turn on Bluetooth for Receipt Printing',
+			})
+		}
 	}, [])
 
 	useEffect(() => {
@@ -212,67 +231,6 @@ const Dashboard = ({ navigation }) => {
 					<Text title1>₱ {newBalTotalCashOnHand}</Text>
 				</Shadow>
 			</View>
-
-			{/* <FlatList
-				data={data}
-				columnWrapperStyle={{
-					flex: 1,
-					justifyContent: 'space-evenly',
-					marginVertical: 10,
-				}}
-				numColumns={2}
-				keyExtractor={(item, index) => index.toString()}
-				renderItem={({ item }) => {
-					console.log('item: ', item)
-					return (
-						<TouchableOpacity
-							onPress={() => {
-								if (item.id === 1) {
-									navigation.navigate(ROUTES.CLIENT_COLLECTION)
-								}
-							}}>
-							<View className='border rounded-md p-2 items-center justify-center'>
-								<Image
-									source={item.image}
-									style={{ width: width * 0.4, height: height * 0.1 }}
-									resizeMode='contain'
-								/>
-
-								<Text title3>{item.title}</Text>
-							</View>
-
-							<Shadow
-								distance={5}
-								style={{
-									padding: 10,
-									borderRadius: 10,
-									justifyContent: 'center',
-									alignItems: 'center',
-									width: 140,
-									height: 120,
-								}}>
-								{item.icon ? (
-									<Icons.MaterialIcons
-										name={item.icon}
-										size={70}
-										color={colors.text}
-									/>
-								) : (
-									<Image
-										source={item.image}
-										style={{ width: width * 0.35, height: height * 0.1 }}
-										resizeMode='contain'
-									/>
-								)}
-
-								<Text title3 className='text-sm mt-1'>
-									{item.title}
-								</Text>
-							</Shadow>
-						</TouchableOpacity>
-					)
-				}}
-			/> */}
 		</View>
 	)
 }

@@ -16,7 +16,10 @@ import AppNavigation from './src/navigations/AppNavigation'
 import Toast, { ErrorToast } from 'react-native-toast-message'
 import { alertMsgConfig } from './src/app/components'
 
+import { LogBox } from 'react-native'
+
 Utils.setupLayoutAnimation()
+LogBox.ignoreLogs(['new NativeEventEmitter'])
 
 const App = () => {
 	return (

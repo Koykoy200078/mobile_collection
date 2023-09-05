@@ -37,13 +37,18 @@ const ClientCollection = ({ navigation }) => {
 
 	const [clientData, setClientData] = useState([])
 
-	const filterData =
-		clientData && clientData.filter((item) => item.collections.length > 0) //item.collections.length > 0
+	const filterData = clientData.filter((client) => {
+		const totalDue = client.collections.reduce(
+			(acc, data) => acc + parseFloat(data.TOTALDUE),
+			0
+		)
+		return totalDue !== 0
+	})
 
 	const [showAll, setShowAll] = useState(false)
 
-	const scrollY = new Animated.Value(0) // Animated value to track scroll position
-	const [visible, setVisible] = useState(true) // State to track FloatingAction visibility
+	const scrollY = new Animated.Value(0)
+	const [visible, setVisible] = useState(true)
 	const [animation, setAnimation] = useState(new Animated.Value(1))
 
 	const toggleShowAll = () => {
@@ -69,8 +74,6 @@ const ClientCollection = ({ navigation }) => {
 							getDetails({
 								branchid: 0,
 								collectorid: 1,
-								// clientid: 1974,
-								// slclass: [12, 13],
 							})
 						)
 					},
@@ -141,13 +144,16 @@ const ClientCollection = ({ navigation }) => {
 							batchData.data.forEach((client) => {
 								const collections = client.collections.map((collection) => ({
 									...collection,
-									id: `${client.ClientID}-${collection.ID}`,
+									id: `${client.client_id}-${collection.ID}`,
 								}))
 
 								const clientData = {
-									ClientIDBrCode: client.ClientIDBrCode,
-									ClientID: client.ClientID,
-									Fullname: client.Fullname,
+									branch_id: client.branch_id,
+									client_id: client.client_id,
+									FName: client.FName,
+									LName: client.LName,
+									Mname: client.Mname,
+									SName: client.SName,
 									collections,
 								}
 
@@ -183,9 +189,19 @@ const ClientCollection = ({ navigation }) => {
 	const handleSearch = useCallback(
 		(query) => {
 			const normalizedQuery = query.toLowerCase()
-			const data = dataToShow.filter((client) =>
-				client.Fullname.toLowerCase().includes(normalizedQuery)
-			)
+			const data = dataToShow.filter((client) => {
+				const lnameMatch =
+					client.LName && client.LName.toLowerCase().includes(normalizedQuery)
+				const fnameMatch =
+					client.FName && client.FName.toLowerCase().includes(normalizedQuery)
+				const mnameMatch =
+					client.Mname && client.Mname.toLowerCase().includes(normalizedQuery)
+				const snameMatch =
+					client.SName && client.SName.toLowerCase().includes(normalizedQuery)
+
+				// Return true if any of the properties match the query
+				return lnameMatch || fnameMatch || mnameMatch || snameMatch
+			})
 
 			setFilteredClients(data)
 		},
@@ -222,7 +238,25 @@ const ClientCollection = ({ navigation }) => {
 					data={filteredClients.length > 0 ? filteredClients : dataToShow}
 					keyExtractor={(_item, index) => index.toString()}
 					renderItem={({ item }) => {
-						const { ClientID, Fullname, isPaid, collections } = item
+						const {
+							branch_id,
+							client_id,
+							FName,
+							LName,
+							Mname,
+							SName,
+							isPaid,
+							collections,
+						} = item
+
+						const Fullname = [
+							LName.trim() ? `${LName},` : '',
+							FName.trim() ? FName : '',
+							Mname,
+							SName,
+						]
+							.filter(Boolean)
+							.join(' ')
 
 						const totalDue = collections.reduce(
 							(acc, data) => acc + parseFloat(data.TOTALDUE),
@@ -244,9 +278,9 @@ const ClientCollection = ({ navigation }) => {
 						return (
 							<Project02
 								title={Fullname}
-								description={ClientID.toString()}
+								description={client_id.toString()}
 								isPaid={isPaid}
-								total_loans={totalDue ? formatNumber(totalDue.toFixed(2)) : ''}
+								total_loans={formatNumber(totalDue.toFixed(2))}
 								onPress={() => handlePress(item)}
 								style={{
 									marginBottom: 10,
@@ -305,24 +339,8 @@ const ClientCollection = ({ navigation }) => {
 				style={BaseStyle.safeAreaView}
 				edges={['right', 'top', 'left']}>
 				{renderContent()}
-				{/* <FloatingAction
-					// actions={actions}
-					// onPressItem={(name) => {
-					// 	if (name === 'bt_showAll') {
-					// 		toggleShowAll()
-					// 	}
-					// }}
-					showBackground={false}
-					floatingIcon={
-						showAll ? (
-							<Icons.Octicons name='eye' size={20} color='#FFFFFF' />
-						) : (
-							<Icons.Octicons name='eye-closed' size={20} color='#FFFFFF' />
-						)
-					}
-					onPressMain={() => toggleShowAll()}
-				/> */}
-				{visible && (
+
+				{visible && dataToShow.length > 0 && (
 					<Animated.View style={floatingActionStyle}>
 						<FloatingAction
 							showBackground={false}

@@ -102,19 +102,26 @@ const OtherSLScreen = ({ navigation, route }) => {
 		maximumFractionDigits: 2,
 	})
 
-	// const handleSearch = useCallback(
-	// 	(query) => {
-	// 		const normalizedQuery = query.toLowerCase()
-	// 		const data = dataToShow.filter(
-	// 			(client) =>
-	// 				client.Fullname.toLowerCase().includes(normalizedQuery) ||
-	// 				client.MName.toLowerCase().includes(normalizedQuery) ||
-	// 				client.LName.toLowerCase().includes(normalizedQuery)
-	// 		)
-	// 		setFilteredClients(data)
-	// 	},
-	// 	[dataToShow]
-	// )
+	const handleSearch = useCallback(
+		(query) => {
+			const normalizedQuery = query.toLowerCase()
+			const data = dataToShow.filter((client) => {
+				const lnameMatch =
+					client.LName && client.LName.toLowerCase().includes(normalizedQuery)
+				const fnameMatch =
+					client.FName && client.FName.toLowerCase().includes(normalizedQuery)
+				const mnameMatch =
+					client.Mname && client.Mname.toLowerCase().includes(normalizedQuery)
+				const snameMatch =
+					client.SName && client.SName.toLowerCase().includes(normalizedQuery)
+
+				// Return true if any of the properties match the query
+				return lnameMatch || fnameMatch || mnameMatch || snameMatch
+			})
+			setFilteredClients(data)
+		},
+		[dataToShow]
+	)
 
 	const clearSearch = () => {
 		setSearch('')
@@ -226,41 +233,45 @@ const OtherSLScreen = ({ navigation, route }) => {
 					<View style={styles.specifications}>
 						{item &&
 							item.collections &&
-							item.collections.map((collection, index) => {
-								const a = parseFloat(collection.PRINDUE)
-								const b = parseFloat(collection.INTDUE)
-								const c = parseFloat(collection.PENDUE)
+							item.collections
+								.filter((collection) => collection.is_default === 0)
+								.map((collection, index) => {
+									const a = parseFloat(collection.PRINDUE)
+									const b = parseFloat(collection.INTDUE)
+									const c = parseFloat(collection.PENDUE)
 
-								const total = a + b + c
-								const formatNumber = (number) => {
-									return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-								}
+									const total = a + b + c
+									const formatNumber = (number) => {
+										return number
+											.toString()
+											.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+									}
 
-								return (
-									<CardReport02
-										key={index}
-										style={{ flex: 1, width: width - 30, marginVertical: 10 }}
-										title={collection.SLDESCR}
-										description={collection.REF_TARGET}
-										placeholder='0.00'
-										checkedBoxLabel='Input Amount'
-										value={inputAmounts[collection.REF_TARGET]?.SLDESCR || ''}
-										onChangeText={(val) =>
-											handleInputChange(collection.REF_TARGET, 'SLDESCR', val)
-										}
-										checkBoxEnabled={true}
-										checkBox={!!inputAmounts[collection.REF_TARGET]?.SLDESCR}
-										isActive={isCollapsed[index] ? 'angle-down' : 'angle-up'}
-										enableTooltip={true}
-										toggleAccordion={() => handleAccordionToggle(index)}
-										isCollapsed={isCollapsed[index]}
-										principal={formatNumber(collection.PRINDUE)}
-										interest={formatNumber(collection.INTDUE)}
-										penalty={formatNumber(collection.PENDUE)}
-										total={formatNumber(total.toFixed(2))}
-									/>
-								)
-							})}
+									return (
+										<CardReport02
+											key={index}
+											style={{ flex: 1, width: width - 30, marginVertical: 10 }}
+											title={collection.SLDESCR}
+											description={collection.REF_TARGET}
+											placeholder='0.00'
+											checkedBoxLabel='Input Amount'
+											value={inputAmounts[collection.REF_TARGET]?.SLDESCR || ''}
+											onChangeText={(val) =>
+												handleInputChange(collection.REF_TARGET, 'SLDESCR', val)
+											}
+											checkBoxEnabled={true}
+											checkBox={!!inputAmounts[collection.REF_TARGET]?.SLDESCR}
+											isActive={isCollapsed[index] ? 'angle-down' : 'angle-up'}
+											enableTooltip={true}
+											toggleAccordion={() => handleAccordionToggle(index)}
+											isCollapsed={isCollapsed[index]}
+											principal={formatNumber(collection.PRINDUE)}
+											interest={formatNumber(collection.INTDUE)}
+											penalty={formatNumber(collection.PENDUE)}
+											total={formatNumber(total.toFixed(2))}
+										/>
+									)
+								})}
 					</View>
 				</View>
 			</ScrollView>

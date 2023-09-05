@@ -58,9 +58,19 @@ const UploadData = ({ navigation }) => {
 	const handleSearch = useCallback(
 		(query) => {
 			const normalizedQuery = query.toLowerCase()
-			const data = filterData.filter((client) =>
-				client.Fullname.toLowerCase().includes(normalizedQuery)
-			)
+			const data = filterData.filter((client) => {
+				const lnameMatch =
+					client.LName && client.LName.toLowerCase().includes(normalizedQuery)
+				const fnameMatch =
+					client.FName && client.FName.toLowerCase().includes(normalizedQuery)
+				const mnameMatch =
+					client.Mname && client.Mname.toLowerCase().includes(normalizedQuery)
+				const snameMatch =
+					client.SName && client.SName.toLowerCase().includes(normalizedQuery)
+
+				// Return true if any of the properties match the query
+				return lnameMatch || fnameMatch || mnameMatch || snameMatch
+			})
 			setFilteredClients(data)
 		},
 		[filterData, search]
@@ -96,7 +106,25 @@ const UploadData = ({ navigation }) => {
 					data={filteredClients.length > 0 ? filteredClients : filterData}
 					keyExtractor={(_item, index) => index.toString()}
 					renderItem={({ item }) => {
-						const { Fullname, collections, SLDESCR } = item
+						const {
+							branch_id,
+							client_id,
+							FName,
+							LName,
+							Mname,
+							SName,
+							isPaid,
+							collections,
+						} = item
+
+						const Fullname = [
+							LName.trim() ? `${LName},` : '',
+							FName.trim() ? FName : '',
+							Mname,
+							SName,
+						]
+							.filter(Boolean)
+							.join(' ')
 
 						const totalDue = collections.reduce(
 							(acc, data) => acc + parseFloat(data.TOTALDUE),
@@ -118,7 +146,7 @@ const UploadData = ({ navigation }) => {
 						return (
 							<Project02
 								title={Fullname}
-								description={item.ClientID.toString()}
+								description={client_id.toString()}
 								isPaid={item.isPaid}
 								total_loans={totalDue ? formatNumber(totalDue.toFixed(2)) : ''}
 								onPress={() => handlePress(item)}

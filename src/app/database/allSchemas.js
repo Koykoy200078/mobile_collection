@@ -4,11 +4,14 @@ export const Client = 'Client'
 
 export const ClientSchema = {
 	name: Client,
-	primaryKey: 'ClientID',
+	primaryKey: 'client_id',
 	properties: {
-		ClientIDBrCode: { type: 'int' },
-		ClientID: { type: 'int' },
-		Fullname: { type: 'string' },
+		branch_id: { type: 'int' },
+		client_id: { type: 'int' },
+		FName: { type: 'string' },
+		LName: { type: 'string' },
+		MName: { type: 'string', optional: true },
+		SName: { type: 'string', optional: true },
 		isPaid: { type: 'bool', default: false },
 		collections: { type: 'list', objectType: Collection },
 	},
@@ -20,9 +23,10 @@ export const CollectionSchema = {
 		BRCODE: { type: 'int' },
 		SLC: { type: 'int' },
 		SLT: { type: 'int' },
-		REF: { type: 'int' },
+		REF: { type: 'int', optional: true },
 		SLDESCR: { type: 'string' },
 		REF_TARGET: { type: 'string' },
+		REF_SOURCE: { type: 'string' },
 		PRINCIPAL: { type: 'string' },
 		BALANCE: { type: 'string' },
 		PRINDUE: { type: 'string' },
@@ -30,24 +34,45 @@ export const CollectionSchema = {
 		PENDUE: { type: 'string' },
 		INSDUE: { type: 'string' },
 		TOTALDUE: { type: 'string' },
-		is_default: { type: 'bool' },
+		is_default: { type: 'int' },
 	},
 }
-
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 // upload data
 export const UploadData = 'UploadData'
 export const UploadDataCollection = 'UploadDataCollection'
 export const uploadSchema = {
 	name: UploadData,
-	primaryKey: 'ClientID',
+	primaryKey: 'client_id',
 	properties: {
-		ClientID: { type: 'int' },
-		FName: { type: 'string', optional: true },
-		LName: { type: 'string', optional: true },
+		client_id: { type: 'int' },
+		FName: { type: 'string' },
+		LName: { type: 'string' },
 		MName: { type: 'string', optional: true },
 		SName: { type: 'string', optional: true },
-		DateOfBirth: { type: 'string', optional: true },
-		SMSNumber: { type: 'string', optional: true },
 		collections: { type: 'list', objectType: UploadDataCollection },
 	},
 }
@@ -69,7 +94,7 @@ export const uploadDataCollection = {
 const databaseOptions = {
 	path: 'CollectorList.realm',
 	schema: [ClientSchema, CollectionSchema, uploadSchema, uploadDataCollection],
-	schemaVersion: 1,
+	schemaVersion: 2,
 }
 
 export const getSchema = [

@@ -1,15 +1,37 @@
-import { View, Text, NativeModules } from 'react-native'
+import {
+	View,
+	Text,
+	useColorScheme,
+	Platform,
+	TouchableOpacity,
+	useWindowDimensions,
+} from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import styles from './styles'
-import { Button } from '../../app/components'
 import { imageUri } from './imageUri'
 import { ROUTES } from '../../app/config'
 
 import { ScrollView } from 'react-native-gesture-handler'
 
+import ZigzagView from 'react-native-zigzag-view'
+import { FloatingAction } from 'react-native-floating-action'
+import { Icons } from '../../app/config/icons'
+
+import { BLEPrinter } from 'react-native-thermal-receipt-printer'
+import { Shadow } from 'react-native-shadow-2'
+import { isDeviceSupported } from '../../app/config/DeviceSupport'
+import DeviceInfo from 'react-native-device-info'
+import { showError } from '../../app/components/AlertMessage'
+
 const PrintOutScreen = ({ navigation, route }) => {
-	const iMinPrinter = NativeModules.iMinPrinterModule
+	const { width, height } = useWindowDimensions()
+
+	const [printers, setPrinters] = useState([])
+	const [currentPrinter, setCurrentPrinter] = useState(null) // Initialize as null
+	const [isPrinterConnected, setIsPrinterConnected] = useState(false) // Add state for connection status
+
+	const isDarkMode = useColorScheme() === 'dark'
 
 	const [data, setData] = useState(null)
 	const [selectedPrinter, setSelectedPrinter] = useState(null)
@@ -45,8 +67,6 @@ const PrintOutScreen = ({ navigation, route }) => {
 
 	const formattedDate = `${day} ${monthNames[monthIndex]} ${year}, ${formattedHour}:${formattedMinute} ${ampm}`
 
-	console.log(formattedDate)
-
 	// Function to generate a random number within a range
 	const getRandomNumber = (min, max) => {
 		return Math.floor(Math.random() * (max - min + 1) + min)
@@ -60,25 +80,51 @@ const PrintOutScreen = ({ navigation, route }) => {
 
 	const { name, allData, inputAmounts, total } = route.params
 
+	const Fullname = [
+		allData.LName.trim() ? `${allData.LName},` : '',
+		allData.FName.trim() ? allData.FName : '',
+		allData.Mname,
+		allData.SName,
+	]
+		.filter(Boolean)
+		.join(' ')
+
 	useEffect(() => {
-		const check = async () => {
-			try {
-				await iMinPrinter.initPrinter()
+		if (Platform.OS === 'android') {
+			let model = DeviceInfo.getModel()
 
-				iMinPrinter.getStatus((status) => {
-					console.log('Printer status: ', status)
-				})
+			if (isDeviceSupported(model)) {
+				BLEPrinter.init().then(() => {
+					BLEPrinter.getDeviceList().then((deviceList) => {
+						setPrinters(deviceList)
 
-				iMinPrinter.getSn((sn) => {
-					console.log('Printer SN: ', sn)
+						// Check if there are printers and automatically connect to the first one
+						if (deviceList.length > 0) {
+							_connectPrinter(deviceList[0])
+						}
+					})
 				})
-			} catch (error) {
-				console.error('Error initializing printer: ', error)
+			} else {
+				showError({
+					message: 'Device not supported',
+					description:
+						model + ' is not supported. Please contact your administrator.',
+				})
 			}
 		}
-
-		check()
 	}, [])
+
+	const _connectPrinter = (printer) => {
+		BLEPrinter.connectPrinter(printer.inner_mac_address)
+			.then(() => {
+				setCurrentPrinter(printer)
+				setIsPrinterConnected(true) // Set connection status to true
+			})
+			.catch((error) => {
+				setIsPrinterConnected(false)
+				console.warn(error)
+			})
+	}
 
 	const totalAmount = total.toLocaleString('en-US', {
 		minimumFractionDigits: 2,
@@ -110,7 +156,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2,
 				})
-				itemHTML += `${matchingItem.REF_TARGET}\n${refNo}\nAmount Paid 							${ref_target}\n\n`
+				itemHTML += `${matchingItem.REF_TARGET}\n${refNo}\nAmount Paid          ${ref_target}\n\n`
 			}
 
 			if (SLDESCR) {
@@ -118,7 +164,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2,
 				})
-				itemHTML += `${matchingItem.SLDESCR}\n${refNo}\nAmount Paid 							${sldescr}\n\n`
+				itemHTML += `${matchingItem.SLDESCR}\n${refNo}\nAmount Paid          ${sldescr}\n\n`
 			}
 
 			if (SHARECAPITAL) {
@@ -126,7 +172,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2,
 				})
-				itemHTML += `Share Capital\n${refNo}\nAmount Paid 							${sharecapital}\n\n`
+				itemHTML += `Share Capital\n${refNo}\nAmount Paid          ${sharecapital}\n\n`
 			}
 
 			if (DEPOSIT) {
@@ -134,7 +180,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2,
 				})
-				itemHTML += `Deposit\n${refNo}\nAmount Paid 										${deposit}\n\n`
+				itemHTML += `Deposit\n${refNo}\nAmount Paid          ${deposit}\n\n`
 			}
 
 			return itemHTML
@@ -178,7 +224,10 @@ const PrintOutScreen = ({ navigation, route }) => {
 						<View>
 							<Text
 								className='text-center text-sm'
-								style={{ flexShrink: 1, color: '#000' }}>
+								style={{
+									flexShrink: 1,
+									color: '#000',
+								}}>
 								{matchingItem.REF_TARGET}
 							</Text>
 						</View>
@@ -193,7 +242,10 @@ const PrintOutScreen = ({ navigation, route }) => {
 						<View>
 							<Text
 								className='text-sm'
-								style={{ flexShrink: 1, color: '#000' }}>
+								style={{
+									flexShrink: 1,
+									color: '#000',
+								}}>
 								{ref_targetAmount}
 							</Text>
 						</View>
@@ -203,170 +255,242 @@ const PrintOutScreen = ({ navigation, route }) => {
 		})
 		.filter(Boolean)
 
-	const checkPrinterStatus = async () => {
+	const printME = async () => {
 		try {
-			const textArray = `					Statement of Account\n					   Sacred Heart Coop\nCruz na Daan 3008 San Rafael, Philippines\n----------------------------------------------------------------\nAccount Number: ${allData.ClientID}\nBiller Name: ${name}\n----------------------------------------------------------------\n${renderedItem}\nTotal Paid Amount					${totalAmount}\n----------------------------------------------------------------\nDate Printed: ${formattedDate}\n----------------------------------------------------------------\n			Thank you for using our service!`
-
-			try {
-				iMinPrinter.setTextSize(20)
-				await iMinPrinter.printText(textArray, () => {
-					iMinPrinter.printAndLineFeed()
-					iMinPrinter.printAndFeedPaper(100)
-					iMinPrinter.partialCut()
-				})
-
-				console.log(textArray)
-			} catch (error) {
-				console.error('Error printing text with word wrap: ', error)
-			}
+			currentPrinter &&
+				BLEPrinter.printText(
+					'<C>Statement of Account</C>\n' +
+						'<C>Sacred Heart Coop</C>\n' +
+						'<C>Cruz na Daan 3008 San Rafael, Philippines</C>\n' +
+						'<C>--------------------------------</C>\n' +
+						`Account Number: ${allData.client_id}\n` +
+						`Biller Name: ${Fullname}\n` +
+						'<C>--------------------------------</C>\n' +
+						`${renderedItem}\n` +
+						`Total Paid Amount    ${totalAmount}\n` +
+						'<C>--------------------------------</C>\n' +
+						`Date Printed: ${formattedDate}\n` +
+						'<C>--------------------------------</C>\n' +
+						'<C>Thank you for using our service!<C>'
+				)
 		} catch (error) {
 			console.error(error)
 		}
 	}
 
 	return (
-		<SafeAreaView className='flex-1 p-5'>
-			<ScrollView showsVerticalScrollIndicator={false}>
-				<View className='space-y-10'>
-					<View className=''>
-						<Text
-							className='text-center text-2xl font-bold'
-							style={{ color: '#000' }}>
-							COLLECTION RECEIPT
-						</Text>
-						<Text
-							className='text-center text-xs font-bold'
-							style={{ color: '#000' }}>
-							Amount has been sent to the biller.
+		<>
+			{!isPrinterConnected && (
+				<View className='items-center'>
+					<View style={styles.specifications}>
+						<Text className='text-black dark:text-white font-bold'>
+							STATUS: Printer Not Connected
 						</Text>
 					</View>
 
-					<View className='space-y-4'>
-						<View className='items-start'>
-							<Text
-								className='text-center text-base font-bold'
-								style={{ color: '#000' }}>
-								BILLER
-							</Text>
-							<View style={{ flexDirection: 'row', padding: 5 }}>
-								<View style={{ width: '45%' }}>
-									<Text
-										style={{
-											flexShrink: 1,
-											fontWeight: 'bold',
-											color: '#000',
-										}}>
-										Account Name
-									</Text>
-								</View>
-								<View
-									style={{ width: '70%' }}
-									numberOfLines={1}
-									ellipsizeMode='tail'>
-									<Text style={{ flexShrink: 1, color: '#000' }}>{name}</Text>
-								</View>
+					<View style={styles.specifications}>
+						<TouchableOpacity
+							onPress={() => {
+								navigation.navigate(ROUTES.DASHBOARD)
+							}}>
+							<View
+								className='border rounded-md p-2'
+								style={{ borderColor: isDarkMode ? '#FFF' : '#000' }}>
+								<Text className='text-black dark:text-white'>GO BACK MAIN</Text>
 							</View>
-							<View style={{ flexDirection: 'row', padding: 5 }}>
-								<View style={{ width: '45%' }}>
-									<Text
-										style={{
-											flexShrink: 1,
-											fontWeight: 'bold',
-											color: '#000',
-										}}>
-										Account ID
-									</Text>
-								</View>
-								<View style={{ width: '70%' }}>
-									<Text
-										numberOfLines={1}
-										ellipsizeMode='tail'
-										style={{ flexShrink: 1, color: '#000' }}>
-										{allData.ClientID || 'N/A'}
-									</Text>
-								</View>
-							</View>
-						</View>
-
-						<View className='h-[1] w-full border' />
-
-						{renderData}
-
-						<View className='items-start'>
-							<Text
-								className='text-center text-base font-bold'
-								style={{ color: '#000' }}>
-								TOTAL PAID
-							</Text>
-							<View style={{ flexDirection: 'row', padding: 5 }}>
-								<View style={{ width: '50%' }}>
-									<Text
-										style={{
-											flexShrink: 1,
-											fontWeight: 'bold',
-											color: '#000',
-										}}>
-										Amount
-									</Text>
-								</View>
-								<View>
-									<Text style={{ flexShrink: 1, color: '#000' }}>
-										{totalAmount}
-									</Text>
-								</View>
-							</View>
-						</View>
-
-						<View className='h-[1] w-full border' />
-
-						<View className='items-start'>
-							<Text
-								className='text-center text-base font-bold'
-								style={{ color: '#000' }}>
-								TRANSACTIONS DETAILS
-							</Text>
-
-							<View style={{ flexDirection: 'row', padding: 5 }}>
-								<View style={{ width: '45%' }}>
-									<Text
-										style={{
-											flexShrink: 1,
-											fontWeight: 'bold',
-											color: '#000',
-										}}>
-										Transaction Date
-									</Text>
-								</View>
-								<View>
-									<Text style={{ flexShrink: 1, color: '#000' }}>
-										{formattedDate}
-									</Text>
-								</View>
-							</View>
-						</View>
+						</TouchableOpacity>
 					</View>
 				</View>
-			</ScrollView>
-
-			<View className='p-[10]' style={styles.container}>
-				<View style={styles.specifications}>
-					<Button full onPress={checkPrinterStatus}>
-						{/* onPress={() => printHTML()} */}
-						PRINT
-					</Button>
-				</View>
-
-				<View style={styles.specifications}>
-					<Button
-						full
-						onPress={() => {
-							navigation.navigate(ROUTES.DASHBOARD)
+			)}
+			<SafeAreaView className='p-5'>
+				<ScrollView
+					showsVerticalScrollIndicator={false}
+					style={{
+						borderWidth: 1,
+						borderColor: isDarkMode ? '#FFF' : '#CCC',
+					}}>
+					<ZigzagView
+						backgroundColor='#CCC'
+						surfaceColor='#FFF'
+						contentContainerStyle={{
+							padding: 10,
 						}}>
-						GO BACK
-					</Button>
-				</View>
-			</View>
-		</SafeAreaView>
+						<View className='space-y-5'>
+							<View className=''>
+								<Text
+									className='text-center text-2xl font-bold'
+									style={{ color: '#000' }}>
+									Sacred Heart Coop
+								</Text>
+								<Text
+									className='text-center text-xs font-bold'
+									style={{ color: '#000' }}>
+									Cruz na Daan 3008 San Rafael, Philippines
+								</Text>
+							</View>
+							<View className='space-y-4'>
+								<View className='items-start'>
+									<Text
+										className='text-center text-base font-bold'
+										style={{ color: '#000' }}>
+										BILLER
+									</Text>
+									<View style={{ flexDirection: 'row', padding: 5 }}>
+										<View style={{ width: '38%' }}>
+											<Text
+												style={{
+													flexShrink: 1,
+													fontWeight: 'bold',
+													color: '#000',
+												}}>
+												Account Name
+											</Text>
+										</View>
+										<View
+											style={{ width: '70%' }}
+											numberOfLines={1}
+											ellipsizeMode='tail'>
+											<Text
+												style={{
+													flexShrink: 1,
+													color: '#000',
+												}}>
+												{Fullname}
+											</Text>
+										</View>
+									</View>
+									<View style={{ flexDirection: 'row', padding: 5 }}>
+										<View style={{ width: '38%' }}>
+											<Text
+												style={{
+													flexShrink: 1,
+													fontWeight: 'bold',
+													color: '#000',
+												}}>
+												Account ID
+											</Text>
+										</View>
+										<View style={{ width: '70%' }}>
+											<Text
+												numberOfLines={1}
+												ellipsizeMode='tail'
+												style={{
+													flexShrink: 1,
+													color: '#000',
+												}}>
+												{allData.client_id || 'N/A'}
+											</Text>
+										</View>
+									</View>
+								</View>
+
+								<View
+									style={{
+										width: '100%',
+										marginVertical: 10,
+									}}>
+									<View
+										style={{
+											width: '100%',
+											borderWidth: 1,
+											borderColor: '#E5E5E5',
+											borderStyle: 'dashed',
+											marginTop: -2,
+										}}
+									/>
+								</View>
+
+								{renderData}
+
+								<View className='items-start'>
+									<Text
+										className='text-center text-base font-bold'
+										style={{ color: '#000' }}>
+										TOTAL PAID
+									</Text>
+									<View style={{ flexDirection: 'row', padding: 5 }}>
+										<View style={{ width: '50%' }}>
+											<Text
+												style={{
+													flexShrink: 1,
+													fontWeight: 'bold',
+													color: '#000',
+												}}>
+												Amount
+											</Text>
+										</View>
+										<View>
+											<Text
+												style={{
+													flexShrink: 1,
+													color: '#000',
+												}}>
+												{totalAmount}
+											</Text>
+										</View>
+									</View>
+								</View>
+
+								<View
+									style={{
+										width: '100%',
+										marginVertical: 10,
+									}}>
+									<View
+										style={{
+											width: '100%',
+											borderWidth: 1,
+											borderColor: '#E5E5E5',
+											borderStyle: 'dashed',
+											marginTop: -2,
+										}}
+									/>
+								</View>
+
+								<View className='items-start'>
+									<Text
+										className='text-center text-base font-bold'
+										style={{ color: '#000' }}>
+										TRANSACTIONS DETAILS
+									</Text>
+
+									<View style={{ flexDirection: 'row', padding: 5 }}>
+										<View style={{ width: '35%' }}>
+											<Text
+												style={{
+													flexShrink: 1,
+													fontWeight: 'bold',
+													color: '#000',
+												}}>
+												Date
+											</Text>
+										</View>
+										<View>
+											<Text
+												style={{
+													flexShrink: 1,
+													color: '#000',
+												}}>
+												{formattedDate}
+											</Text>
+										</View>
+									</View>
+								</View>
+							</View>
+						</View>
+					</ZigzagView>
+				</ScrollView>
+			</SafeAreaView>
+			{isPrinterConnected && (
+				<FloatingAction
+					showBackground={false}
+					floatingIcon={
+						<Icons.AntDesign name='printer' size={20} color='#FFFFFF' />
+					}
+					onPressMain={() => printME()}
+				/>
+			)}
+		</>
 	)
 }
 

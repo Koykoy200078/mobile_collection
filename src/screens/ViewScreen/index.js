@@ -86,18 +86,6 @@ const ViewScreen = ({ navigation, route }) => {
 
 	const actions = [
 		{
-			text: 'New Transaction',
-			icon: (
-				<Icons.MaterialCommunityIcons
-					name='draw-pen'
-					size={25}
-					color='#FFFFFF'
-				/>
-			),
-			name: 'bt_newTransact',
-			position: 1,
-		},
-		{
 			text: 'Other SL Accounts',
 			icon: (
 				<Icons.MaterialCommunityIcons
@@ -107,7 +95,7 @@ const ViewScreen = ({ navigation, route }) => {
 				/>
 			),
 			name: 'bt_SLAccounts',
-			position: 2,
+			position: 1,
 		},
 	]
 
@@ -191,6 +179,11 @@ const ViewScreen = ({ navigation, route }) => {
 		minimumFractionDigits: 2,
 		maximumFractionDigits: 2,
 	})
+
+	const { LName, FName, Mname, SName } = item
+	const Fullname = [LName ? `${LName},` : '', FName ? FName : '', Mname, SName]
+		.filter(Boolean)
+		.join(' ')
 
 	return (
 		<SafeAreaView
@@ -281,47 +274,51 @@ const ViewScreen = ({ navigation, route }) => {
 								style={{ width: 20, height: 20 }}
 							/>
 						)}{' '}
-						{item.Fullname}
+						{Fullname}
 					</Text>
 
 					<View style={styles.specifications}>
 						{item &&
 							item.collections &&
-							item.collections.map((collection, index) => {
-								const a = parseFloat(collection.PRINDUE)
-								const b = parseFloat(collection.INTDUE)
-								const c = parseFloat(collection.PENDUE)
+							item.collections
+								.filter((collection) => collection.is_default === 1)
+								.map((collection, index) => {
+									const a = parseFloat(collection.PRINDUE)
+									const b = parseFloat(collection.INTDUE)
+									const c = parseFloat(collection.PENDUE)
 
-								const total = a + b + c
-								const formatNumber = (number) => {
-									return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-								}
+									const total = a + b + c
+									const formatNumber = (number) => {
+										return number
+											.toString()
+											.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+									}
 
-								return (
-									<CardReport02
-										key={index}
-										style={{ flex: 1, width: width - 30, marginVertical: 10 }}
-										title={collection.SLDESCR}
-										description={collection.REF_TARGET}
-										placeholder='0.00'
-										checkedBoxLabel='Input Amount'
-										value={inputAmounts[collection.REF_TARGET]?.SLDESCR || ''}
-										onChangeText={(val) => {
-											handleInputChange(collection.REF_TARGET, 'SLDESCR', val)
-										}}
-										checkBoxEnabled={true}
-										checkBox={!!inputAmounts[collection.REF_TARGET]?.SLDESCR}
-										isActive={isCollapsed[index] ? 'angle-down' : 'angle-up'}
-										enableTooltip={true}
-										toggleAccordion={() => handleAccordionToggle(index)}
-										isCollapsed={isCollapsed[index]}
-										principal={formatNumber(collection.PRINDUE)}
-										interest={formatNumber(collection.INTDUE)}
-										penalty={formatNumber(collection.PENDUE)}
-										total={formatNumber(total.toFixed(2))}
-									/>
-								)
-							})}
+									return (
+										<CardReport02
+											key={index}
+											style={{ flex: 1, width: width - 30, marginVertical: 10 }}
+											title={collection.SLDESCR}
+											description={collection.REF_TARGET}
+											placeholder='0.00'
+											checkedBoxLabel='Input Amount'
+											value={inputAmounts[collection.REF_TARGET]?.SLDESCR || ''}
+											onChangeText={(val) => {
+												handleInputChange(collection.REF_TARGET, 'SLDESCR', val)
+											}}
+											checkBoxEnabled={true}
+											checkBox={!!inputAmounts[collection.REF_TARGET]?.SLDESCR}
+											isActive={isCollapsed[index] ? 'angle-down' : 'angle-up'}
+											enableTooltip={true}
+											toggleAccordion={() => handleAccordionToggle(index)}
+											isCollapsed={isCollapsed[index]}
+											principal={formatNumber(collection.PRINDUE)}
+											interest={formatNumber(collection.INTDUE)}
+											penalty={formatNumber(collection.PENDUE)}
+											total={formatNumber(total.toFixed(2))}
+										/>
+									)
+								})}
 					</View>
 				</View>
 			</ScrollView>
@@ -329,12 +326,11 @@ const ViewScreen = ({ navigation, route }) => {
 			{visible && (
 				<Animated.View style={floatingActionStyle}>
 					<FloatingAction
+						dismissKeyboardOnPress={true}
 						actions={actions}
 						// visible={textInputRef.current && !textInputRef.current.isFocused()}
 						onPressItem={(name) => {
-							if (name === 'bt_newTransact') {
-								// navigation.navigate(ROUTES.OTHERSLSCREEN)
-							} else if (name === 'bt_SLAccounts') {
+							if (name === 'bt_SLAccounts') {
 								navigation.navigate(ROUTES.OTHERSLSCREEN, {
 									clientData: item,
 								})
