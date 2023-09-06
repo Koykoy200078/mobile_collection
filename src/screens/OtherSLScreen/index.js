@@ -111,7 +111,7 @@ const OtherSLScreen = ({ navigation, route }) => {
 	// 			const fnameMatch =
 	// 				client.FName && client.FName.toLowerCase().includes(normalizedQuery)
 	// 			const mnameMatch =
-	// 				client.Mname && client.Mname.toLowerCase().includes(normalizedQuery)
+	// 				client.MName && client.MName.toLowerCase().includes(normalizedQuery)
 	// 			const snameMatch =
 	// 				client.SName && client.SName.toLowerCase().includes(normalizedQuery)
 

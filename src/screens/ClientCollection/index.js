@@ -195,7 +195,7 @@ const ClientCollection = ({ navigation }) => {
 				const fnameMatch =
 					client.FName && client.FName.toLowerCase().includes(normalizedQuery)
 				const mnameMatch =
-					client.Mname && client.Mname.toLowerCase().includes(normalizedQuery)
+					client.MName && client.MName.toLowerCase().includes(normalizedQuery)
 				const snameMatch =
 					client.SName && client.SName.toLowerCase().includes(normalizedQuery)
 
@@ -243,7 +243,7 @@ const ClientCollection = ({ navigation }) => {
 							client_id,
 							FName,
 							LName,
-							Mname,
+							MName,
 							SName,
 							isPaid,
 							collections,
@@ -252,7 +252,7 @@ const ClientCollection = ({ navigation }) => {
 						const Fullname = [
 							LName.trim() ? `${LName},` : '',
 							FName.trim() ? FName : '',
-							Mname,
+							MName,
 							SName,
 						]
 							.filter(Boolean)

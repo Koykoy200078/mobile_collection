@@ -180,8 +180,8 @@ const ViewScreen = ({ navigation, route }) => {
 		maximumFractionDigits: 2,
 	})
 
-	const { LName, FName, Mname, SName } = item
-	const Fullname = [LName ? `${LName},` : '', FName ? FName : '', Mname, SName]
+	const { LName, FName, MName, SName } = item
+	const Fullname = [LName ? `${LName},` : '', FName ? FName : '', MName, SName]
 		.filter(Boolean)
 		.join(' ')
 

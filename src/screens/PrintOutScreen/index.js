@@ -83,7 +83,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 	const Fullname = [
 		allData.LName.trim() ? `${allData.LName},` : '',
 		allData.FName.trim() ? allData.FName : '',
-		allData.Mname,
+		allData.MName,
 		allData.SName,
 	]
 		.filter(Boolean)
