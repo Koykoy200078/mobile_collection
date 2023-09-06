@@ -142,6 +142,7 @@ const CheckOutScreen = ({ navigation, route }) => {
 			}
 
 			const transformedData = {
+				branch_id: targetClient.branch_id,
 				client_id: targetClient.client_id,
 				FName: targetClient.FName,
 				LName: targetClient.LName,
@@ -167,8 +168,17 @@ const CheckOutScreen = ({ navigation, route }) => {
 							REF: collection.REF,
 							SLDESCR: matchingItem.SLDESCR,
 							REF_TARGET: collection.REF_TARGET,
-							AMT: amount,
-							REMARKS: 'Paid Due',
+							REF_SOURCE: collection.REF_SOURCE,
+							PRINCIPAL: collection.PRINCIPAL,
+							BALANCE: collection.BALANCE,
+							PRINDUE: collection.PRINDUE,
+							INTDUE: collection.INTDUE,
+							PENDUE: collection.PENDUE,
+							INSDUE: collection.INSDUE,
+							TOTALDUE: collection.TOTALDUE,
+							ACTUAL_PAY: amount,
+							REMARKS: 'OK',
+							is_default: 1,
 						}
 					})
 					.filter(Boolean),

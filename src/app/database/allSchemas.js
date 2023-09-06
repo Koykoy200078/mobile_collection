@@ -1,6 +1,6 @@
-export const Collection = 'Collection'
-
+// CLIENT
 export const Client = 'Client'
+const Collection = 'Collection'
 
 export const ClientSchema = {
 	name: Client,
@@ -37,37 +37,16 @@ export const CollectionSchema = {
 		is_default: { type: 'int' },
 	},
 }
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-// upload data
+
+// UPLOAD
 export const UploadData = 'UploadData'
-export const UploadDataCollection = 'UploadDataCollection'
+const UploadDataCollection = 'UploadDataCollection'
+
 export const uploadSchema = {
 	name: UploadData,
 	primaryKey: 'client_id',
 	properties: {
+		branch_id: { type: 'int' },
 		client_id: { type: 'int' },
 		FName: { type: 'string' },
 		LName: { type: 'string' },
@@ -83,24 +62,34 @@ export const uploadDataCollection = {
 		BRCODE: { type: 'int' },
 		SLC: { type: 'int' },
 		SLT: { type: 'int' },
-		REF: { type: 'int' },
+		REF: { type: 'int', optional: true },
 		SLDESCR: { type: 'string' },
 		REF_TARGET: { type: 'string' },
-		AMT: { type: 'string' },
+		REF_SOURCE: { type: 'string' },
+		PRINCIPAL: { type: 'string' },
+		BALANCE: { type: 'string' },
+		PRINDUE: { type: 'string' },
+		INTDUE: { type: 'string' },
+		PENDUE: { type: 'string' },
+		INSDUE: { type: 'string' },
+		TOTALDUE: { type: 'string' },
+		ACTUAL_PAY: { type: 'string' },
 		REMARKS: { type: 'string' },
+		is_default: { type: 'int' },
 	},
 }
 
-const databaseOptions = {
-	path: 'CollectorList.realm',
-	schema: [ClientSchema, CollectionSchema, uploadSchema, uploadDataCollection],
-	schemaVersion: 2,
-}
-
-export const getSchema = [
+const allSchema = [
 	ClientSchema,
 	CollectionSchema,
 	uploadSchema,
 	uploadDataCollection,
 ]
+
+const databaseOptions = {
+	path: 'CollectorList.realm',
+	schema: allSchema,
+	schemaVersion: 1,
+}
+
 export default databaseOptions

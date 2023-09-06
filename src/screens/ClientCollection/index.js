@@ -152,7 +152,7 @@ const ClientCollection = ({ navigation }) => {
 									client_id: client.client_id,
 									FName: client.FName,
 									LName: client.LName,
-									Mname: client.Mname,
+									MName: client.MName,
 									SName: client.SName,
 									collections,
 								}

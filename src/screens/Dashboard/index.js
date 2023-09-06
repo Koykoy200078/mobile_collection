@@ -118,16 +118,18 @@ const Dashboard = ({ navigation }) => {
 			const realm = await Realm.open(databaseOptions)
 			const clients = realm.objects(Client)
 			const uploadData = realm.objects(UploadData)
+
 			const clientsArray = Array.from(clients)
 			const uploadDataArray = Array.from(uploadData)
 
 			if (clientsArray.length > 0 || uploadDataArray.length > 0) {
-				showCollectedAmount(uploadDataArray)
-				showCashOnHandData(clientsArray)
-			} else {
-				// No data, do nothing
+				if (uploadDataArray.length > 0) {
+					showCollectedAmount(uploadDataArray)
+				}
+				if (clientsArray.length > 0) {
+					showCashOnHandData(clientsArray)
+				}
 			}
-			// realm.close()
 		} catch (error) {
 			Alert.alert('Error retrieving data: ', error)
 			console.error(error)
@@ -153,7 +155,7 @@ const Dashboard = ({ navigation }) => {
 	const showCollectedAmount = (data) => {
 		const filteredData = data.filter((item) => item.collections.length > 0)
 		const totalDueArray = filteredData.map((item) =>
-			item.collections.map((collection) => parseFloat(collection.AMT))
+			item.collections.map((collection) => parseFloat(collection.ACTUAL_PAY))
 		)
 
 		const flatTotalDueArray = totalDueArray.flat()
@@ -161,7 +163,6 @@ const Dashboard = ({ navigation }) => {
 			(acc, currentValue) => acc + currentValue,
 			0
 		)
-
 		setTotalCollectedAmount(totalDueSum)
 
 		return null
