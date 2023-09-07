@@ -34,6 +34,8 @@ const OtherSLScreen = ({ navigation, route }) => {
 
 	const [isCollapsed, setIsCollapsed] = useState({})
 	const [inputAmounts, setInputAmounts] = useState({})
+	const [checkboxChecked, setCheckboxChecked] = useState({})
+
 	const [totalValue, setTotalValue] = useState(0)
 
 	const { clientData } = route.params
@@ -49,6 +51,17 @@ const OtherSLScreen = ({ navigation, route }) => {
 		// 	setItem(route.params.item)
 		// }
 	}, [route])
+
+	useEffect(() => {
+		// Assuming apiData is an array of items
+		const initialIsCollapsed = {}
+		if (item && item.collections && item.collections.length > 0) {
+			item.collections.forEach((_, index) => {
+				initialIsCollapsed[index] = true // Set each item to be initially collapsed
+			})
+		}
+		setIsCollapsed(initialIsCollapsed)
+	}, [item])
 
 	const handleAccordionToggle = (index) => {
 		setIsCollapsed((prevState) => ({
@@ -68,18 +81,19 @@ const OtherSLScreen = ({ navigation, route }) => {
 				minimumFractionDigits: 2,
 				maximumFractionDigits: 2,
 			})
-			if (inputValue > balance) {
-				Alert.alert(
-					'Warning',
-					`The input amount should not exceed the total due of ${newBal}`
-				)
-			} else {
+			if (inputValue) {
 				setInputAmounts((prevState) => ({
 					...prevState,
 					[index]: {
 						...prevState[index],
 						[name]: value,
 					},
+				}))
+
+				// Update the checkboxChecked state
+				setCheckboxChecked((prevState) => ({
+					...prevState,
+					[index]: !!value, // Set to true if there is a value, otherwise false
 				}))
 			}
 		}
@@ -250,17 +264,20 @@ const OtherSLScreen = ({ navigation, route }) => {
 									return (
 										<CardReport02
 											key={index}
+											index={index}
 											style={{ flex: 1, width: width - 30, marginVertical: 10 }}
 											title={collection.SLDESCR}
 											description={collection.REF_TARGET}
 											placeholder='0.00'
-											checkedBoxLabel='Input Amount'
+											checkedBoxLabel='Amount'
 											value={inputAmounts[collection.REF_TARGET]?.SLDESCR || ''}
 											onChangeText={(val) =>
 												handleInputChange(collection.REF_TARGET, 'SLDESCR', val)
 											}
 											checkBoxEnabled={true}
-											checkBox={!!inputAmounts[collection.REF_TARGET]?.SLDESCR}
+											checkBox={!!checkboxChecked[index]}
+											editable={!!checkboxChecked[index]}
+											setCheckboxChecked={setCheckboxChecked}
 											isActive={isCollapsed[index] ? 'angle-down' : 'angle-up'}
 											enableTooltip={true}
 											toggleAccordion={() => handleAccordionToggle(index)}

@@ -1,6 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { useFocusEffect } from '@react-navigation/native'
-import { View, TouchableOpacity, useWindowDimensions, Alert } from 'react-native'
+import {
+	View,
+	TouchableOpacity,
+	useWindowDimensions,
+	Alert,
+} from 'react-native'
 import { ROUTES } from '../../app/config'
 import { Project02, Text } from '../../app/components'
 import databaseOptions, { Client } from '../../app/database/allSchemas'
@@ -48,46 +53,6 @@ const Account = ({ navigation }) => {
 					description='View Paid Clients'
 					total_loans={countPaidItems}
 					onPress={() => navigation.navigate(ROUTES.UPLOAD_DATA)}
-					style={{
-						marginBottom: 10,
-					}}
-				/>
-
-				<Project02
-					title='TEST 2'
-					description='View TEST'
-					total_loans={0}
-					onPress={() => null}
-					style={{
-						marginBottom: 10,
-					}}
-				/>
-
-				<Project02
-					title='TEST 3'
-					description='View TEST'
-					total_loans={0}
-					onPress={() => null}
-					style={{
-						marginBottom: 10,
-					}}
-				/>
-
-				<Project02
-					title='TEST 4'
-					description='View TEST'
-					total_loans={0}
-					onPress={() => null}
-					style={{
-						marginBottom: 10,
-					}}
-				/>
-
-				<Project02
-					title='TEST 5'
-					description='View TEST'
-					total_loans={0}
-					onPress={() => null}
 					style={{
 						marginBottom: 10,
 					}}

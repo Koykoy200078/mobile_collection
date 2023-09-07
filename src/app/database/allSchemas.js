@@ -52,6 +52,7 @@ export const uploadSchema = {
 		LName: { type: 'string' },
 		MName: { type: 'string', optional: true },
 		SName: { type: 'string', optional: true },
+		TOP: { type: 'string' },
 		collections: { type: 'list', objectType: UploadDataCollection },
 	},
 }

@@ -23,6 +23,8 @@ const CardReport02 = ({
 	value,
 	onChangeText,
 	editable,
+	index,
+	setCheckboxChecked,
 
 	principal,
 	interest,
@@ -128,6 +130,20 @@ const CardReport02 = ({
 									checked={checkBox}
 									color={colors.primary}
 									style={{ flex: 1 }}
+									onPress={() => {
+										if (checkBoxEnabled) {
+											// Toggle the checkboxChecked state when the checkbox is pressed
+											setCheckboxChecked((prevState) => ({
+												...prevState,
+												[index]: !prevState[index],
+											}))
+
+											// Clear the input value when unchecking the checkbox
+											if (checkBox) {
+												onChangeText('') // Clear the input value
+											}
+										}
+									}}
 								/>
 							) : null}
 							<Text

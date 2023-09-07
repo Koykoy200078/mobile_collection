@@ -29,8 +29,12 @@ const ViewScreen = ({ navigation, route }) => {
 	const { width } = useWindowDimensions()
 	const { colors } = useTheme()
 	const [item, setItem] = useState('')
+
+	const [checkEnable, setCheckEnable] = useState(false)
 	const [isCollapsed, setIsCollapsed] = useState({})
 	const [inputAmounts, setInputAmounts] = useState({})
+	const [checkboxChecked, setCheckboxChecked] = useState({}) // Add this state
+
 	const [totalValue, setTotalValue] = useState(0)
 
 	const [textInputFocused, setTextInputFocused] = useState(false)
@@ -42,6 +46,17 @@ const ViewScreen = ({ navigation, route }) => {
 	useEffect(() => {
 		calculateTotalValue()
 	}, [isCollapsed, inputAmounts, visible, animation, textInputFocused])
+
+	useEffect(() => {
+		// Assuming apiData is an array of items
+		const initialIsCollapsed = {}
+		if (item && item.collections && item.collections.length > 0) {
+			item.collections.forEach((_, index) => {
+				initialIsCollapsed[index] = true // Set each item to be initially collapsed
+			})
+		}
+		setIsCollapsed(initialIsCollapsed)
+	}, [item])
 
 	useEffect(() => {
 		if (route.params?.item) {
@@ -159,7 +174,29 @@ const ViewScreen = ({ navigation, route }) => {
 						[name]: value,
 					},
 				}))
+
+				// Update the checkboxChecked state
+				setCheckboxChecked((prevState) => ({
+					...prevState,
+					[index]: !!value, // Set to true if there is a value, otherwise false
+				}))
 			}
+		}
+	}
+
+	const handleCheckout = () => {
+		if (totalAmount.trim() === '' || totalAmount !== '0.00') {
+			navigation.navigate(ROUTES.CHECKOUT, {
+				name: item.Fullname,
+				allData: item,
+				inputAmounts: inputAmounts,
+				total: parseFloat(totalValue),
+			})
+		} else {
+			showInfo({
+				message: 'Input Amount',
+				description: 'Input the amount you want to pay for this collection.',
+			})
 		}
 	}
 
@@ -297,17 +334,20 @@ const ViewScreen = ({ navigation, route }) => {
 									return (
 										<CardReport02
 											key={index}
+											index={index}
 											style={{ flex: 1, width: width - 30, marginVertical: 10 }}
 											title={collection.SLDESCR}
 											description={collection.REF_TARGET}
 											placeholder='0.00'
-											checkedBoxLabel='Input Amount'
+											checkedBoxLabel='Amount'
 											value={inputAmounts[collection.REF_TARGET]?.SLDESCR || ''}
 											onChangeText={(val) => {
 												handleInputChange(collection.REF_TARGET, 'SLDESCR', val)
 											}}
 											checkBoxEnabled={true}
-											checkBox={!!inputAmounts[collection.REF_TARGET]?.SLDESCR}
+											checkBox={!!checkboxChecked[index]}
+											editable={!!checkboxChecked[index]}
+											setCheckboxChecked={setCheckboxChecked}
 											isActive={isCollapsed[index] ? 'angle-down' : 'angle-up'}
 											enableTooltip={true}
 											toggleAccordion={() => handleAccordionToggle(index)}
@@ -353,22 +393,24 @@ const ViewScreen = ({ navigation, route }) => {
 				<View style={styles.buttonContainer}>
 					<Button
 						full
-						onPress={() => {
-							if (totalAmount.trim() === '' || totalAmount !== '0.00') {
-								navigation.navigate(ROUTES.CHECKOUT, {
-									name: item.Fullname,
-									allData: item,
-									inputAmounts: inputAmounts,
-									total: parseFloat(totalValue),
-								})
-							} else {
-								showInfo({
-									message: 'Input Amount',
-									description:
-										'Input the amount you want to pay for this collection.',
-								})
-							}
-						}}>
+						onPress={handleCheckout}
+						// onPress={() => {
+						// 	if (totalAmount.trim() === '' || totalAmount !== '0.00') {
+						// 		navigation.navigate(ROUTES.CHECKOUT, {
+						// 			name: item.Fullname,
+						// 			allData: item,
+						// 			inputAmounts: inputAmounts,
+						// 			total: parseFloat(totalValue),
+						// 		})
+						// 	} else {
+						// 		showInfo({
+						// 			message: 'Input Amount',
+						// 			description:
+						// 				'Input the amount you want to pay for this collection.',
+						// 		})
+						// 	}
+						// }}
+					>
 						Checkout
 					</Button>
 				</View>

@@ -9,6 +9,7 @@ import {
 import {
 	Button,
 	CardReport02,
+	CheckBox,
 	Header,
 	ProductSpecGrid,
 } from '../../app/components'
@@ -24,6 +25,7 @@ import databaseOptions, {
 	uploadSchema,
 } from '../../app/database/allSchemas'
 import Realm from 'realm'
+import { showInfo } from '../../app/components/AlertMessage'
 
 const CheckOutScreen = ({ navigation, route }) => {
 	const { width } = useWindowDimensions()
@@ -31,7 +33,31 @@ const CheckOutScreen = ({ navigation, route }) => {
 	const [data, setData] = useState([])
 	const { name, allData, inputAmounts, total } = route.params
 
-	useEffect(() => {}, [name, allData, inputAmounts, total, data])
+	const [isCashChecked, setCashChecked] = useState(false)
+	const [isCOCIChecked, setCOCIChecked] = useState(false)
+
+	useEffect(() => {}, [
+		name,
+		allData,
+		inputAmounts,
+		total,
+		data,
+		isCashChecked,
+		isCOCIChecked,
+	])
+
+	const handleCashCheckBox = () => {
+		setCashChecked(!isCashChecked) // Toggle the value
+		setCOCIChecked(false)
+	}
+
+	const handleCOCICheckBox = () => {
+		setCOCIChecked(!isCOCIChecked) // Toggle the value
+		setCashChecked(false)
+	}
+
+	console.log('isCashChecked: ', isCashChecked)
+	console.log('isCOCIChecked: ', isCOCIChecked)
 
 	const totalAmount = total.toLocaleString('en-US', {
 		minimumFractionDigits: 2,
@@ -104,23 +130,30 @@ const CheckOutScreen = ({ navigation, route }) => {
 		.filter(Boolean)
 
 	const updateData = async () => {
-		Alert.alert(
-			'Confirmation',
-			'All operations are functioning properly. Would you like to save the new data?',
-			[
-				{
-					text: 'Cancel',
-					onPress: () => null,
-					style: 'cancel',
-				},
-				{
-					text: 'Yes',
-					onPress: async () => {
-						await saveNewData()
+		if (isCashChecked || isCOCIChecked) {
+			Alert.alert(
+				'Confirmation',
+				'All operations are functioning properly. Would you like to save the new data?',
+				[
+					{
+						text: 'Cancel',
+						onPress: () => null,
+						style: 'cancel',
 					},
-				},
-			]
-		)
+					{
+						text: 'Yes',
+						onPress: async () => {
+							await saveNewData()
+						},
+					},
+				]
+			)
+		} else {
+			showInfo({
+				message: 'Type of Payment',
+				description: 'Please select a type of payment.',
+			})
+		}
 	}
 
 	const saveNewData = async () => {
@@ -141,6 +174,13 @@ const CheckOutScreen = ({ navigation, route }) => {
 				return
 			}
 
+			let typeofpayment = null
+			if (isCashChecked) {
+				typeofpayment = 'CASH'
+			} else if (isCOCIChecked) {
+				typeofpayment = 'COCI'
+			}
+
 			const transformedData = {
 				branch_id: targetClient.branch_id,
 				client_id: targetClient.client_id,
@@ -148,6 +188,8 @@ const CheckOutScreen = ({ navigation, route }) => {
 				LName: targetClient.LName,
 				MName: targetClient.MName,
 				SName: targetClient.SName,
+				TOP: typeofpayment,
+
 				collections: targetClient.collections
 					.map((collection) => {
 						const refNo = collection.REF_TARGET
@@ -184,11 +226,12 @@ const CheckOutScreen = ({ navigation, route }) => {
 					.filter(Boolean),
 			}
 
-			realm.write(() => {
-				realm.create(UploadData, transformedData, Realm.UpdateMode.Modified)
-			})
+			console.log(JSON.stringify(transformedData, null, 2))
+			// realm.write(() => {
+			// 	realm.create(UploadData, transformedData, Realm.UpdateMode.Modified)
+			// })
 
-			transactionData()
+			// transactionData()
 		} catch (error) {
 			Alert.alert(
 				'Error',
@@ -308,6 +351,31 @@ const CheckOutScreen = ({ navigation, route }) => {
 							description={'Total Amount Paid'}
 							isEnable={false}
 						/>
+					</View>
+					<View style={styles.specifications}>
+						<View className='space-y-2 rounded-md p-2'>
+							<Text className='text-black font-bold text-base'>
+								Type of Payment
+							</Text>
+							<View>
+								<CheckBox
+									title='CASH'
+									checked={isCashChecked}
+									color={colors.primary}
+									style={{ flex: 1 }}
+									onPress={handleCashCheckBox}
+								/>
+							</View>
+							<View>
+								<CheckBox
+									title='COCI (Check and Other Cash Items)'
+									checked={isCOCIChecked}
+									color={colors.primary}
+									style={{ flex: 1 }}
+									onPress={handleCOCICheckBox}
+								/>
+							</View>
+						</View>
 					</View>
 
 					<View className='p-[10]'>
