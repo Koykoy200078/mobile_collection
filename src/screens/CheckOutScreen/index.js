@@ -47,17 +47,14 @@ const CheckOutScreen = ({ navigation, route }) => {
 	])
 
 	const handleCashCheckBox = () => {
-		setCashChecked(!isCashChecked) // Toggle the value
+		setCashChecked(true) // Toggle the value
 		setCOCIChecked(false)
 	}
 
 	const handleCOCICheckBox = () => {
-		setCOCIChecked(!isCOCIChecked) // Toggle the value
+		setCOCIChecked(true) // Toggle the value
 		setCashChecked(false)
 	}
-
-	console.log('isCashChecked: ', isCashChecked)
-	console.log('isCOCIChecked: ', isCOCIChecked)
 
 	const totalAmount = total.toLocaleString('en-US', {
 		minimumFractionDigits: 2,
@@ -79,6 +76,7 @@ const CheckOutScreen = ({ navigation, route }) => {
 			if (!REF_TARGET && !SLDESCR && !DEPOSIT && !SHARECAPITAL) {
 				return null
 			}
+
 			return (
 				<View key={refNo}>
 					{REF_TARGET ? (
@@ -131,23 +129,19 @@ const CheckOutScreen = ({ navigation, route }) => {
 
 	const updateData = async () => {
 		if (isCashChecked || isCOCIChecked) {
-			Alert.alert(
-				'Confirmation',
-				'All operations are functioning properly. Would you like to save the new data?',
-				[
-					{
-						text: 'Cancel',
-						onPress: () => null,
-						style: 'cancel',
+			Alert.alert('Confirmation', 'Would you like to save the new data?', [
+				{
+					text: 'Cancel',
+					onPress: () => null,
+					style: 'cancel',
+				},
+				{
+					text: 'Yes',
+					onPress: async () => {
+						await saveNewData()
 					},
-					{
-						text: 'Yes',
-						onPress: async () => {
-							await saveNewData()
-						},
-					},
-				]
-			)
+				},
+			])
 		} else {
 			showInfo({
 				message: 'Type of Payment',
@@ -174,13 +168,6 @@ const CheckOutScreen = ({ navigation, route }) => {
 				return
 			}
 
-			let typeofpayment = null
-			if (isCashChecked) {
-				typeofpayment = 'CASH'
-			} else if (isCOCIChecked) {
-				typeofpayment = 'COCI'
-			}
-
 			const transformedData = {
 				branch_id: targetClient.branch_id,
 				client_id: targetClient.client_id,
@@ -188,22 +175,32 @@ const CheckOutScreen = ({ navigation, route }) => {
 				LName: targetClient.LName,
 				MName: targetClient.MName,
 				SName: targetClient.SName,
-				TOP: typeofpayment,
+				TOP: isCashChecked ? 'CASH' : 'COCI',
 
-				collections: targetClient.collections
-					.map((collection) => {
-						const refNo = collection.REF_TARGET
-						const inputAmount = inputAmounts[refNo]
-						const matchingItem = allData.collections.find(
-							(item) => item.REF_TARGET === refNo
-						)
+				collections: [],
+			}
 
-						if (!matchingItem || !inputAmount) {
-							return null
-						}
-						const amount = inputAmount.SLDESCR
+			targetClient.collections.forEach((collection) => {
+				const refNo = collection.REF_TARGET
+				const inputAmount = inputAmounts[refNo]
+				const matchingItem = allData.collections.find(
+					(item) => item.REF_TARGET === refNo
+				)
 
-						return {
+				if (matchingItem && inputAmount) {
+					const amount = inputAmount.SLDESCR
+
+					const existingCollection = transformedData.collections.find(
+						(item) => item.REF_TARGET === refNo
+					)
+
+					if (existingCollection) {
+						// Update existing collection
+						existingCollection.ACTUAL_PAY = amount
+						// You can update other fields here if needed
+					} else {
+						// Add a new collection entry
+						transformedData.collections.push({
 							BRCODE: collection.BRCODE,
 							SLC: collection.SLC,
 							SLT: collection.SLT,
@@ -221,17 +218,17 @@ const CheckOutScreen = ({ navigation, route }) => {
 							ACTUAL_PAY: amount,
 							REMARKS: 'OK',
 							is_default: 1,
-						}
-					})
-					.filter(Boolean),
-			}
+						})
+					}
+				}
+			})
 
-			console.log(JSON.stringify(transformedData, null, 2))
-			// realm.write(() => {
-			// 	realm.create(UploadData, transformedData, Realm.UpdateMode.Modified)
-			// })
+			// console.log(JSON.stringify(transformedData, null, 2))
+			realm.write(() => {
+				realm.create(UploadData, transformedData, Realm.UpdateMode.Modified)
+			})
 
-			// transactionData()
+			transactionData()
 		} catch (error) {
 			Alert.alert(
 				'Error',

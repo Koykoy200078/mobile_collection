@@ -226,10 +226,11 @@ const Dashboard = ({ navigation }) => {
 							isActive={!isCollapsed ? 'angle-down' : 'angle-up'}
 							totalCollectedAmount={newBalCollected}
 							totalRemittedAmount={parseFloat(0).toFixed(2)}
-							total={newBalTotalCashOnHand}
+							total={newBalCollected} // newBalTotalCashOnHand
 						/>
 					</View>
-					<Text title1>₱ {newBalTotalCashOnHand}</Text>
+					{/* newBalTotalCashOnHand */}
+					<Text title1>₱ {newBalCollected}</Text>
 				</Shadow>
 			</View>
 		</View>
