@@ -10,6 +10,8 @@ export default {
 	ACCOUNT: 'Account',
 
 	UPLOAD_DATA: 'Upload Data',
+	VIEW_UPLOAD_DATA: 'View Upload Data',
+	PAYMENT_SUMMARY: 'Payment Summary',
 
 	OTHERSLSCREEN: 'Other SL Screen',
 

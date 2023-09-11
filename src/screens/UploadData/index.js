@@ -14,7 +14,10 @@ import { Header, Project02, Search, TabTag } from '../../app/components'
 import { Icons } from '../../app/config/icons'
 import styles from './styles'
 import { Realm } from '@realm/react'
-import databaseOptions, { Client } from '../../app/database/allSchemas'
+import databaseOptions, {
+	Client,
+	UploadData as clientUploadData,
+} from '../../app/database/allSchemas'
 import { getDetails, resetGetDetails } from '../../app/reducers/batchDetails'
 import { useDispatch, useSelector } from 'react-redux'
 import { FlashList } from '@shopify/flash-list'
@@ -29,7 +32,9 @@ const UploadData = ({ navigation }) => {
 
 	const [clientData, setClientData] = useState([])
 
-	const filterData = clientData && clientData.filter((item) => item.isPaid)
+	//  && clientData.filter((item) => item.isPaid)
+
+	const filterData = clientData
 
 	useEffect(() => {
 		showData()
@@ -45,7 +50,8 @@ const UploadData = ({ navigation }) => {
 	const showData = useCallback(async () => {
 		try {
 			const realm = await Realm.open(databaseOptions)
-			const clients = realm.objects(Client)
+
+			const clients = realm.objects(clientUploadData)
 			setClientData(Array.from(clients))
 
 			// realm.close()
@@ -85,7 +91,7 @@ const UploadData = ({ navigation }) => {
 		return (
 			<View style={{ flex: 1 }}>
 				<Search
-					title={'Paid Client'}
+					title={'Clients'}
 					value={search}
 					isUpload={true}
 					onPressUpload={() => {
@@ -114,8 +120,10 @@ const UploadData = ({ navigation }) => {
 							MName,
 							SName,
 							isPaid,
+							TOP,
 							collections,
 						} = item
+						console.log('item: ', item)
 
 						const Fullname = [
 							LName.trim() ? `${LName},` : '',
@@ -127,7 +135,7 @@ const UploadData = ({ navigation }) => {
 							.join(' ')
 
 						const totalDue = collections.reduce(
-							(acc, data) => acc + parseFloat(data.TOTALDUE),
+							(acc, data) => acc + parseFloat(data.ACTUAL_PAY),
 							0
 						)
 
@@ -139,15 +147,15 @@ const UploadData = ({ navigation }) => {
 							if (item.collections.length === 0) {
 								Alert.alert('Info', 'This client has no collection data')
 							} else {
-								navigation.navigate(ROUTES.VIEW, { item: item })
+								navigation.navigate(ROUTES.VIEW_UPLOAD_DATA, { item: item })
 							}
 						}
 
 						return (
 							<Project02
 								title={Fullname}
-								description={client_id.toString()}
-								isPaid={item.isPaid}
+								description={'Payment Type: ' + TOP}
+								// isPaid={item.isPaid}
 								total_loans={totalDue ? formatNumber(totalDue.toFixed(2)) : ''}
 								onPress={() => handlePress(item)}
 								style={{

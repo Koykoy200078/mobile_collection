@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
 	View,
 	Text,
@@ -45,6 +45,17 @@ const ClientCollection = ({ navigation }) => {
 		return totalDue !== 0
 	})
 
+	// Memoize filterData function to avoid recomputation
+	const memoizedFilterData = useMemo(() => {
+		return clientData.filter((client) => {
+			const totalDue = client.collections.reduce(
+				(acc, data) => acc + parseFloat(data.TOTALDUE),
+				0
+			)
+			return totalDue !== 0
+		})
+	}, [clientData])
+
 	const [showAll, setShowAll] = useState(false)
 
 	const scrollY = new Animated.Value(0)
@@ -55,7 +66,12 @@ const ClientCollection = ({ navigation }) => {
 		setShowAll(!showAll)
 	}
 
-	const dataToShow = showAll ? clientData : filterData
+	const dataToShow = useMemo(
+		() => (showAll ? clientData : memoizedFilterData),
+		[showAll, memoizedFilterData]
+	)
+
+	// const dataToShow = showAll ? clientData : filterData
 
 	const fetchData = useCallback(async () => {
 		Alert.alert(

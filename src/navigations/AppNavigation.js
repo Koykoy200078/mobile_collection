@@ -28,6 +28,8 @@ import Account from '../screens/Account'
 import PrintOutScreen from '../screens/PrintOutScreen'
 import UploadData from '../screens/UploadData'
 import OtherSLScreen from '../screens/OtherSLScreen'
+import ViewData from '../screens/UploadData/ViewData'
+import PaymentSummary from '../screens/UploadData/PaymentSummary'
 
 const width = Dimensions.get('window').width
 
@@ -62,6 +64,11 @@ const Main = () => {
 			<MainStack.Screen name={ROUTES.CHECKOUT} component={CheckOutScreen} />
 			<MainStack.Screen name={ROUTES.PRINTOUT} component={PrintOutScreen} />
 			<MainStack.Screen name={ROUTES.UPLOAD_DATA} component={UploadData} />
+			<MainStack.Screen name={ROUTES.VIEW_UPLOAD_DATA} component={ViewData} />
+			<MainStack.Screen
+				name={ROUTES.PAYMENT_SUMMARY}
+				component={PaymentSummary}
+			/>
 			<MainStack.Screen name={ROUTES.OTHERSLSCREEN} component={OtherSLScreen} />
 		</MainStack.Navigator>
 	)
