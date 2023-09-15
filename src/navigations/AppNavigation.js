@@ -28,8 +28,11 @@ import Account from '../screens/Account'
 import PrintOutScreen from '../screens/PrintOutScreen'
 import UploadData from '../screens/UploadData'
 import OtherSLScreen from '../screens/OtherSLScreen'
-import ViewData from '../screens/UploadData/ViewData'
-import PaymentSummary from '../screens/UploadData/PaymentSummary'
+import ViewData from '../screens/Account/PaymentSummary/ViewData'
+
+import PaymentSummary from '../screens/Account/PaymentSummary'
+import DetailedSummary from '../screens/Account/DetailedSummary'
+import Summary from '../screens/Account/DetailedSummary/Summary'
 
 const width = Dimensions.get('window').width
 
@@ -69,6 +72,13 @@ const Main = () => {
 				name={ROUTES.PAYMENT_SUMMARY}
 				component={PaymentSummary}
 			/>
+
+			<MainStack.Screen
+				name={ROUTES.DETAILED_SUMMARY}
+				component={DetailedSummary}
+			/>
+
+			<MainStack.Screen name={ROUTES.SUMMARY} component={Summary} />
 			<MainStack.Screen name={ROUTES.OTHERSLSCREEN} component={OtherSLScreen} />
 		</MainStack.Navigator>
 	)

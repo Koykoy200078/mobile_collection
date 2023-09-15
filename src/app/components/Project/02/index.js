@@ -14,6 +14,7 @@ const Project02 = ({
 	disabled = false,
 	total_loans = 0,
 	isPaid,
+	isCancelled,
 }) => {
 	const { colors } = useTheme()
 
@@ -43,6 +44,12 @@ const Project02 = ({
 								<Image
 									source={Images.complete}
 									style={{ width: 20, height: 20 }}
+								/>
+							) : null}
+							{isCancelled ? (
+								<Image
+									source={Images.cancelled}
+									style={{ width: 50, height: 23, marginTop: -10 }}
 								/>
 							) : null}
 						</View>

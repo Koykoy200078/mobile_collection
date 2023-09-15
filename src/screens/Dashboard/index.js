@@ -19,6 +19,7 @@ import DeviceInfo from 'react-native-device-info'
 import { showError, showInfo } from '../../app/components/AlertMessage'
 import { isDeviceSupported } from '../../app/config/DeviceSupport'
 import { BleManager } from 'react-native-ble-plx'
+import { useSelector } from 'react-redux'
 
 const isWithinTimeRangeGoodMorning = (hour, minute) => {
 	return hour >= 5 && hour < 12 // 5:00 AM to 11:59 AM
@@ -35,7 +36,6 @@ const isWithinTimeRangeGoodEvening = (hour, minute) => {
 const Dashboard = ({ navigation }) => {
 	const isDarkMode = useColorScheme() === 'dark'
 	const { width, height } = useWindowDimensions()
-	const ios = Platform.OS === 'ios'
 	const [localHour, setLocalHour] = useState(null)
 	const [localMinute, setLocalMinute] = useState(null)
 	const [isCollapsed, setIsCollapsed] = useState(false)
@@ -45,8 +45,10 @@ const Dashboard = ({ navigation }) => {
 	const [totalCollectedAmount, setTotalCollectedAmount] = useState(0.0)
 	const [greetings, setGreetings] = useState('Hello')
 
-	const [isBluetoothEnabled, setIsBluetoothEnabled] = useState(false)
+	// const [isBluetoothEnabled, setIsBluetoothEnabled] = useState(false)
 	const [manager, setManager] = useState(null)
+
+	const auth = useSelector((state) => state.auth.authData)
 
 	const intervalRef = useRef(null)
 
@@ -59,38 +61,38 @@ const Dashboard = ({ navigation }) => {
 		setLocalMinute(minutes < 10 ? `0${minutes}` : minutes)
 	}
 
-	useEffect(() => {
-		const initBluetoothManager = async () => {
-			const bleManager = new BleManager()
-			setManager(bleManager)
+	// useEffect(() => {
+	// 	const initBluetoothManager = async () => {
+	// 		const bleManager = new BleManager()
+	// 		setManager(bleManager)
 
-			try {
-				const state = await bleManager.state()
-				setIsBluetoothEnabled(state === 'PoweredOn')
-			} catch (error) {
-				console.error('Error checking Bluetooth status: ', error)
-			}
-		}
+	// 		try {
+	// 			const state = await bleManager.state()
+	// 			setIsBluetoothEnabled(state === 'PoweredOn')
+	// 		} catch (error) {
+	// 			console.error('Error checking Bluetooth status: ', error)
+	// 		}
+	// 	}
 
-		initBluetoothManager()
+	// 	initBluetoothManager()
 
-		return () => {
-			// Clean up the BleManager instance when the component unmounts
-			if (manager) {
-				manager.destroy()
-				setManager(null)
-			}
-		}
-	}, [])
+	// 	return () => {
+	// 		// Clean up the BleManager instance when the component unmounts
+	// 		if (manager) {
+	// 			manager.destroy()
+	// 			setManager(null)
+	// 		}
+	// 	}
+	// }, [])
 
-	useEffect(() => {
-		if (isBluetoothEnabled === false) {
-			showInfo({
-				message: 'Bluetooth',
-				description: 'Turn on Bluetooth for Receipt Printing',
-			})
-		}
-	}, [])
+	// useEffect(() => {
+	// 	if (isBluetoothEnabled === false) {
+	// 		showInfo({
+	// 			message: 'Bluetooth',
+	// 			description: 'Turn on Bluetooth for Receipt Printing',
+	// 		})
+	// 	}
+	// }, [])
 
 	useEffect(() => {
 		if (isWithinTimeRangeGoodMorning(localHour, localMinute)) {
@@ -196,7 +198,9 @@ const Dashboard = ({ navigation }) => {
 				<View className='flex-row mx-2 justify-between'>
 					<View>
 						<Text title3>{greetings}</Text>
-						<Text title2>...</Text>
+						<Text body2>
+							{auth && auth.data ? auth.data.collector_desc : '...'}
+						</Text>
 					</View>
 
 					<View />

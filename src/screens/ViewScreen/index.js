@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import {
 	View,
 	Text,
@@ -24,6 +24,8 @@ import { Icons } from '../../app/config/icons'
 import databaseOptions, { Client } from '../../app/database/allSchemas'
 import { FloatingAction } from 'react-native-floating-action'
 import { showInfo } from '../../app/components/AlertMessage'
+import { FlashList } from '@shopify/flash-list'
+import { TouchableOpacity } from 'react-native-gesture-handler'
 
 const ViewScreen = ({ navigation, route }) => {
 	const { width } = useWindowDimensions()
@@ -33,26 +35,25 @@ const ViewScreen = ({ navigation, route }) => {
 	const [checkEnable, setCheckEnable] = useState(false)
 	const [isCollapsed, setIsCollapsed] = useState({})
 	const [inputAmounts, setInputAmounts] = useState({})
-	const [checkboxChecked, setCheckboxChecked] = useState({}) // Add this state
+	const [checkboxChecked, setCheckboxChecked] = useState({})
 
 	const [totalValue, setTotalValue] = useState(0)
 
 	const [textInputFocused, setTextInputFocused] = useState(false)
 
-	const scrollY = new Animated.Value(0) // Animated value to track scroll position
-	const [visible, setVisible] = useState(true) // State to track FloatingAction visibility
+	// const scrollY = new Animated.Value(0)
+	const [visible, setVisible] = useState(true)
 	const [animation, setAnimation] = useState(new Animated.Value(1))
 
 	useEffect(() => {
 		calculateTotalValue()
-	}, [isCollapsed, inputAmounts, visible, animation, textInputFocused])
+	}, [isCollapsed, inputAmounts, textInputFocused])
 
 	useEffect(() => {
-		// Assuming apiData is an array of items
 		const initialIsCollapsed = {}
 		if (item && item.collections && item.collections.length > 0) {
 			item.collections.forEach((_, index) => {
-				initialIsCollapsed[index] = true // Set each item to be initially collapsed
+				initialIsCollapsed[index] = true
 			})
 		}
 		setIsCollapsed(initialIsCollapsed)
@@ -97,7 +98,7 @@ const ViewScreen = ({ navigation, route }) => {
 			keyboardDidShowListener.remove()
 			keyboardDidHideListener.remove()
 		}
-	}, [visible, animation, textInputFocused])
+	}, [textInputFocused, visible, animation])
 
 	const actions = [
 		{
@@ -113,34 +114,6 @@ const ViewScreen = ({ navigation, route }) => {
 			position: 1,
 		},
 	]
-
-	const handleScroll = Animated.event(
-		[{ nativeEvent: { contentOffset: { y: scrollY } } }],
-		{ useNativeDriver: false }
-	)
-
-	scrollY.addListener((value) => {
-		if ((value.value > 0 && visible) || textInputFocused) {
-			setVisible(false)
-			Animated.timing(animation, {
-				toValue: 0,
-				duration: 300,
-				useNativeDriver: false,
-			}).start()
-		} else if (value.value <= 0 && !visible && !textInputFocused) {
-			setVisible(true)
-			Animated.timing(animation, {
-				toValue: 1,
-				duration: 300,
-				useNativeDriver: false,
-			}).start()
-		}
-	})
-
-	const floatingActionStyle = {
-		opacity: animation,
-		transform: [{ scale: animation }],
-	}
 
 	const handleAccordionToggle = (index) => {
 		setIsCollapsed((prevState) => ({
@@ -212,15 +185,72 @@ const ViewScreen = ({ navigation, route }) => {
 		setTotalValue(total)
 	}
 
-	const totalAmount = totalValue.toLocaleString('en-US', {
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	})
+	const totalAmount = useMemo(() => {
+		let total = 0
+		Object.values(inputAmounts).forEach((values) => {
+			Object.values(values).forEach((value) => {
+				if (value) {
+					total += parseFloat(value)
+				}
+			})
+		})
+		return total.toLocaleString('en-US', {
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2,
+		})
+	}, [inputAmounts])
 
 	const { LName, FName, MName, SName } = item
-	const Fullname = [LName ? `${LName},` : '', FName ? FName : '', MName, SName]
-		.filter(Boolean)
-		.join(' ')
+
+	const Fullname = useMemo(() => {
+		return [LName ? `${LName},` : '', FName ? FName : '', MName, SName]
+			.filter(Boolean)
+			.join(' ')
+	}, [LName, FName, MName, SName])
+
+	const renderItem = ({ item, index }) => {
+		const a = parseFloat(item.PRINDUE)
+		const b = parseFloat(item.INTDUE)
+		const c = parseFloat(item.PENDUE)
+
+		const total = a + b + c
+		const formatNumber = (number) => {
+			return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+		}
+
+		return (
+			<CardReport02
+				key={index}
+				index={index}
+				style={{
+					flex: 1,
+					width: width - 20,
+					marginVertical: 10,
+					marginHorizontal: 10,
+				}}
+				title={item.SLDESCR}
+				description={item.REF_TARGET}
+				placeholder='0.00'
+				checkedBoxLabel='Amount'
+				value={inputAmounts[item.REF_TARGET]?.SLDESCR || ''}
+				onChangeText={(val) => {
+					handleInputChange(item.REF_TARGET, 'SLDESCR', val)
+				}}
+				checkBoxEnabled={true}
+				checkBox={!!checkboxChecked[index]}
+				editable={!!checkboxChecked[index]}
+				setCheckboxChecked={setCheckboxChecked}
+				isActive={isCollapsed[index] ? 'angle-down' : 'angle-up'}
+				enableTooltip={true}
+				toggleAccordion={() => handleAccordionToggle(index)}
+				isCollapsed={isCollapsed[index]}
+				principal={formatNumber(item.PRINDUE)}
+				interest={formatNumber(item.INTDUE)}
+				penalty={formatNumber(item.PENDUE)}
+				total={formatNumber(total.toFixed(2))}
+			/>
+		)
+	}
 
 	return (
 		<SafeAreaView
@@ -239,131 +269,125 @@ const ViewScreen = ({ navigation, route }) => {
 				onPressLeft={() => {
 					navigation.goBack()
 				}}
-				renderRight={() =>
-					item.isPaid ? (
-						<Icons.Entypo name='check' size={20} color={'green'} />
-					) : null
-				}
-				onPressRight={async () => {
-					item.isPaid
-						? Alert.alert(
-								'This client is already paid',
-								'Are you sure you want to unpaid this client?',
-								[
-									{
-										text: 'Cancel',
-										onPress: () => console.log('Cancel Pressed'),
-										style: 'cancel',
-									},
-									{
-										text: 'Yes',
-										onPress: async () => {
-											try {
-												const realm = await Realm.open(databaseOptions)
-												realm.write(() => {
-													const existingClient = realm.objectForPrimaryKey(
-														Client,
-														item.ClientID
-													)
-
-													if (!existingClient) {
-														Alert.alert('Error', 'Client not found!')
-														return
-													}
-
-													// Update client properties
-													existingClient.isPaid = false
-													realm.create(
-														Client,
-														existingClient,
-														Realm.UpdateMode.Modified
-													)
-												})
-
-												Alert.alert('Success', 'Data updated successfully!')
-												navigation.goBack()
-											} catch (error) {
-												Alert.alert('Error', 'Error updating data!')
-												console.error('Error: ', error)
-											}
-										},
-									},
-								]
-						  )
-						: null
+				// renderRight={() =>
+				// 	item.isPaid ? (
+				// 		<Icons.Entypo name='check' size={20} color={'green'} />
+				// 	) : null
+				// }
+				renderRight={() => {
+					return (
+						<TouchableOpacity
+							onPress={() =>
+								navigation.navigate(ROUTES.OTHERSLSCREEN, {
+									clientData: item,
+								})
+							}>
+							<View className='items-center justify-center flex-row'>
+								<Text className='text-center font-bold text-black dark:text-white mr-1'>
+									Other SL
+								</Text>
+								<Icons.FontAwesome5
+									name='angle-right'
+									size={20}
+									color={colors.text}
+									enableRTL={true}
+								/>
+							</View>
+						</TouchableOpacity>
+					)
 				}}
 			/>
 
-			<ScrollView
-				contentContainerStyle={styles.container}
-				showsHorizontalScrollIndicator={false}
-				showsVerticalScrollIndicator={false}
-				scrollEventThrottle={16}
-				onScroll={handleScroll}>
-				<View key={item.id}>
-					<Text
-						title3
-						body1
-						className='text-xl font-bold text-black dark:text-white'>
-						{item.isPaid && (
+			<View className='mx-2 mb-2'>
+				{item.isPaid ? (
+					<TouchableOpacity
+						onPress={() => {
+							item.isPaid
+								? Alert.alert(
+										'This client is already paid',
+										'Are you sure you want to unpaid this client?',
+										[
+											{
+												text: 'Cancel',
+												onPress: () => console.log('Cancel Pressed'),
+												style: 'cancel',
+											},
+											{
+												text: 'Yes',
+												onPress: async () => {
+													try {
+														const realm = await Realm.open(databaseOptions)
+														realm.write(() => {
+															const existingClient = realm.objectForPrimaryKey(
+																Client,
+																item.ClientID
+															)
+
+															if (!existingClient) {
+																Alert.alert('Error', 'Client not found!')
+																return
+															}
+
+															// Update client properties
+															existingClient.isPaid = false
+															realm.create(
+																Client,
+																existingClient,
+																Realm.UpdateMode.Modified
+															)
+														})
+
+														Alert.alert('Success', 'Data updated successfully!')
+														navigation.goBack()
+													} catch (error) {
+														Alert.alert('Error', 'Error updating data!')
+														console.error('Error: ', error)
+													}
+												},
+											},
+										]
+								  )
+								: null
+						}}>
+						<View className='flex-row items-center justify-start'>
 							<Image
 								source={Images.complete}
 								style={{ width: 20, height: 20 }}
 							/>
-						)}{' '}
+							<Text
+								title3
+								body1
+								className='text-xl font-bold text-black dark:text-white ml-2'>
+								{Fullname}
+							</Text>
+						</View>
+					</TouchableOpacity>
+				) : (
+					<Text
+						title3
+						body1
+						className='text-xl font-bold text-black dark:text-white'>
 						{Fullname}
 					</Text>
+				)}
+			</View>
 
-					<View style={styles.specifications}>
-						{item &&
-							item.collections &&
-							item.collections
-								.filter((collection) => collection.is_default === 1)
-								.map((collection, index) => {
-									const a = parseFloat(collection.PRINDUE)
-									const b = parseFloat(collection.INTDUE)
-									const c = parseFloat(collection.PENDUE)
+			<FlashList
+				data={
+					item &&
+					item.collections &&
+					item.collections.filter((collection) => collection.is_default === 1)
+				}
+				renderItem={renderItem}
+				initialScrollIndex={0}
+				keyExtractor={(item, index) => index.toString()}
+				showsHorizontalScrollIndicator={false}
+				showsVerticalScrollIndicator={false}
+				estimatedItemSize={360}
+				// onScroll={handleScroll}
+			/>
 
-									const total = a + b + c
-									const formatNumber = (number) => {
-										return number
-											.toString()
-											.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-									}
-
-									return (
-										<CardReport02
-											key={index}
-											index={index}
-											style={{ flex: 1, width: width - 30, marginVertical: 10 }}
-											title={collection.SLDESCR}
-											description={collection.REF_TARGET}
-											placeholder='0.00'
-											checkedBoxLabel='Amount'
-											value={inputAmounts[collection.REF_TARGET]?.SLDESCR || ''}
-											onChangeText={(val) => {
-												handleInputChange(collection.REF_TARGET, 'SLDESCR', val)
-											}}
-											checkBoxEnabled={true}
-											checkBox={!!checkboxChecked[index]}
-											editable={!!checkboxChecked[index]}
-											setCheckboxChecked={setCheckboxChecked}
-											isActive={isCollapsed[index] ? 'angle-down' : 'angle-up'}
-											enableTooltip={true}
-											toggleAccordion={() => handleAccordionToggle(index)}
-											isCollapsed={isCollapsed[index]}
-											principal={formatNumber(collection.PRINDUE)}
-											interest={formatNumber(collection.INTDUE)}
-											penalty={formatNumber(collection.PENDUE)}
-											total={formatNumber(total.toFixed(2))}
-										/>
-									)
-								})}
-					</View>
-				</View>
-			</ScrollView>
-
-			{visible && (
+			{/* {visible && (
 				<Animated.View style={floatingActionStyle}>
 					<FloatingAction
 						dismissKeyboardOnPress={true}
@@ -378,7 +402,20 @@ const ViewScreen = ({ navigation, route }) => {
 						}}
 					/>
 				</Animated.View>
-			)}
+			)} */}
+
+			{/* <FloatingAction
+				dismissKeyboardOnPress={true}
+				actions={actions}
+				// visible={textInputRef.current && !textInputRef.current.isFocused()}
+				onPressItem={(name) => {
+					if (name === 'bt_SLAccounts') {
+						navigation.navigate(ROUTES.OTHERSLSCREEN, {
+							clientData: item,
+						})
+					}
+				}}
+			/> */}
 
 			<View style={styles.container}>
 				<View className=' h-9' style={styles.specifications}>
@@ -391,26 +428,7 @@ const ViewScreen = ({ navigation, route }) => {
 				</View>
 
 				<View style={styles.buttonContainer}>
-					<Button
-						full
-						onPress={handleCheckout}
-						// onPress={() => {
-						// 	if (totalAmount.trim() === '' || totalAmount !== '0.00') {
-						// 		navigation.navigate(ROUTES.CHECKOUT, {
-						// 			name: item.Fullname,
-						// 			allData: item,
-						// 			inputAmounts: inputAmounts,
-						// 			total: parseFloat(totalValue),
-						// 		})
-						// 	} else {
-						// 		showInfo({
-						// 			message: 'Input Amount',
-						// 			description:
-						// 				'Input the amount you want to pay for this collection.',
-						// 		})
-						// 	}
-						// }}
-					>
+					<Button full onPress={handleCheckout}>
 						Checkout
 					</Button>
 				</View>

@@ -12,6 +12,8 @@ const CardReport02 = ({
 	props,
 
 	title = '',
+	status,
+	textStatusColor,
 	description,
 	checkedBoxLabel = '',
 	style = {},
@@ -25,6 +27,9 @@ const CardReport02 = ({
 	editable,
 	index,
 	setCheckboxChecked,
+
+	statusOnPress,
+	isStatus = false,
 
 	principal,
 	interest,
@@ -60,10 +65,26 @@ const CardReport02 = ({
 					},
 				]}>
 				<View style={[styles.header]} className='justify-between'>
-					<View className='flex-col items-start'>
+					<View className='flex-row items-start justify-between'>
 						<Text headline style={{ marginBottom: 5 }}>
 							{title}
 						</Text>
+
+						{isStatus ? (
+							<TouchableOpacity onPress={statusOnPress}>
+								<View className='flex-row items-center justify-between'>
+									<View className='flex-row'>
+										<Text
+											caption2
+											style={{ color: textStatusColor }}
+											numberOfLines={1}
+											className='ml-2 text-xs font-bold'>
+											{status}
+										</Text>
+									</View>
+								</View>
+							</TouchableOpacity>
+						) : null}
 					</View>
 				</View>
 
@@ -73,6 +94,7 @@ const CardReport02 = ({
 							{description}
 						</Text>
 					</View>
+
 					{enableTooltip ? (
 						<View>
 							<TouchableOpacity onPress={toggleAccordion}>

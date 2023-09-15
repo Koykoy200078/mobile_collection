@@ -10,25 +10,34 @@ import {
 	Animated,
 	TextInput,
 	Keyboard,
+	useColorScheme,
 } from 'react-native'
 import { useDispatch } from 'react-redux'
-import { BaseStyle, Images, ROUTES, useTheme } from '../../../app/config'
+import { BaseStyle, Images, ROUTES, useTheme } from '../../../../app/config'
 import styles from './styles'
 import {
 	Button,
 	CardReport02,
 	Header,
 	ProductSpecGrid,
-} from '../../../app/components'
-import { Icons } from '../../../app/config/icons'
-import databaseOptions, { Client } from '../../../app/database/allSchemas'
+} from '../../../../app/components'
+import { Icons } from '../../../../app/config/icons'
+import databaseOptions, {
+	Client,
+	UploadData,
+} from '../../../../app/database/allSchemas'
 import { FloatingAction } from 'react-native-floating-action'
-import { showInfo } from '../../../app/components/AlertMessage'
+import { showInfo } from '../../../../app/components/AlertMessage'
+import { FlashList } from '@shopify/flash-list'
+import { TouchableOpacity } from 'react-native-gesture-handler'
 
 const ViewData = ({ navigation, route }) => {
+	const isDarkMode = useColorScheme() === 'dark'
 	const { width } = useWindowDimensions()
 	const { colors } = useTheme()
 	const [item, setItem] = useState('')
+
+	const myData = item
 
 	const [checkEnable, setCheckEnable] = useState(false)
 	const [isCollapsed, setIsCollapsed] = useState({})
@@ -45,7 +54,9 @@ const ViewData = ({ navigation, route }) => {
 
 	useEffect(() => {
 		calculateTotalValue()
-	}, [isCollapsed, inputAmounts, visible, animation, textInputFocused])
+	}, [isCollapsed, inputAmounts, visible, animation, textInputFocused, item])
+
+	console.log('item: ', item)
 
 	useEffect(() => {
 		// Assuming apiData is an array of items
@@ -222,12 +233,164 @@ const ViewData = ({ navigation, route }) => {
 		.filter(Boolean)
 		.join(' ')
 
+	const totalDue =
+		item &&
+		item.collections
+			.filter((col) => col.is_default === 1)
+			.reduce((acc, data) => acc + parseFloat(data.ACTUAL_PAY), 0)
+
+	const formatNumber = (number) => {
+		return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+	}
+
+	function mapStatusToResult(status) {
+		switch (status) {
+			case 1:
+				return 'ACTIVE'
+			case 4:
+				return 'CANCELLED'
+			case 5:
+				return 'DISAPPROVED'
+			default:
+				return 'UNKNOWN' // Handle other cases if needed
+		}
+	}
+
+	const renderItem = ({ item, index }) => {
+		return (
+			<CardReport02
+				key={index}
+				index={index}
+				style={{
+					flex: 1,
+					width: width - 20,
+					marginVertical: 10,
+					marginHorizontal: 10,
+				}}
+				isStatus={true}
+				status={mapStatusToResult(item.STATUS)}
+				textStatusColor={
+					item.STATUS === 1 ? 'green' : item.STATUS === 4 ? 'red' : 'gray'
+				}
+				statusOnPress={() => {
+					if (item.STATUS === 4) {
+						Alert.alert('Active Account', 'Are you sure?', [
+							{
+								text: 'Cancel',
+								onPress: () => console.log('Cancel Pressed'),
+								style: 'cancel',
+							},
+							{
+								text: 'Yes',
+								onPress: async () => {
+									try {
+										const realm = await Realm.open(databaseOptions)
+										realm.write(() => {
+											const existingClient = realm.objectForPrimaryKey(
+												UploadData,
+												myData.client_id
+											)
+
+											if (!existingClient) {
+												Alert.alert('Error', 'Client not found!')
+												return
+											}
+
+											const collection = myData.collections.find(
+												(col) => col.REF_TARGET === item.REF_TARGET
+											)
+
+											if (collection) {
+												collection.STATUS = 1
+											} else {
+												Alert.alert('Error', 'Collection not found!')
+											}
+										})
+
+										Alert.alert('Success', 'Data updated successfully!')
+										navigation.goBack()
+									} catch (error) {
+										Alert.alert('Error', 'Error updating data!')
+										console.error('Error: ', error)
+									}
+								},
+							},
+						])
+					} else if (item.STATUS === 1) {
+						Alert.alert('Cancel Account', 'Are you sure?', [
+							{
+								text: 'Cancel',
+								onPress: () => console.log('Cancel Pressed'),
+								style: 'cancel',
+							},
+							{
+								text: 'Yes',
+								onPress: async () => {
+									try {
+										const realm = await Realm.open(databaseOptions)
+										realm.write(() => {
+											const existingClient = realm.objectForPrimaryKey(
+												UploadData,
+												myData.client_id
+											)
+
+											if (!existingClient) {
+												Alert.alert('Error', 'Client not found!')
+												return
+											}
+
+											const collection = myData.collections.find(
+												(col) => col.REF_TARGET === item.REF_TARGET
+											)
+
+											if (collection) {
+												collection.STATUS = 4
+											} else {
+												Alert.alert('Error', 'Collection not found!')
+											}
+										})
+
+										Alert.alert('Success', 'Data updated successfully!')
+										navigation.goBack()
+									} catch (error) {
+										Alert.alert('Error', 'Error updating data!')
+										console.error('Error: ', error)
+									}
+								},
+							},
+						])
+					}
+				}}
+				title={item.SLDESCR}
+				description={item.REF_TARGET}
+				placeholder='0.00'
+				checkedBoxLabel='Amount'
+				value={item.ACTUAL_PAY}
+				onChangeText={(val) => {
+					handleInputChange(item.REF_TARGET, 'SLDESCR', val)
+				}}
+				checkBoxEnabled={true}
+				checkBox={true}
+				editable={false}
+				setCheckboxChecked={setCheckboxChecked}
+				isActive={isCollapsed[index] ? 'angle-down' : 'angle-up'}
+				enableTooltip={true}
+				toggleAccordion={() => handleAccordionToggle(index)}
+				isCollapsed={isCollapsed[index]}
+				principal={formatNumber(item.PRINDUE)}
+				interest={formatNumber(item.INTDUE)}
+				penalty={formatNumber(item.PENDUE)}
+				total={formatNumber(totalDue.toFixed(2))}
+			/>
+		)
+	}
+
 	return (
 		<SafeAreaView
 			style={[BaseStyle.safeAreaView, { flex: 1 }]}
 			edges={['right', 'top', 'left']}>
 			<Header
-				title='Account View'
+				title={`Account View`}
 				renderLeft={() => (
 					<Icons.FontAwesome5
 						name='angle-left'
@@ -294,77 +457,35 @@ const ViewData = ({ navigation, route }) => {
 				}}
 			/>
 
-			<ScrollView
-				contentContainerStyle={styles.container}
+			<FlashList
+				data={
+					item &&
+					item.collections &&
+					item.collections.filter((collection) => collection.is_default === 1)
+				}
+				renderItem={renderItem}
+				ListHeaderComponent={
+					<View className='mx-2'>
+						<Text
+							title3
+							body1
+							className='text-xl font-bold text-black dark:text-white'>
+							{item.isPaid && (
+								<Image
+									source={Images.complete}
+									style={{ width: 20, height: 20 }}
+								/>
+							)}{' '}
+							{Fullname}
+						</Text>
+					</View>
+				}
+				keyExtractor={(item, index) => index.toString()}
 				showsHorizontalScrollIndicator={false}
 				showsVerticalScrollIndicator={false}
-				scrollEventThrottle={16}
-				onScroll={handleScroll}>
-				<View key={item.id}>
-					<Text
-						title3
-						body1
-						className='text-xl font-bold text-black dark:text-white'>
-						{item.isPaid && (
-							<Image
-								source={Images.complete}
-								style={{ width: 20, height: 20 }}
-							/>
-						)}{' '}
-						{Fullname}
-					</Text>
-
-					<View style={styles.specifications}>
-						{item &&
-							item.collections &&
-							item.collections
-								.filter((collection) => collection.is_default === 1)
-								.map((collection, index) => {
-									const a = parseFloat(collection.PRINDUE)
-									const b = parseFloat(collection.INTDUE)
-									const c = parseFloat(collection.PENDUE)
-
-									const totalDue = item.collections
-										.filter((col) => col.is_default === 1)
-										.reduce((acc, data) => acc + parseFloat(data.ACTUAL_PAY), 0)
-
-									const formatNumber = (number) => {
-										return number
-											.toString()
-											.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-									}
-
-									return (
-										<CardReport02
-											key={index}
-											index={index}
-											style={{ flex: 1, width: width - 30, marginVertical: 10 }}
-											title={collection.SLDESCR}
-											description={collection.REF_TARGET}
-											placeholder='0.00'
-											checkedBoxLabel='Amount'
-											value={collection.ACTUAL_PAY}
-											onChangeText={(val) => {
-												handleInputChange(collection.REF_TARGET, 'SLDESCR', val)
-											}}
-											checkBoxEnabled={true}
-											checkBox={true}
-											editable={false}
-											setCheckboxChecked={setCheckboxChecked}
-											isActive={isCollapsed[index] ? 'angle-down' : 'angle-up'}
-											enableTooltip={true}
-											toggleAccordion={() => handleAccordionToggle(index)}
-											isCollapsed={isCollapsed[index]}
-											principal={formatNumber(collection.PRINDUE)}
-											interest={formatNumber(collection.INTDUE)}
-											penalty={formatNumber(collection.PENDUE)}
-											total={formatNumber(totalDue.toFixed(2))}
-										/>
-									)
-								})}
-					</View>
-				</View>
-			</ScrollView>
+				estimatedItemSize={360}
+				onScroll={handleScroll}
+			/>
 
 			{visible && (
 				<Animated.View style={floatingActionStyle}>
@@ -384,11 +505,19 @@ const ViewData = ({ navigation, route }) => {
 			)}
 
 			<View style={styles.container}>
-				<View className='h-9' style={styles.specifications}>
+				<View className='h-11' style={styles.specifications}>
 					<ProductSpecGrid
-						style={{ flex: 1 }}
-						title={totalAmount ? totalAmount : '0.00'}
-						description={'Total Amount Due'}
+						title={
+							item && item.TOP === 'COCI'
+								? 'COCI (Check and Other Cash Items)'
+								: 'CASH'
+						}
+						description={'Payment Type'}
+						isEnable={false}
+					/>
+					<ProductSpecGrid
+						title={totalDue ? formatNumber(totalDue.toFixed(2)) : '0.00'}
+						description={'Total Paid Amount'}
 						isEnable={false}
 					/>
 				</View>

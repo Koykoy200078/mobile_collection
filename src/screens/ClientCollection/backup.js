@@ -4,12 +4,14 @@ import {
 	Text,
 	SafeAreaView,
 	TouchableOpacity,
+	FlatList,
 	Alert,
 	ActivityIndicator,
 	useWindowDimensions,
+	Animated,
 } from 'react-native'
 import { BaseStyle, ROUTES, useTheme } from '../../app/config'
-import { Project02, Search } from '../../app/components'
+import { Header, Project02, Search, TabTag } from '../../app/components'
 import { Icons } from '../../app/config/icons'
 import styles from './styles'
 import { Realm } from '@realm/react'
@@ -23,34 +25,17 @@ import { FloatingAction } from 'react-native-floating-action'
 
 const ClientCollection = ({ navigation }) => {
 	const { colors } = useTheme()
+	const { width, height } = useWindowDimensions()
 	const [search, setSearch] = useState('')
 	const [filteredClients, setFilteredClients] = useState([])
 
-	const [showAll, setShowAll] = useState(false)
-
-	const [floatingActionVisible, setFloatingActionVisible] = useState(true)
-
 	const batchData = useSelector((state) => state.batchDetails.data)
-	const { isLoading, isSuccess } = useSelector((state) => state.batchDetails)
+	const { isLoading, error, isSuccess } = useSelector(
+		(state) => state.batchDetails
+	)
 	const dispatch = useDispatch()
 
 	const [clientData, setClientData] = useState([])
-
-	useFocusEffect(
-		useCallback(() => {
-			showData()
-		}, [])
-	)
-
-	useEffect(() => {
-		showData()
-	}, [batchData, search, filteredClients, showAll, isLoading])
-
-	useEffect(() => {
-		if (isSuccess) {
-			saveData()
-		}
-	}, [isSuccess, search])
 
 	const filterData = clientData.filter((client) => {
 		const totalDue = client.collections.reduce(
@@ -60,6 +45,7 @@ const ClientCollection = ({ navigation }) => {
 		return totalDue !== 0
 	})
 
+	// Memoize filterData function to avoid recomputation
 	const memoizedFilterData = useMemo(() => {
 		return clientData.filter((client) => {
 			const totalDue = client.collections.reduce(
@@ -70,6 +56,12 @@ const ClientCollection = ({ navigation }) => {
 		})
 	}, [clientData])
 
+	const [showAll, setShowAll] = useState(false)
+
+	const scrollY = new Animated.Value(0)
+	const [visible, setVisible] = useState(true)
+	const [animation, setAnimation] = useState(new Animated.Value(1))
+
 	const toggleShowAll = () => {
 		setShowAll(!showAll)
 	}
@@ -78,6 +70,8 @@ const ClientCollection = ({ navigation }) => {
 		() => (showAll ? clientData : memoizedFilterData),
 		[showAll, memoizedFilterData]
 	)
+
+	// const dataToShow = showAll ? clientData : filterData
 
 	const fetchData = useCallback(async () => {
 		Alert.alert(
@@ -103,6 +97,52 @@ const ClientCollection = ({ navigation }) => {
 			]
 		)
 	}, [dispatch])
+
+	useEffect(() => {
+		showData()
+	}, [
+		batchData,
+		search,
+		filteredClients,
+		showAll,
+		animation,
+		visible,
+		isLoading,
+	])
+
+	useEffect(() => {
+		if (isSuccess) {
+			saveData()
+		}
+	}, [isSuccess, search])
+
+	const handleScroll = Animated.event(
+		[{ nativeEvent: { contentOffset: { y: scrollY } } }],
+		{ useNativeDriver: false }
+	)
+
+	scrollY.addListener((value) => {
+		if (value.value > 0 && visible) {
+			setVisible(false)
+			Animated.timing(animation, {
+				toValue: 0,
+				duration: 300, // Adjust the duration as needed
+				useNativeDriver: false,
+			}).start()
+		} else if (value.value <= 0 && !visible) {
+			setVisible(true)
+			Animated.timing(animation, {
+				toValue: 1,
+				duration: 300,
+				useNativeDriver: false,
+			}).start()
+		}
+	})
+
+	const floatingActionStyle = {
+		opacity: animation,
+		transform: [{ scale: animation }],
+	}
 
 	const saveData = useCallback(async () => {
 		Alert.alert('Saving Data', 'Are you sure you want to save the data?', [
@@ -187,14 +227,6 @@ const ClientCollection = ({ navigation }) => {
 		setFilteredClients([])
 	}
 
-	const handleScrollBeginDrag = () => {
-		setFloatingActionVisible(false)
-	}
-
-	const handleScrollEndDrag = () => {
-		setFloatingActionVisible(true)
-	}
-
 	const renderContent = useCallback(() => {
 		return (
 			<View style={{ flex: 1 }}>
@@ -212,13 +244,17 @@ const ClientCollection = ({ navigation }) => {
 
 				<View className='mt-1' />
 
-				<FlashList
+				<FlatList
 					contentContainerStyle={styles.paddingFlatList}
 					estimatedItemSize={360}
+					onScroll={() => {
+						Animated.event(
+							[{ nativeEvent: { contentOffset: { y: scrollY } } }],
+							{ useNativeDriver: false }
+						)
+					}}
 					data={filteredClients.length > 0 ? filteredClients : dataToShow}
 					keyExtractor={(_, index) => index.toString()}
-					onScrollBeginDrag={handleScrollBeginDrag}
-					onScrollEndDrag={handleScrollEndDrag}
 					renderItem={({ item }) => {
 						const {
 							branch_id,
@@ -301,6 +337,21 @@ const ClientCollection = ({ navigation }) => {
 		)
 	}, [clientData])
 
+	// Fetch data when the component mounts
+	useEffect(() => {
+		showData()
+	}, [])
+
+	// Fetch data when the component gains focus
+	useFocusEffect(
+		useCallback(() => {
+			showData()
+			return () => {
+				// Cleanup function (if needed)
+			}
+		}, [])
+	)
+
 	return (
 		<View style={{ flex: 1 }}>
 			<SafeAreaView
@@ -308,8 +359,8 @@ const ClientCollection = ({ navigation }) => {
 				edges={['right', 'top', 'left']}>
 				{renderContent()}
 
-				{floatingActionVisible && clientData.length > 0 && (
-					<TouchableOpacity onPress={toggleShowAll}>
+				{visible && dataToShow.length > 0 && (
+					<Animated.View style={floatingActionStyle}>
 						<FloatingAction
 							showBackground={false}
 							floatingIcon={
@@ -321,7 +372,7 @@ const ClientCollection = ({ navigation }) => {
 							}
 							onPressMain={() => toggleShowAll()}
 						/>
-					</TouchableOpacity>
+					</Animated.View>
 				)}
 			</SafeAreaView>
 		</View>

@@ -52,7 +52,6 @@ export const uploadSchema = {
 		LName: { type: 'string' },
 		MName: { type: 'string', optional: true },
 		SName: { type: 'string', optional: true },
-		TOP: { type: 'string' },
 		collections: { type: 'list', objectType: UploadDataCollection },
 	},
 }
@@ -75,8 +74,24 @@ export const uploadDataCollection = {
 		INSDUE: { type: 'string' },
 		TOTALDUE: { type: 'string' },
 		ACTUAL_PAY: { type: 'string' },
-		REMARKS: { type: 'string' },
+		TOP: { type: 'string' },
+		STATUS: { type: 'int' }, // 1 - Active, 4 - Cancelled, 5 - Disapproved
 		is_default: { type: 'int' },
+	},
+}
+
+// COLLECTION REPORT
+export const CollectionReport = 'CollectionReport'
+
+export const collectionReportSchema = {
+	name: CollectionReport,
+	primaryKey: 'TRANSID',
+	properties: {
+		TRANSID: { type: 'int' },
+		TRANS_REFNO: { type: 'string' },
+		CLIENTID: { type: 'int' },
+		CLIENT_NAME: { type: 'string' },
+		ACTUAL_PAY: { type: 'string' },
 	},
 }
 
@@ -85,6 +100,7 @@ const allSchema = [
 	CollectionSchema,
 	uploadSchema,
 	uploadDataCollection,
+	collectionReportSchema,
 ]
 
 const databaseOptions = {

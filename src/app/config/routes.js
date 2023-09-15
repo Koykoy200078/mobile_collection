@@ -13,6 +13,9 @@ export default {
 	VIEW_UPLOAD_DATA: 'View Upload Data',
 	PAYMENT_SUMMARY: 'Payment Summary',
 
+	DETAILED_SUMMARY: 'Detailed Summary',
+	SUMMARY: 'Summary',
+
 	OTHERSLSCREEN: 'Other SL Screen',
 
 	TAB: 'Tab',

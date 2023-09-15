@@ -287,31 +287,22 @@ const PrintOutScreen = ({ navigation, route }) => {
 							STATUS: Printer Not Connected
 						</Text>
 					</View>
-
-					<View style={styles.specifications}>
-						<TouchableOpacity
-							onPress={() => {
-								navigation.navigate(ROUTES.DASHBOARD)
-							}}>
-							<View
-								className='border rounded-md p-2'
-								style={{ borderColor: isDarkMode ? '#FFF' : '#000' }}>
-								<Text className='text-black dark:text-white'>GO BACK MAIN</Text>
-							</View>
-						</TouchableOpacity>
-					</View>
 				</View>
 			)}
-			<SafeAreaView className='p-5'>
-				<ScrollView
-					showsVerticalScrollIndicator={false}
+			<SafeAreaView
+				className='p-5'
+				style={{
+					height: height / 1.15,
+				}}>
+				<ZigzagView
+					backgroundColor='#CCC'
+					surfaceColor='#FFF'
 					style={{
 						borderWidth: 1,
 						borderColor: isDarkMode ? '#FFF' : '#CCC',
 					}}>
-					<ZigzagView
-						backgroundColor='#CCC'
-						surfaceColor='#FFF'
+					<ScrollView
+						showsVerticalScrollIndicator={false}
 						contentContainerStyle={{
 							padding: 10,
 						}}>
@@ -478,8 +469,8 @@ const PrintOutScreen = ({ navigation, route }) => {
 								</View>
 							</View>
 						</View>
-					</ZigzagView>
-				</ScrollView>
+					</ScrollView>
+				</ZigzagView>
 			</SafeAreaView>
 			{isPrinterConnected && (
 				<FloatingAction
@@ -490,6 +481,21 @@ const PrintOutScreen = ({ navigation, route }) => {
 					onPressMain={() => printME()}
 				/>
 			)}
+
+			<View className='items-center'>
+				<View style={styles.specifications}>
+					<TouchableOpacity
+						onPress={() => {
+							navigation.navigate(ROUTES.DASHBOARD)
+						}}>
+						<View
+							className='border rounded-md p-2'
+							style={{ borderColor: isDarkMode ? '#FFF' : '#000' }}>
+							<Text className='text-black dark:text-white'>GO BACK MAIN</Text>
+						</View>
+					</TouchableOpacity>
+				</View>
+			</View>
 		</>
 	)
 }

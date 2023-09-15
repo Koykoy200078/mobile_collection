@@ -9,21 +9,18 @@ import {
 	ActivityIndicator,
 	useWindowDimensions,
 } from 'react-native'
-import { BaseStyle, ROUTES, useTheme } from '../../app/config'
-import { Header, Project02, Search, TabTag } from '../../app/components'
-import { Icons } from '../../app/config/icons'
-import styles from './styles'
-import { Realm } from '@realm/react'
-import databaseOptions, {
-	Client,
-	UploadData as clientUploadData,
-} from '../../app/database/allSchemas'
-import { getDetails, resetGetDetails } from '../../app/reducers/batchDetails'
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
+import { BaseStyle, ROUTES, useTheme } from '../../../app/config'
+import { Project02, Search } from '../../../app/components'
 import { FlashList } from '@shopify/flash-list'
 import { useFocusEffect } from '@react-navigation/native'
+import styles from './styles'
+import databaseOptions, {
+	CollectionReport,
+	UploadData,
+} from '../../../app/database/allSchemas'
 
-const UploadData = ({ navigation }) => {
+const DetailedSummary = ({ navigation }) => {
 	const { colors } = useTheme()
 	const { width, height } = useWindowDimensions()
 	const [search, setSearch] = useState('')
@@ -51,8 +48,9 @@ const UploadData = ({ navigation }) => {
 		try {
 			const realm = await Realm.open(databaseOptions)
 
-			const clients = realm.objects(clientUploadData)
+			const clients = realm.objects(CollectionReport)
 			setClientData(Array.from(clients))
+			// console.log(JSON.stringify(Array.from(clients), null, 2))
 
 			// realm.close()
 		} catch (error) {
@@ -91,12 +89,8 @@ const UploadData = ({ navigation }) => {
 		return (
 			<View style={{ flex: 1 }}>
 				<Search
-					title={'Clients Report'}
+					title={"Client's Report"}
 					value={search}
-					isUpload={true}
-					onPressUpload={() => {
-						Alert.alert('Upload', 'Are you sure you want to upload data?')
-					}}
 					onChangeText={(val) => {
 						setSearch(val)
 						handleSearch(val)
@@ -109,60 +103,32 @@ const UploadData = ({ navigation }) => {
 				<FlashList
 					contentContainerStyle={styles.paddingFlatList}
 					estimatedItemSize={360}
-					data={filteredClients.length > 0 ? filteredClients : filterData}
+					data={clientData}
 					keyExtractor={(_item, index) => index.toString()}
 					renderItem={({ item }) => {
-						const {
-							branch_id,
-							client_id,
-							FName,
-							LName,
-							MName,
-							SName,
-							isPaid,
-							TOP,
-							collections,
-						} = item
-
-						const Fullname = [
-							LName.trim() ? `${LName},` : '',
-							FName.trim() ? FName : '',
-							MName,
-							SName,
-						]
-							.filter(Boolean)
-							.join(' ')
-
-						const totalDue = collections.reduce(
-							(acc, data) => acc + parseFloat(data.ACTUAL_PAY),
-							0
-						)
-
 						const formatNumber = (number) => {
 							return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 						}
 
+						console.log('item: ', item)
+
 						const handlePress = (item) => {
-							if (item.collections.length === 0) {
-								Alert.alert('Info', 'This client has no collection data')
-							} else {
-								navigation.navigate(ROUTES.VIEW_UPLOAD_DATA, { item: item })
-							}
+							// if (item.collections.length === 0) {
+							// 	Alert.alert('Info', 'This client has no collection data')
+							// } else {
+							// 	navigation.navigate(ROUTES.SUMMARY, { item: item })
+							// }
 						}
 
 						return (
-							<Project02
-								title={Fullname}
-								description={
-									TOP === 'COCI' ? 'COCI (Check and Other Cash Items)' : 'CASH'
-								}
-								// isPaid={item.isPaid}
-								total_loans={totalDue ? formatNumber(totalDue.toFixed(2)) : ''}
-								onPress={() => handlePress(item)}
-								style={{
-									marginBottom: 10,
-								}}
-							/>
+							<View className='p-2 space-y-2'>
+								<View className='border rounded-md p-2'>
+									<Text>{item.CLIENTID}</Text>
+									<Text>{item.CLIENT_NAME}</Text>
+									<Text>{item.TRANS_REFNO}</Text>
+									<Text>{formatNumber(item.ACTUAL_PAY)}</Text>
+								</View>
+							</View>
 						)
 					}}
 					ListEmptyComponent={
@@ -188,4 +154,4 @@ const UploadData = ({ navigation }) => {
 	)
 }
 
-export default UploadData
+export default DetailedSummary

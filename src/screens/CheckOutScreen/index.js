@@ -175,8 +175,6 @@ const CheckOutScreen = ({ navigation, route }) => {
 				LName: targetClient.LName,
 				MName: targetClient.MName,
 				SName: targetClient.SName,
-				TOP: isCashChecked ? 'CASH' : 'COCI',
-
 				collections: [],
 			}
 
@@ -195,11 +193,8 @@ const CheckOutScreen = ({ navigation, route }) => {
 					)
 
 					if (existingCollection) {
-						// Update existing collection
 						existingCollection.ACTUAL_PAY = amount
-						// You can update other fields here if needed
 					} else {
-						// Add a new collection entry
 						transformedData.collections.push({
 							BRCODE: collection.BRCODE,
 							SLC: collection.SLC,
@@ -216,14 +211,14 @@ const CheckOutScreen = ({ navigation, route }) => {
 							INSDUE: collection.INSDUE,
 							TOTALDUE: collection.TOTALDUE,
 							ACTUAL_PAY: amount,
-							REMARKS: 'OK',
-							is_default: 1,
+							TOP: isCashChecked ? 'CASH' : 'COCI',
+							STATUS: 1, // 1 - Active, 4 - Cancelled, 5 - Disapproved
+							is_default: collection.is_default,
 						})
 					}
 				}
 			})
 
-			// console.log(JSON.stringify(transformedData, null, 2))
 			realm.write(() => {
 				realm.create(UploadData, transformedData, Realm.UpdateMode.Modified)
 			})
@@ -251,8 +246,6 @@ const CheckOutScreen = ({ navigation, route }) => {
 					Alert.alert('Error', 'The client could not be found.')
 					return
 				}
-
-				// Update client properties
 				existingClient.isPaid = true
 				realm.create(Client, existingClient, Realm.UpdateMode.Modified)
 			})
