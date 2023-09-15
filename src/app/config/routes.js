@@ -17,6 +17,7 @@ export default {
 	SUMMARY: 'Summary',
 
 	OTHERSLSCREEN: 'Other SL Screen',
+	OTHERSL: 'Other SL',
 
 	TAB: 'Tab',
 }

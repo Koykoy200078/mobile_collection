@@ -11,7 +11,7 @@ import {
 	TextInput,
 } from 'react-native'
 import { useDispatch } from 'react-redux'
-import { BaseStyle, Images, ROUTES, useTheme } from '../../app/config'
+import { BaseStyle, Images, ROUTES, useTheme } from '../../../../../app/config'
 import styles from './styles'
 import {
 	Button,
@@ -19,14 +19,14 @@ import {
 	Header,
 	ProductSpecGrid,
 	Search,
-} from '../../app/components'
-import { Icons } from '../../app/config/icons'
-import databaseOptions, { Client } from '../../app/database/allSchemas'
+} from '../../../../../app/components'
+import { Icons } from '../../../../../app/config/icons'
+import databaseOptions, { Client } from '../../../../../app/database/allSchemas'
 import { FloatingAction } from 'react-native-floating-action'
-import { showInfo } from '../../app/components/AlertMessage'
+import { showInfo } from '../../../../../app/components/AlertMessage'
 import { FlashList } from '@shopify/flash-list'
 
-const OtherSLScreen = ({ navigation, route }) => {
+const OtherSL = ({ navigation, route }) => {
 	const { width } = useWindowDimensions()
 	const { colors } = useTheme()
 	// const [item, setItem] = useState('')
@@ -279,4 +279,4 @@ const OtherSLScreen = ({ navigation, route }) => {
 	)
 }
 
-export default OtherSLScreen
+export default OtherSL

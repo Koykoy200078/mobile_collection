@@ -41,7 +41,6 @@ const ViewScreen = ({ navigation, route }) => {
 
 	const [textInputFocused, setTextInputFocused] = useState(false)
 
-	// const scrollY = new Animated.Value(0)
 	const [visible, setVisible] = useState(true)
 	const [animation, setAnimation] = useState(new Animated.Value(1))
 
@@ -232,9 +231,9 @@ const ViewScreen = ({ navigation, route }) => {
 				description={item.REF_TARGET}
 				placeholder='0.00'
 				checkedBoxLabel='Amount'
-				value={inputAmounts[item.REF_TARGET]?.SLDESCR || ''}
+				value={inputAmounts[item.REF_TARGET]?.AMOUNT || ''}
 				onChangeText={(val) => {
-					handleInputChange(item.REF_TARGET, 'SLDESCR', val)
+					handleInputChange(item.REF_TARGET, 'AMOUNT', val)
 				}}
 				checkBoxEnabled={true}
 				checkBox={!!checkboxChecked[index]}
@@ -269,11 +268,6 @@ const ViewScreen = ({ navigation, route }) => {
 				onPressLeft={() => {
 					navigation.goBack()
 				}}
-				// renderRight={() =>
-				// 	item.isPaid ? (
-				// 		<Icons.Entypo name='check' size={20} color={'green'} />
-				// 	) : null
-				// }
 				renderRight={() => {
 					return (
 						<TouchableOpacity
@@ -384,38 +378,7 @@ const ViewScreen = ({ navigation, route }) => {
 				showsHorizontalScrollIndicator={false}
 				showsVerticalScrollIndicator={false}
 				estimatedItemSize={360}
-				// onScroll={handleScroll}
 			/>
-
-			{/* {visible && (
-				<Animated.View style={floatingActionStyle}>
-					<FloatingAction
-						dismissKeyboardOnPress={true}
-						actions={actions}
-						// visible={textInputRef.current && !textInputRef.current.isFocused()}
-						onPressItem={(name) => {
-							if (name === 'bt_SLAccounts') {
-								navigation.navigate(ROUTES.OTHERSLSCREEN, {
-									clientData: item,
-								})
-							}
-						}}
-					/>
-				</Animated.View>
-			)} */}
-
-			{/* <FloatingAction
-				dismissKeyboardOnPress={true}
-				actions={actions}
-				// visible={textInputRef.current && !textInputRef.current.isFocused()}
-				onPressItem={(name) => {
-					if (name === 'bt_SLAccounts') {
-						navigation.navigate(ROUTES.OTHERSLSCREEN, {
-							clientData: item,
-						})
-					}
-				}}
-			/> */}
 
 			<View style={styles.container}>
 				<View className=' h-9' style={styles.specifications}>

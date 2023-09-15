@@ -78,7 +78,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 	// Generate random Reference ID
 	const referenceID = getRandomNumber(100000000000, 999999999999)
 
-	const { name, allData, inputAmounts, total } = route.params
+	const { name, allData, inputAmounts, ID, total } = route.params
 
 	const Fullname = [
 		allData.LName.trim() ? `${allData.LName},` : '',
@@ -136,51 +136,38 @@ const PrintOutScreen = ({ navigation, route }) => {
 
 	const renderedItem = Object.keys(inputAmounts)
 		.map((refNo) => {
-			const { REF_TARGET, SLDESCR, DEPOSIT, SHARECAPITAL } = inputAmounts[refNo]
+			const { REF_TARGET, AMOUNT } = inputAmounts[refNo]
 			const matchingItem = allData.collections.find(
 				(item) => item.REF_TARGET === refNo
 			)
 
-			if (!matchingItem) {
-				return null // Skip if there is no matching item in the API data
-			}
+			const matchingItemID = allData.collections.find((item) => item.ID === ID)
 
-			if (!REF_TARGET && !SLDESCR && !DEPOSIT && !SHARECAPITAL) {
+			// if (!matchingItem) {
+			// 	return null // Skip if there is no matching item in the API data
+			// }
+
+			// if (!matchingItemID) {
+			// 	return null // Skip if there is no matching item in the API data
+			// }
+
+			if (!AMOUNT) {
 				return null // Skip if name is missing or both deposit and share capital are empty
 			}
 
 			// Generate the HTML markup for each item
 			let itemHTML = ''
-			if (REF_TARGET) {
-				let ref_target = parseFloat(REF_TARGET).toLocaleString('en-US', {
-					minimumFractionDigits: 2,
-					maximumFractionDigits: 2,
-				})
-				itemHTML += `${matchingItem.REF_TARGET}\n${refNo}\nAmount Paid          ${ref_target}\n\n`
-			}
+			let name = matchingItemID ? matchingItemID.SLDESCR : matchingItem.SLDESCR
+			let ref_target = matchingItemID
+				? matchingItemID.REF_TARGET
+				: matchingItem.REF_TARGET
 
-			if (SLDESCR) {
-				let sldescr = parseFloat(SLDESCR).toLocaleString('en-US', {
+			if (AMOUNT) {
+				let sldescr = parseFloat(AMOUNT).toLocaleString('en-US', {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2,
 				})
-				itemHTML += `${matchingItem.SLDESCR}\n${refNo}\nAmount Paid          ${sldescr}\n\n`
-			}
-
-			if (SHARECAPITAL) {
-				let sharecapital = parseFloat(SHARECAPITAL).toLocaleString('en-US', {
-					minimumFractionDigits: 2,
-					maximumFractionDigits: 2,
-				})
-				itemHTML += `Share Capital\n${refNo}\nAmount Paid          ${sharecapital}\n\n`
-			}
-
-			if (DEPOSIT) {
-				let deposit = parseFloat(DEPOSIT).toLocaleString('en-US', {
-					minimumFractionDigits: 2,
-					maximumFractionDigits: 2,
-				})
-				itemHTML += `Deposit\n${refNo}\nAmount Paid          ${deposit}\n\n`
+				itemHTML += `${name}\n${ref_target}\nAmount Paid          ${sldescr}\n\n`
 			}
 
 			return itemHTML
@@ -191,19 +178,23 @@ const PrintOutScreen = ({ navigation, route }) => {
 	// RenderData
 	const renderData = Object.keys(inputAmounts)
 		.map((refNo) => {
-			const { REF_TARGET, SLDESCR, DEPOSIT, SHARECAPITAL } = inputAmounts[refNo]
+			const { AMOUNT } = inputAmounts[refNo]
 			const matchingItem = allData.collections.find(
 				(item) => item.REF_TARGET.toString() === refNo.toString()
 			)
 
-			if (
-				!matchingItem ||
-				(!REF_TARGET && !SLDESCR && !DEPOSIT && !SHARECAPITAL)
-			) {
-				return null // Skip if there is no matching item or missing refNo
+			const matchingItemID = allData.collections.find((item) => item.ID === ID)
+
+			if (!AMOUNT) {
+				return null
 			}
 
-			const ref_targetAmount = parseFloat(SLDESCR).toLocaleString('en-US', {
+			let name = matchingItemID ? matchingItemID.SLDESCR : matchingItem.SLDESCR
+			let ref_target = matchingItemID
+				? matchingItemID.REF_TARGET
+				: matchingItem.REF_TARGET
+
+			const ref_targetAmount = parseFloat(AMOUNT).toLocaleString('en-US', {
 				minimumFractionDigits: 2,
 				maximumFractionDigits: 2,
 			})
@@ -213,7 +204,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 					<Text
 						className='text-center text-base font-bold'
 						style={{ color: '#000' }}>
-						{matchingItem.SLDESCR}
+						{name}
 					</Text>
 					<View style={{ flexDirection: 'row' }}>
 						<View style={{ width: '50%' }}>
@@ -228,7 +219,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 									flexShrink: 1,
 									color: '#000',
 								}}>
-								{matchingItem.REF_TARGET}
+								{ref_target}
 							</Text>
 						</View>
 					</View>
@@ -269,7 +260,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 						`${renderedItem}\n` +
 						`Total Paid Amount    ${totalAmount}\n` +
 						'<C>--------------------------------</C>\n' +
-						`Date Printed: ${formattedDate}\n` +
+						`<C>${formattedDate}</C>\n` +
 						'<C>--------------------------------</C>\n' +
 						'<C>Thank you for using our service!<C>'
 				)

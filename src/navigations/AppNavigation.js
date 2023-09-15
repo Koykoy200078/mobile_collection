@@ -33,6 +33,7 @@ import ViewData from '../screens/Account/PaymentSummary/ViewData'
 import PaymentSummary from '../screens/Account/PaymentSummary'
 import DetailedSummary from '../screens/Account/DetailedSummary'
 import Summary from '../screens/Account/DetailedSummary/Summary'
+import OtherSL from '../screens/Account/PaymentSummary/ViewData/OtherSL'
 
 const width = Dimensions.get('window').width
 
@@ -78,6 +79,7 @@ const Main = () => {
 				component={DetailedSummary}
 			/>
 
+			<MainStack.Screen name={ROUTES.OTHERSL} component={OtherSL} />
 			<MainStack.Screen name={ROUTES.SUMMARY} component={Summary} />
 			<MainStack.Screen name={ROUTES.OTHERSLSCREEN} component={OtherSLScreen} />
 		</MainStack.Navigator>

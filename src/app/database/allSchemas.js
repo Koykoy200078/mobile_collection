@@ -20,6 +20,7 @@ export const ClientSchema = {
 export const CollectionSchema = {
 	name: Collection,
 	properties: {
+		ID: { type: 'int' },
 		BRCODE: { type: 'int' },
 		SLC: { type: 'int' },
 		SLT: { type: 'int' },

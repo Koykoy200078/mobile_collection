@@ -31,6 +31,7 @@ const CheckOutScreen = ({ navigation, route }) => {
 	const { width } = useWindowDimensions()
 	const { colors } = useTheme()
 	const [data, setData] = useState([])
+	const [getID, setID] = useState('')
 	const { name, allData, inputAmounts, total } = route.params
 
 	const [isCashChecked, setCashChecked] = useState(false)
@@ -61,67 +62,49 @@ const CheckOutScreen = ({ navigation, route }) => {
 		maximumFractionDigits: 2,
 	})
 
+	let idToSet = ''
 	const renderedItem = Object.keys(inputAmounts)
 		.map((refNo) => {
-			const { REF_TARGET, SLDESCR, DEPOSIT, SHARECAPITAL } = inputAmounts[refNo]
+			const { AMOUNT } = inputAmounts[refNo]
 
 			const matchingItem = allData.collections.find(
 				(item) => item.REF_TARGET === refNo
 			)
 
-			if (!matchingItem) {
-				return null
-			}
+			const matchingItemID = allData.collections.find(
+				(item) => item.ID === inputAmounts[refNo].ID
+			)
 
-			if (!REF_TARGET && !SLDESCR && !DEPOSIT && !SHARECAPITAL) {
-				return null
+			// Determine when to set the ID (e.g., once)
+			if (idToSet === '') {
+				idToSet = inputAmounts[refNo].ID
+				// Optionally set other state or perform other actions
+				// setOtherStateValue(someValue);
 			}
 
 			return (
 				<View key={refNo}>
-					{REF_TARGET ? (
+					{matchingItemID !== null && matchingItemID !== undefined ? (
 						<CardReport02
 							style={{ flex: 1, width: width - 30, marginVertical: 10 }}
-							title={matchingItem.REF_TARGET}
-							description={refNo}
+							title={matchingItemID.SLDESCR}
+							description={matchingItemID.REF_TARGET}
 							checkedBoxLabel='Total Amount Paid'
-							value={REF_TARGET}
+							value={inputAmounts[refNo].AMOUNT}
 							editable={false}
 						/>
-					) : null}
-
-					{SLDESCR ? (
-						<CardReport02
-							style={{ flex: 1, width: width - 30, marginVertical: 10 }}
-							title={matchingItem.SLDESCR}
-							description={refNo}
-							checkedBoxLabel='Total Amount Paid'
-							value={SLDESCR}
-							editable={false}
-						/>
-					) : null}
-
-					{SHARECAPITAL ? (
-						<CardReport02
-							style={{ flex: 1, width: width - 30, marginVertical: 10 }}
-							title='Share Capital'
-							description={refNo}
-							checkedBoxLabel='Total Amount Paid'
-							value={SHARECAPITAL}
-							editable={false}
-						/>
-					) : null}
-
-					{DEPOSIT ? (
-						<CardReport02
-							style={{ flex: 1, width: width - 30, marginVertical: 10 }}
-							title='Deposit'
-							description={refNo}
-							checkedBoxLabel='Total Amount Paid'
-							value={DEPOSIT}
-							editable={false}
-						/>
-					) : null}
+					) : (
+						AMOUNT && (
+							<CardReport02
+								style={{ flex: 1, width: width - 30, marginVertical: 10 }}
+								title={matchingItem.SLDESCR}
+								description={refNo}
+								checkedBoxLabel='Total Amount Paid'
+								value={AMOUNT}
+								editable={false}
+							/>
+						)
+					)}
 				</View>
 			)
 		})
@@ -185,39 +168,83 @@ const CheckOutScreen = ({ navigation, route }) => {
 					(item) => item.REF_TARGET === refNo
 				)
 
+				const matchingItemID = allData.collections.find(
+					(item) => item.ID === idToSet
+				)
+
+				console.log('matchingItemID: ', matchingItemID)
+
 				if (matchingItem && inputAmount) {
-					const amount = inputAmount.SLDESCR
+					const amount = inputAmount.AMOUNT
 
 					const existingCollection = transformedData.collections.find(
 						(item) => item.REF_TARGET === refNo
 					)
 
+					const existingCollectionID = transformedData.collections.find(
+						(item) => item.ID === collection.ID
+					)
+
+					console.log('idToSet: ', idToSet)
+					console.log('existingCollectionID: ', existingCollectionID)
+
 					if (existingCollection) {
 						existingCollection.ACTUAL_PAY = amount
+					} else if (existingCollectionID) {
+						existingCollectionID.ACTUAL_PAY = amount
 					} else {
-						transformedData.collections.push({
-							BRCODE: collection.BRCODE,
-							SLC: collection.SLC,
-							SLT: collection.SLT,
-							REF: collection.REF,
-							SLDESCR: matchingItem.SLDESCR,
-							REF_TARGET: collection.REF_TARGET,
-							REF_SOURCE: collection.REF_SOURCE,
-							PRINCIPAL: collection.PRINCIPAL,
-							BALANCE: collection.BALANCE,
-							PRINDUE: collection.PRINDUE,
-							INTDUE: collection.INTDUE,
-							PENDUE: collection.PENDUE,
-							INSDUE: collection.INSDUE,
-							TOTALDUE: collection.TOTALDUE,
-							ACTUAL_PAY: amount,
-							TOP: isCashChecked ? 'CASH' : 'COCI',
-							STATUS: 1, // 1 - Active, 4 - Cancelled, 5 - Disapproved
-							is_default: collection.is_default,
-						})
+						if (matchingItemID) {
+							amount.length > 0 &&
+								transformedData.collections.push({
+									ID: collection.ID,
+									BRCODE: collection.BRCODE,
+									SLC: collection.SLC,
+									SLT: collection.SLT,
+									REF: collection.REF,
+									SLDESCR: matchingItem.SLDESCR,
+									REF_TARGET: collection.REF_TARGET,
+									REF_SOURCE: collection.REF_SOURCE,
+									PRINCIPAL: collection.PRINCIPAL,
+									BALANCE: collection.BALANCE,
+									PRINDUE: collection.PRINDUE,
+									INTDUE: collection.INTDUE,
+									PENDUE: collection.PENDUE,
+									INSDUE: collection.INSDUE,
+									TOTALDUE: collection.TOTALDUE,
+									ACTUAL_PAY: amount,
+									TOP: isCashChecked ? 'CASH' : 'COCI',
+									STATUS: 1, // 1 - Active, 4 - Cancelled, 5 - Disapproved
+									is_default: collection.is_default,
+								})
+						} else {
+							amount.length > 0 &&
+								transformedData.collections.push({
+									ID: collection.ID,
+									BRCODE: collection.BRCODE,
+									SLC: collection.SLC,
+									SLT: collection.SLT,
+									REF: collection.REF,
+									SLDESCR: matchingItem.SLDESCR,
+									REF_TARGET: collection.REF_TARGET,
+									REF_SOURCE: collection.REF_SOURCE,
+									PRINCIPAL: collection.PRINCIPAL,
+									BALANCE: collection.BALANCE,
+									PRINDUE: collection.PRINDUE,
+									INTDUE: collection.INTDUE,
+									PENDUE: collection.PENDUE,
+									INSDUE: collection.INSDUE,
+									TOTALDUE: collection.TOTALDUE,
+									ACTUAL_PAY: amount,
+									TOP: isCashChecked ? 'CASH' : 'COCI',
+									STATUS: 1, // 1 - Active, 4 - Cancelled, 5 - Disapproved
+									is_default: collection.is_default,
+								})
+						}
 					}
 				}
 			})
+
+			// console.log(JSON.stringify(transformedData, null, 2))
 
 			realm.write(() => {
 				realm.create(UploadData, transformedData, Realm.UpdateMode.Modified)
@@ -270,25 +297,13 @@ const CheckOutScreen = ({ navigation, route }) => {
 					name: name,
 					allData: allData,
 					inputAmounts: inputAmounts,
+					ID: idToSet || '',
 					total: total,
 					isSuccessful: true,
 				})
 			}
 		}
 	}
-
-	// const showData = useCallback(async () => {
-	//   try {
-	//     const realm = await Realm.open(databaseOptions);
-	//     const savedData = realm.objects(UploadData);
-	//     const data = Array.from(savedData); // Convert Realm results to a regular array
-	//     console.log('Saved Data:', JSON.stringify(data, null, 2));
-	//     realm.close(); // Close the Realm after use
-	//   } catch (error) {
-	//     console.error('Error while fetching data:', error);
-	//     return null;
-	//   }
-	// }, []);
 
 	return (
 		<SafeAreaView

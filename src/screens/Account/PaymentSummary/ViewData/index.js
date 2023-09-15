@@ -495,7 +495,7 @@ const ViewData = ({ navigation, route }) => {
 						// visible={textInputRef.current && !textInputRef.current.isFocused()}
 						onPressItem={(name) => {
 							if (name === 'bt_SLAccounts') {
-								navigation.navigate(ROUTES.OTHERSLSCREEN, {
+								navigation.navigate(ROUTES.OTHERSL, {
 									clientData: item,
 								})
 							}
