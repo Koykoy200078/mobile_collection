@@ -1,6 +1,9 @@
 import { BASE_URL } from '../config/url'
 import { select } from 'redux-saga/effects'
-import databaseOptions, { CollectionReport } from '../database/allSchemas'
+import databaseOptions, {
+	CollectionReport,
+	UploadData,
+} from '../database/allSchemas'
 import { showError, showInfo, showSuccess } from '../components/AlertMessage'
 import { Realm } from '@realm/react'
 
@@ -16,6 +19,7 @@ const saveHistory = async (item) => {
 					CLIENT_NAME: transaction.CLIENT_NAME,
 					ACTUAL_PAY: transaction.ACTUAL_PAY,
 				}
+				console.log(JSON.stringify(collectionReport, null, 2))
 				realm.create(
 					CollectionReport,
 					collectionReport,
@@ -28,7 +32,6 @@ const saveHistory = async (item) => {
 			message: 'Success',
 			description: 'Data saved successfully!',
 		})
-		realm.close()
 	} catch (error) {
 		showError({
 			message: 'Error',
@@ -37,6 +40,7 @@ const saveHistory = async (item) => {
 		console.error('Error: ', error)
 	}
 }
+
 export function* uploadDetails(payload) {
 	const { token } = yield select((state) => state.auth.authData.data)
 	try {

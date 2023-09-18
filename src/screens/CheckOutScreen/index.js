@@ -185,9 +185,6 @@ const CheckOutScreen = ({ navigation, route }) => {
 						(item) => item.ID === collection.ID
 					)
 
-					console.log('idToSet: ', idToSet)
-					console.log('existingCollectionID: ', existingCollectionID)
-
 					if (existingCollection) {
 						existingCollection.ACTUAL_PAY = amount
 					} else if (existingCollectionID) {

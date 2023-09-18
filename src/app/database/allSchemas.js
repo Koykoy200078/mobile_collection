@@ -41,7 +41,7 @@ export const CollectionSchema = {
 
 // UPLOAD
 export const UploadData = 'UploadData'
-const UploadDataCollection = 'UploadDataCollection'
+export const UploadDataCollection = 'UploadDataCollection'
 
 export const uploadSchema = {
 	name: UploadData,
@@ -96,12 +96,22 @@ export const collectionReportSchema = {
 	},
 }
 
+// AMOUNT UPLOAD
+export const totalAmountUpload = 'totalAmountUpload'
+export const lastAmountSchema = {
+	name: totalAmountUpload,
+	properties: {
+		amount: { type: 'string' },
+	},
+}
+
 const allSchema = [
 	ClientSchema,
 	CollectionSchema,
 	uploadSchema,
 	uploadDataCollection,
 	collectionReportSchema,
+	lastAmountSchema,
 ]
 
 const databaseOptions = {

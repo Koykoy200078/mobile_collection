@@ -22,6 +22,7 @@ import { useFocusEffect } from '@react-navigation/native'
 import { FloatingAction } from 'react-native-floating-action'
 
 const ClientCollection = ({ navigation }) => {
+	const realm = new Realm(databaseOptions)
 	const { colors } = useTheme()
 	const [search, setSearch] = useState('')
 	const [filteredClients, setFilteredClients] = useState([])
@@ -115,7 +116,6 @@ const ClientCollection = ({ navigation }) => {
 				text: 'YES',
 				onPress: async () => {
 					try {
-						const realm = await Realm.open(databaseOptions)
 						realm.write(() => {
 							batchData.data.forEach((client) => {
 								const collections = client.collections.map((collection) => ({
@@ -138,7 +138,7 @@ const ClientCollection = ({ navigation }) => {
 						})
 						Alert.alert('Success', 'Data saved successfully!')
 						dispatch(resetGetDetails())
-						realm.close()
+
 						showData()
 					} catch (error) {
 						Alert.alert('Error', 'Error saving data!')
@@ -151,7 +151,6 @@ const ClientCollection = ({ navigation }) => {
 
 	const showData = useCallback(async () => {
 		try {
-			const realm = await Realm.open(databaseOptions)
 			const clients = realm.objects(Client)
 			setClientData(Array.from(clients))
 		} catch (error) {

@@ -6,7 +6,7 @@ import {
 	SafeAreaView,
 	Alert,
 	useColorScheme,
-	NativeModules,
+	ScrollView,
 } from 'react-native'
 import { Show, Text } from '../../app/components'
 import { Icons } from '../../app/config/icons'
@@ -14,11 +14,8 @@ import { Shadow } from 'react-native-shadow-2'
 import databaseOptions, {
 	Client,
 	UploadData,
+	totalAmountUpload,
 } from '../../app/database/allSchemas'
-import DeviceInfo from 'react-native-device-info'
-import { showError, showInfo } from '../../app/components/AlertMessage'
-import { isDeviceSupported } from '../../app/config/DeviceSupport'
-import { BleManager } from 'react-native-ble-plx'
 import { useSelector } from 'react-redux'
 
 const isWithinTimeRangeGoodMorning = (hour, minute) => {
@@ -33,22 +30,17 @@ const isWithinTimeRangeGoodEvening = (hour, minute) => {
 	return hour >= 17 && hour < 22 // 5:00 PM to 9:59 PM
 }
 
-const Dashboard = ({ navigation }) => {
+const Dashboard = () => {
+	const auth = useSelector((state) => state.auth.authData)
 	const isDarkMode = useColorScheme() === 'dark'
 	const { width, height } = useWindowDimensions()
 	const [localHour, setLocalHour] = useState(null)
 	const [localMinute, setLocalMinute] = useState(null)
 	const [isCollapsed, setIsCollapsed] = useState(false)
+	const [getGreetings, setGreetings] = useState('Hello 👋')
 
-	const [totalCashOnHand, setTotalCashOnHand] = useState(0.0)
-
-	const [totalCollectedAmount, setTotalCollectedAmount] = useState(0.0)
-	const [greetings, setGreetings] = useState('Hello')
-
-	// const [isBluetoothEnabled, setIsBluetoothEnabled] = useState(false)
-	const [manager, setManager] = useState(null)
-
-	const auth = useSelector((state) => state.auth.authData)
+	const [uploadAMNT, setUploadAMNT] = useState(null)
+	const [amountDB, setAmountDB] = useState(null)
 
 	const intervalRef = useRef(null)
 
@@ -61,98 +53,31 @@ const Dashboard = ({ navigation }) => {
 		setLocalMinute(minutes < 10 ? `0${minutes}` : minutes)
 	}
 
-	// useEffect(() => {
-	// 	const initBluetoothManager = async () => {
-	// 		const bleManager = new BleManager()
-	// 		setManager(bleManager)
-
-	// 		try {
-	// 			const state = await bleManager.state()
-	// 			setIsBluetoothEnabled(state === 'PoweredOn')
-	// 		} catch (error) {
-	// 			console.error('Error checking Bluetooth status: ', error)
-	// 		}
-	// 	}
-
-	// 	initBluetoothManager()
-
-	// 	return () => {
-	// 		// Clean up the BleManager instance when the component unmounts
-	// 		if (manager) {
-	// 			manager.destroy()
-	// 			setManager(null)
-	// 		}
-	// 	}
-	// }, [])
-
-	// useEffect(() => {
-	// 	if (isBluetoothEnabled === false) {
-	// 		showInfo({
-	// 			message: 'Bluetooth',
-	// 			description: 'Turn on Bluetooth for Receipt Printing',
-	// 		})
-	// 	}
-	// }, [])
-
-	useEffect(() => {
-		if (isWithinTimeRangeGoodMorning(localHour, localMinute)) {
-			setGreetings('Good Morning ☀️')
-		} else if (isWithinTimeRangeGoodAfternoon(localHour, localMinute)) {
-			setGreetings('Good Afternoon 🌤️')
-		} else if (isWithinTimeRangeGoodEvening(localHour, localMinute)) {
-			setGreetings('Good Evening 🌙')
-		} else {
-			setGreetings('Hello 👋') // Default greeting if none of the above conditions match
-		}
-
-		intervalRef.current = setInterval(() => {
-			updateLocalTime()
-			checkAndShowData()
-		}, 1000)
-
-		return () => {
-			clearInterval(intervalRef.current)
-		}
-	}, [localHour, localMinute, greetings, totalCashOnHand, totalCollectedAmount])
-
 	const checkAndShowData = useCallback(async () => {
 		try {
 			const realm = await Realm.open(databaseOptions)
-			const clients = realm.objects(Client)
 			const uploadData = realm.objects(UploadData)
-
-			const clientsArray = Array.from(clients)
+			let saveAmountArray = Array.from(realm.objects(totalAmountUpload))
 			const uploadDataArray = Array.from(uploadData)
 
-			if (clientsArray.length > 0 || uploadDataArray.length > 0) {
-				if (uploadDataArray.length > 0) {
-					showCollectedAmount(uploadDataArray)
-				}
-				if (clientsArray.length > 0) {
-					showCashOnHandData(clientsArray)
-				}
+			if (uploadData.length > 0) {
+				showCollectedAmount(uploadDataArray)
+			} else {
+				setUploadAMNT(0)
 			}
+
+			if (saveAmountArray.length === 0) {
+				realm.write(() => {
+					realm.create(totalAmountUpload, { amount: '0.00' })
+					saveAmountArray = [{ amount: '0.00' }]
+				})
+			}
+			setAmountDB(saveAmountArray)
 		} catch (error) {
 			Alert.alert('Error retrieving data: ', error)
 			console.error(error)
 		}
 	}, [])
-
-	const newBalTotalCashOnHand = totalCashOnHand.toLocaleString('en-US', {
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	})
-
-	const newBalCollected = totalCollectedAmount.toLocaleString('en-US', {
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	})
-
-	const totalAmount = parseFloat(totalCashOnHand)
-	const newBalTotal = totalAmount.toLocaleString('en-US', {
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	})
 
 	const showCollectedAmount = (data) => {
 		const filteredData = data.filter((item) => item.collections.length > 0)
@@ -165,27 +90,33 @@ const Dashboard = ({ navigation }) => {
 			(acc, currentValue) => acc + currentValue,
 			0
 		)
-		setTotalCollectedAmount(totalDueSum)
-
+		setUploadAMNT(totalDueSum)
 		return null
 	}
 
-	const showCashOnHandData = (data) => {
-		const filteredData = data.filter((item) => item.collections.length > 0)
-		const totalDueArray = filteredData.map((item) =>
-			item.collections.map((collection) => parseFloat(collection.TOTALDUE))
-		)
+	useEffect(() => {
+		if (isWithinTimeRangeGoodMorning(localHour, localMinute)) {
+			setGreetings('Good Morning ☀️')
+		} else if (isWithinTimeRangeGoodAfternoon(localHour, localMinute)) {
+			setGreetings('Good Afternoon 🌤️')
+		} else if (isWithinTimeRangeGoodEvening(localHour, localMinute)) {
+			setGreetings('Good Evening 🌙')
+		} else {
+			setGreetings('Hello 👋')
+		}
 
-		const flatTotalDueArray = totalDueArray.flat()
-		const totalDueSum = flatTotalDueArray.reduce(
-			(acc, currentValue) => acc + currentValue,
-			0
-		)
+		const fetchDataAndUpdate = async () => {
+			// Fetch the data from the database and update state
+			await checkAndShowData()
+			updateLocalTime() // Update the local time
+		}
 
-		setTotalCashOnHand(totalDueSum)
+		intervalRef.current = setInterval(fetchDataAndUpdate, 1000)
 
-		return null
-	}
+		return () => {
+			clearInterval(intervalRef.current)
+		}
+	}, [localHour, localMinute, getGreetings, uploadAMNT, amountDB])
 
 	return (
 		<View
@@ -197,7 +128,7 @@ const Dashboard = ({ navigation }) => {
 			<SafeAreaView className='mb-3'>
 				<View className='flex-row mx-2 justify-between'>
 					<View>
-						<Text title3>{greetings}</Text>
+						<Text title3>{getGreetings}</Text>
 						<Text body2>
 							{auth && auth.data ? auth.data.collector_desc : '...'}
 						</Text>
@@ -211,32 +142,62 @@ const Dashboard = ({ navigation }) => {
 				</View>
 			</SafeAreaView>
 
-			<View className='mx-2 p-2'>
-				<Shadow
-					distance={2}
-					startColor={isDarkMode ? '#f1f1f1' : '#00000020'}
-					style={{
-						padding: 10,
-						width: width - 35,
-						marginHorizontal: 10,
-						borderRadius: 10,
-					}}>
-					<View className='mr-2'>
-						<Show
-							title={'Total Summary'}
-							enableTooltip={false}
-							toggleAccordion={() => setIsCollapsed(!isCollapsed)}
-							isCollapsed={isCollapsed}
-							isActive={!isCollapsed ? 'angle-down' : 'angle-up'}
-							totalCollectedAmount={newBalCollected}
-							totalRemittedAmount={parseFloat(0).toFixed(2)}
-							total={newBalCollected} // newBalTotalCashOnHand
-						/>
-					</View>
-					{/* newBalTotalCashOnHand */}
-					<Text title1>₱ {newBalCollected}</Text>
-				</Shadow>
-			</View>
+			<ScrollView showsVerticalScrollIndicator={false}>
+				<View className='mx-2 p-2'>
+					<Shadow
+						distance={2}
+						startColor={isDarkMode ? '#f1f1f1' : '#00000020'}
+						style={{
+							padding: 10,
+							width: width - 35,
+							marginHorizontal: 10,
+							borderRadius: 10,
+						}}>
+						<View className='mr-2'>
+							<Show
+								title={'Total Summary'}
+								enableTooltip={false}
+								toggleAccordion={() => setIsCollapsed(!isCollapsed)}
+								isCollapsed={isCollapsed}
+								isActive={!isCollapsed ? 'angle-down' : 'angle-up'}
+								totalCollectedAmount={
+									uploadAMNT
+										? parseFloat(uploadAMNT).toLocaleString('en-US', {
+												minimumFractionDigits: 2,
+												maximumFractionDigits: 2,
+										  })
+										: '0.00'
+								}
+								totalRemittedAmount={
+									amountDB &&
+									parseFloat(amountDB[0]?.amount).toLocaleString('en-US', {
+										minimumFractionDigits: 2,
+										maximumFractionDigits: 2,
+									})
+								}
+								total={
+									uploadAMNT
+										? parseFloat(uploadAMNT).toLocaleString('en-US', {
+												minimumFractionDigits: 2,
+												maximumFractionDigits: 2,
+										  })
+										: '0.00'
+								}
+							/>
+						</View>
+
+						<Text title1>
+							₱{' '}
+							{uploadAMNT
+								? parseFloat(uploadAMNT).toLocaleString('en-US', {
+										minimumFractionDigits: 2,
+										maximumFractionDigits: 2,
+								  })
+								: '0.00'}
+						</Text>
+					</Shadow>
+				</View>
+			</ScrollView>
 		</View>
 	)
 }

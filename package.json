@@ -15,6 +15,7 @@
 		"@react-navigation/native": "^6.1.7",
 		"@react-navigation/stack": "^6.3.17",
 		"@realm/react": "^0.5.1",
+		"@reduxjs/toolkit": "^1.9.5",
 		"@shopify/flash-list": "^1.4.3",
 		"nativewind": "^2.0.11",
 		"prop-types": "^15.8.1",

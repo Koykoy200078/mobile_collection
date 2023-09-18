@@ -1,31 +1,46 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { View, useWindowDimensions, Alert, useColorScheme } from 'react-native'
+import {
+	View,
+	useWindowDimensions,
+	Alert,
+	useColorScheme,
+	ActivityIndicator,
+} from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'
 import { ROUTES } from '../../app/config'
 import { Project02, Text } from '../../app/components'
 import databaseOptions, {
 	Client,
+	CollectionReport,
 	UploadData,
+	UploadDataCollection,
+	totalAmountUpload,
 } from '../../app/database/allSchemas'
 import { Icons } from '../../app/config/icons'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useDispatch, useSelector } from 'react-redux'
 import { getDetails } from '../../app/reducers/batchDetails'
-import { uploadData } from '../../app/reducers/upload'
+import { resetUploadData, uploadData } from '../../app/reducers/upload'
 import { showInfo } from '../../app/components/AlertMessage'
+import { Realm } from '@realm/react'
 
 const Account = ({ navigation }) => {
+	const realm = new Realm(databaseOptions)
 	const isDarkMode = useColorScheme() === 'dark'
 	const auth = useSelector((state) => state.auth.authData)
+	const loading = useSelector((state) => state.auth.isLoading)
+	const { isSuccess, isLoading } = useSelector((state) => state.upload)
+	const dispatch = useDispatch()
 
 	const { width, height } = useWindowDimensions()
 	const [clientData, setClientData] = useState([])
-	const countPaidItems = clientData.filter((item) => item.isPaid).length
 
 	const [getUpload, setGetUpload] = useState([])
+	const [getAmountDB, setAmountDB] = useState([])
+	const [getHistory, setHistory] = useState([])
 
-	const dispatch = useDispatch()
-
+	const countPaidItems = getUpload.filter((item) => item).length
+	const countHistoryItems = getHistory.filter((item) => item).length
 	function formatDateToYYYYMMDD(date) {
 		const year = date.getFullYear()
 		const month = String(date.getMonth() + 1).padStart(2, '0') // Ensure two digits for month
@@ -38,6 +53,26 @@ const Account = ({ navigation }) => {
 
 	useEffect(() => {
 		checkAndShowData()
+	}, [isSuccess, isLoading, loading])
+
+	useEffect(() => {
+		const fetchDataAndScheduleUpdate = async () => {
+			try {
+				await checkAndShowData()
+			} catch (error) {
+				console.error('Error fetching and updating data: ', error)
+			}
+		}
+
+		fetchDataAndScheduleUpdate() // Initial fetch
+
+		const updateInterval = setInterval(() => {
+			fetchDataAndScheduleUpdate() // Fetch and update every 60 seconds (adjust as needed)
+		}, 1000)
+
+		return () => {
+			clearInterval(updateInterval) // Clean up the interval when the component unmounts
+		}
 	}, [])
 
 	useFocusEffect(
@@ -47,28 +82,90 @@ const Account = ({ navigation }) => {
 		}, [])
 	)
 
+	const calculateCollectedSum = () => {
+		if (getUpload && getUpload.length > 0) {
+			return getUpload.reduce((acc, item) => {
+				return (
+					acc +
+					item.collections.reduce((collectedAcc, collection) => {
+						return collectedAcc + parseFloat(collection.ACTUAL_PAY)
+					}, 0)
+				)
+			}, 0)
+		}
+		return 0 // Default to 0 if there is no data
+	}
+
+	const deleteUpload = useCallback(async () => {
+		try {
+			if (realm.schema.find((s) => s.name === UploadData)) {
+				realm.write(() => {
+					const collectionSchema = realm.objects(UploadData)
+					const collections = realm.objects(UploadDataCollection)
+					realm.delete(collectionSchema)
+					realm.delete(collections)
+				})
+				dispatch(resetUploadData())
+				setAmountDB([])
+			}
+		} catch (error) {
+			console.error(error)
+		}
+	}, [])
+
+	const saveAmount = useCallback(async (newTotal) => {
+		try {
+			if (realm.schema.find((s) => s.name === totalAmountUpload)) {
+				realm.write(() => {
+					const existingTotal = realm.objects(totalAmountUpload)[0]
+					if (existingTotal) {
+						existingTotal.amount = newTotal.toString()
+					} else {
+						realm.create(totalAmountUpload, { amount: newTotal })
+					}
+				})
+
+				deleteUpload()
+			}
+		} catch (error) {
+			console.error(error)
+		}
+	}, [])
+
 	const checkAndShowData = useCallback(async () => {
 		try {
-			const realm = await Realm.open(databaseOptions)
 			const clients = realm.objects(Client)
 			const uploadData = realm.objects(UploadData)
+			const historyData = realm.objects(CollectionReport)
+			let saveAmountArray = Array.from(realm.objects(totalAmountUpload))
 
-			const uploadDataArray = Array.from(uploadData)
-
-			if (uploadDataArray.length > 0 || clients.length > 0) {
-				if (uploadDataArray.length > 0) {
-					setGetUpload(uploadDataArray)
-				}
-
-				if (clients.length > 0) {
-					setClientData(Array.from(clients))
-				}
+			// Check if any data is available in any of the tables
+			if (clients.length > 0) {
+				setClientData(Array.from(clients))
 			}
+
+			if (uploadData.length > 0) {
+				setGetUpload(Array.from(uploadData))
+			}
+
+			if (historyData.length > 0) {
+				setHistory(Array.from(historyData))
+			}
+
+			// Check if totalAmountUpload is empty and add a default value if it is
+			if (saveAmountArray.length === 0) {
+				realm.write(() => {
+					realm.create(totalAmountUpload, { amount: '0.00' })
+					saveAmountArray = [{ amount: '0.00' }]
+				})
+			}
+
+			setAmountDB(saveAmountArray)
 		} catch (error) {
 			Alert.alert('Error retrieving data: ', error)
 			console.error(error)
 		}
-	}, [])
+	}, [getAmountDB])
 
 	const fetchData = useCallback(async () => {
 		Alert.alert(
@@ -106,6 +203,20 @@ const Account = ({ navigation }) => {
 			})
 		)
 	}
+
+	// Calculate the collected sum and update the database sum when the component mounts
+	useEffect(() => {
+		try {
+			if (isSuccess) {
+				const collectedSum = calculateCollectedSum()
+				let AMNT = getAmountDB && getAmountDB[0] && getAmountDB[0].amount
+				const totalSum = parseFloat(collectedSum) + parseFloat(AMNT)
+				saveAmount(totalSum)
+			}
+		} catch (error) {
+			console.error(error)
+		}
+	}, [getUpload])
 
 	return (
 		<View style={{ flex: 1, width, height }}>
@@ -151,6 +262,19 @@ const Account = ({ navigation }) => {
 					</TouchableOpacity>
 				</View>
 			</View>
+			{isLoading ? (
+				<View className='items-center justify-center space-y-2'>
+					<Text className='font-bold'>Data uploading to the server</Text>
+					<ActivityIndicator animating={true} size='large' color='#0000ff' />
+				</View>
+			) : null}
+
+			{loading ? (
+				<View className='items-center justify-center space-y-2'>
+					<Text className='font-bold'>Downloading data</Text>
+					<ActivityIndicator animating={true} size='large' color='#0000ff' />
+				</View>
+			) : null}
 
 			<View style={{ padding: 32, marginLeft: 8, marginRight: 8 }}>
 				<Project02
@@ -164,7 +288,7 @@ const Account = ({ navigation }) => {
 				<Project02
 					title="Client's Report"
 					description='Detailed Collection Report'
-					total_loans={countPaidItems}
+					total_loans={countHistoryItems}
 					onPress={() => navigation.navigate(ROUTES.DETAILED_SUMMARY)}
 					style={{ marginBottom: 10 }}
 				/>

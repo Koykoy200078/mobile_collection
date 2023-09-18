@@ -151,11 +151,17 @@ const PaymentSummary = ({ navigation }) => {
 							}
 						}
 
+						let aa = item && item.collections.map((item) => item.TOP)
+
+						console.log('TOP: ', aa)
+
 						return (
 							<Project02
 								title={Fullname}
 								description={
-									TOP === 'COCI' ? 'COCI (Check and Other Cash Items)' : 'CASH'
+									aa.toString() === 'COCI'
+										? 'COCI (Check and Other Cash Items)'
+										: 'CASH'
 								}
 								// isPaid={item.isPaid}
 								total_loans={totalDue ? formatNumber(totalDue.toFixed(2)) : ''}

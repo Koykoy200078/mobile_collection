@@ -8,6 +8,7 @@ import {
 	Alert,
 	ActivityIndicator,
 	useWindowDimensions,
+	useColorScheme,
 } from 'react-native'
 import { useDispatch } from 'react-redux'
 import { BaseStyle, ROUTES, useTheme } from '../../../app/config'
@@ -19,23 +20,23 @@ import databaseOptions, {
 	CollectionReport,
 	UploadData,
 } from '../../../app/database/allSchemas'
+import { Shadow } from 'react-native-shadow-2'
+import { ScrollView } from 'react-native-gesture-handler'
 
 const DetailedSummary = ({ navigation }) => {
 	const { colors } = useTheme()
+	const isDarkMode = useColorScheme() === 'dark'
 	const { width, height } = useWindowDimensions()
 	const [search, setSearch] = useState('')
-	const [filteredClients, setFilteredClients] = useState([])
+
 	const dispatch = useDispatch()
 
 	const [clientData, setClientData] = useState([])
-
-	//  && clientData.filter((item) => item.isPaid)
-
-	const filterData = clientData
+	const [filteredClients, setFilteredClients] = useState([])
 
 	useEffect(() => {
 		showData()
-	}, [search])
+	}, [search, filteredClients])
 
 	useFocusEffect(
 		useCallback(() => {
@@ -50,9 +51,6 @@ const DetailedSummary = ({ navigation }) => {
 
 			const clients = realm.objects(CollectionReport)
 			setClientData(Array.from(clients))
-			// console.log(JSON.stringify(Array.from(clients), null, 2))
-
-			// realm.close()
 		} catch (error) {
 			Alert.alert('Error retrieving data', error)
 			console.error(error)
@@ -62,22 +60,27 @@ const DetailedSummary = ({ navigation }) => {
 	const handleSearch = useCallback(
 		(query) => {
 			const normalizedQuery = query.toLowerCase()
-			const data = filterData.filter((client) => {
-				const lnameMatch =
-					client.LName && client.LName.toLowerCase().includes(normalizedQuery)
-				const fnameMatch =
-					client.FName && client.FName.toLowerCase().includes(normalizedQuery)
-				const mnameMatch =
-					client.MName && client.MName.toLowerCase().includes(normalizedQuery)
-				const snameMatch =
-					client.SName && client.SName.toLowerCase().includes(normalizedQuery)
+			const data = clientData.filter((client) => {
+				const transID = client.TRANSID && client.TRANSID.toString()
+				const transRefNo =
+					client.TRANS_REFNO &&
+					client.TRANS_REFNO.toLowerCase().includes(normalizedQuery)
+				const clientID = client.CLIENTID && client.CLIENTID.toString()
+				const clientName =
+					client.CLIENT_NAME &&
+					client.CLIENT_NAME.toLowerCase().includes(normalizedQuery)
 
 				// Return true if any of the properties match the query
-				return lnameMatch || fnameMatch || mnameMatch || snameMatch
+				return (
+					transID === normalizedQuery ||
+					transRefNo ||
+					clientID === normalizedQuery ||
+					clientName
+				)
 			})
 			setFilteredClients(data)
 		},
-		[filterData, search]
+		[clientData]
 	)
 
 	const clearSearch = () => {
@@ -103,32 +106,97 @@ const DetailedSummary = ({ navigation }) => {
 				<FlashList
 					contentContainerStyle={styles.paddingFlatList}
 					estimatedItemSize={360}
-					data={clientData}
+					data={filteredClients.length > 0 ? filteredClients : clientData}
 					keyExtractor={(_item, index) => index.toString()}
 					renderItem={({ item }) => {
 						const formatNumber = (number) => {
 							return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 						}
 
-						console.log('item: ', item)
-
-						const handlePress = (item) => {
-							// if (item.collections.length === 0) {
-							// 	Alert.alert('Info', 'This client has no collection data')
-							// } else {
-							// 	navigation.navigate(ROUTES.SUMMARY, { item: item })
-							// }
-						}
-
 						return (
-							<View className='p-2 space-y-2'>
-								<View className='border rounded-md p-2'>
-									<Text>{item.CLIENTID}</Text>
-									<Text>{item.CLIENT_NAME}</Text>
-									<Text>{item.TRANS_REFNO}</Text>
-									<Text>{formatNumber(item.ACTUAL_PAY)}</Text>
-								</View>
-							</View>
+							<ScrollView contentContainerStyle={{ width: width, padding: 10 }}>
+								<Shadow
+									distance={2}
+									startColor={isDarkMode ? '#f1f1f1' : '#00000020'}
+									style={{
+										width: width - 60,
+										borderRadius: 10,
+									}}>
+									<View className='rounded-md p-2 w-full'>
+										<View className='flex-row items-center justify-between'>
+											<View>
+												<Text className='text-black text-sm font-bold'>
+													Client ID
+												</Text>
+											</View>
+											<View>
+												<Text className='text-black text-sm'>
+													{item.CLIENTID}
+												</Text>
+											</View>
+										</View>
+
+										<View className='flex-row items-center justify-between'>
+											<Text className='text-black text-sm font-bold'>
+												Client Name
+											</Text>
+											<Text className='text-black text-sm'>
+												{item.CLIENT_NAME}
+											</Text>
+										</View>
+
+										<View className='flex-row items-center justify-between'>
+											<Text className='text-black text-sm font-bold'>
+												Amount Pay
+											</Text>
+											<Text className='text-black text-sm'>
+												{formatNumber(item.ACTUAL_PAY)}
+											</Text>
+										</View>
+
+										<View
+											style={{
+												width: '100%',
+												marginVertical: 10,
+											}}>
+											<View
+												style={{
+													width: '100%',
+													borderWidth: 1,
+													borderColor: '#E5E5E5',
+													borderStyle: 'dashed',
+													marginTop: -2,
+												}}
+											/>
+										</View>
+
+										<View className='flex-row items-center justify-between'>
+											<View>
+												<Text className='text-black text-sm font-bold'>
+													Transaction ID
+												</Text>
+											</View>
+											<View>
+												<Text className='text-black text-sm'>
+													{item.TRANSID}
+												</Text>
+											</View>
+										</View>
+										<View className='flex-row items-center justify-between'>
+											<View>
+												<Text className='text-black text-sm font-bold'>
+													Reference No.
+												</Text>
+											</View>
+											<View>
+												<Text className='text-black text-sm'>
+													{item.TRANS_REFNO}
+												</Text>
+											</View>
+										</View>
+									</View>
+								</Shadow>
+							</ScrollView>
 						)
 					}}
 					ListEmptyComponent={
