@@ -39,8 +39,9 @@ const Account = ({ navigation }) => {
 	const [getAmountDB, setAmountDB] = useState([])
 	const [getHistory, setHistory] = useState([])
 
-	const countPaidItems = getUpload.filter((item) => item).length
-	const countHistoryItems = getHistory.filter((item) => item).length
+	const countPaidItems = getUpload && getUpload.filter((item) => item).length
+	const countHistoryItems =
+		getHistory && getHistory.filter((item) => item).length
 	function formatDateToYYYYMMDD(date) {
 		const year = date.getFullYear()
 		const month = String(date.getMonth() + 1).padStart(2, '0') // Ensure two digits for month
@@ -146,10 +147,14 @@ const Account = ({ navigation }) => {
 
 			if (uploadData.length > 0) {
 				setGetUpload(Array.from(uploadData))
+			} else {
+				setGetUpload(0)
 			}
 
 			if (historyData.length > 0) {
 				setHistory(Array.from(historyData))
+			} else {
+				setHistory(0)
 			}
 
 			// Check if totalAmountUpload is empty and add a default value if it is
