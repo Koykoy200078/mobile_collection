@@ -44,9 +44,11 @@ const ViewScreen = ({ navigation, route }) => {
 	const [visible, setVisible] = useState(true)
 	const [animation, setAnimation] = useState(new Animated.Value(1))
 
+	const [isGreaterValue, setIsGreaterValue] = useState(false)
+
 	useEffect(() => {
 		calculateTotalValue()
-	}, [isCollapsed, inputAmounts, textInputFocused])
+	}, [isCollapsed, inputAmounts, textInputFocused, isGreaterValue])
 
 	useEffect(() => {
 		const initialIsCollapsed = {}
@@ -132,12 +134,24 @@ const ViewScreen = ({ navigation, route }) => {
 				minimumFractionDigits: 2,
 				maximumFractionDigits: 2,
 			})
-			if (inputValue > balance) {
-				Alert.alert(
-					'Warning',
-					`The input amount should not exceed the total due of ${newBal}`
-				)
+			if (inputValue <= balance) {
+				setIsGreaterValue(false)
+				setTextInputFocused(true)
+				setInputAmounts((prevState) => ({
+					...prevState,
+					[index]: {
+						...prevState[index],
+						[name]: value,
+					},
+				}))
+
+				// Update the checkboxChecked state
+				setCheckboxChecked((prevState) => ({
+					...prevState,
+					[index]: !!value, // Set to true if there is a value, otherwise false
+				}))
 			} else {
+				setIsGreaterValue(true)
 				setTextInputFocused(true)
 				setInputAmounts((prevState) => ({
 					...prevState,
@@ -157,6 +171,15 @@ const ViewScreen = ({ navigation, route }) => {
 	}
 
 	const handleCheckout = () => {
+		if (!isGreaterValue) {
+			showInfo({
+				message: 'Invalid Input Amount',
+				description:
+					'The total input amount should be greater than the total due amount.',
+			})
+			return
+		}
+
 		if (totalAmount.trim() === '' || totalAmount !== '0.00') {
 			navigation.navigate(ROUTES.CHECKOUT, {
 				name: item.Fullname,

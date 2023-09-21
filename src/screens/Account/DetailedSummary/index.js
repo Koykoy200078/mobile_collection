@@ -45,6 +45,19 @@ const DetailedSummary = ({ navigation }) => {
 		}, [])
 	)
 
+	function formatDateString(dateString) {
+		const options = {
+			year: 'numeric',
+			month: 'long',
+			day: '2-digit',
+			hour: '2-digit',
+			minute: '2-digit',
+			hour12: true,
+		}
+
+		return new Date(dateString).toLocaleDateString('en-US', options)
+	}
+
 	const showData = useCallback(async () => {
 		try {
 			const realm = await Realm.open(databaseOptions)
@@ -91,15 +104,13 @@ const DetailedSummary = ({ navigation }) => {
 	const renderContent = useCallback(() => {
 		return (
 			<View style={{ flex: 1 }}>
-				<Search
-					title={"Client's Report"}
-					value={search}
-					onChangeText={(val) => {
-						setSearch(val)
-						handleSearch(val)
-					}}
-					clearStatus={true ? clearSearch : false}
-				/>
+				<View className='px-2 mt-1'>
+					<Text
+						numberOfLines={1}
+						className='text-black dark:text-white text-lg font-bold'>
+						Client's Report
+					</Text>
+				</View>
 
 				<View className='mt-2' />
 
@@ -110,48 +121,67 @@ const DetailedSummary = ({ navigation }) => {
 					keyExtractor={(_item, index) => index.toString()}
 					renderItem={({ item }) => {
 						const formatNumber = (number) => {
-							return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+							// Convert the input to a number (if it's not already)
+							const parsedNumber = parseFloat(number)
+
+							// Check if the input is a valid number
+							if (isNaN(parsedNumber)) {
+								return 'Invalid Number'
+							}
+
+							// Format the number with exactly 2 decimal places and commas for thousands separator
+							const formattedNumber = parsedNumber
+								.toFixed(2)
+								.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+
+							return formattedNumber
 						}
 
+						let amntPaid = formatNumber(item.ACTUAL_PAY)
+
 						return (
-							<ScrollView contentContainerStyle={{ width: width, padding: 10 }}>
+							<ScrollView contentContainerStyle={{ width: width, padding: 5 }}>
 								<Shadow
 									distance={2}
 									startColor={isDarkMode ? '#f1f1f1' : '#00000020'}
 									style={{
-										width: width - 60,
+										width: width - 40,
 										borderRadius: 10,
 									}}>
 									<View className='rounded-md p-2 w-full'>
 										<View className='flex-row items-center justify-between'>
 											<View>
-												<Text className='text-black text-sm font-bold'>
-													Client ID
+												<Text className='text-black text-sm'>
+													Transaction ID
 												</Text>
 											</View>
 											<View>
-												<Text className='text-black text-sm'>
-													{item.CLIENTID}
+												<Text className='text-black text-sm font-bold'>
+													{item.TRANSID}
 												</Text>
 											</View>
 										</View>
-
 										<View className='flex-row items-center justify-between'>
-											<Text className='text-black text-sm font-bold'>
-												Client Name
-											</Text>
-											<Text className='text-black text-sm'>
-												{item.CLIENT_NAME}
-											</Text>
+											<View>
+												<Text className='text-black text-sm'>
+													Reference No.
+												</Text>
+											</View>
+											<View>
+												<Text className='text-black text-sm font-bold'>
+													{item.TRANS_REFNO}
+												</Text>
+											</View>
 										</View>
-
 										<View className='flex-row items-center justify-between'>
-											<Text className='text-black text-sm font-bold'>
-												Amount Pay
-											</Text>
-											<Text className='text-black text-sm'>
-												{formatNumber(item.ACTUAL_PAY)}
-											</Text>
+											<View>
+												<Text className='text-black text-sm'>Date</Text>
+											</View>
+											<View>
+												<Text className='text-black text-sm font-bold'>
+													{formatDateString(item.TRANS_DATETIME)}
+												</Text>
+											</View>
 										</View>
 
 										<View
@@ -172,27 +202,36 @@ const DetailedSummary = ({ navigation }) => {
 
 										<View className='flex-row items-center justify-between'>
 											<View>
-												<Text className='text-black text-sm font-bold'>
-													Transaction ID
-												</Text>
+												<Text className='text-black text-sm'>Client ID</Text>
 											</View>
 											<View>
-												<Text className='text-black text-sm'>
-													{item.TRANSID}
+												<Text className='text-black text-sm font-bold'>
+													{item.CLIENTID}
 												</Text>
 											</View>
 										</View>
+
 										<View className='flex-row items-center justify-between'>
-											<View>
-												<Text className='text-black text-sm font-bold'>
-													Reference No.
-												</Text>
-											</View>
-											<View>
-												<Text className='text-black text-sm'>
-													{item.TRANS_REFNO}
-												</Text>
-											</View>
+											<Text className='text-black text-sm'>Client Name</Text>
+											<Text className='text-black text-sm font-bold'>
+												{item.CLIENT_NAME}
+											</Text>
+										</View>
+
+										<View className='flex-row items-center justify-between'>
+											<Text className='text-black text-sm'>Amount Paid</Text>
+											<Text className='text-black text-sm font-bold'>
+												{amntPaid}
+											</Text>
+										</View>
+
+										<View className='flex-row items-center justify-between'>
+											<Text className='text-black text-sm'>
+												Type of Payment
+											</Text>
+											<Text className='text-black text-sm font-bold'>
+												{item.TYPE_OF_PAYMENT}
+											</Text>
 										</View>
 									</View>
 								</Shadow>

@@ -18,6 +18,8 @@ const saveHistory = async (item) => {
 					CLIENTID: transaction.CLIENTID,
 					CLIENT_NAME: transaction.CLIENT_NAME,
 					ACTUAL_PAY: transaction.ACTUAL_PAY,
+					TYPE_OF_PAYMENT: transaction.TYPE_OF_PAYMENT,
+					TRANS_DATETIME: transaction.TRANS_DATETIME,
 				}
 				console.log(JSON.stringify(collectionReport, null, 2))
 				realm.create(

@@ -71,8 +71,6 @@ const OtherSLScreen = ({ navigation, route }) => {
 		}))
 	}
 
-	console.log('inputAmounts: ', inputAmounts)
-
 	const handleInputChange = (refTarget, id, name, value) => {
 		const collection = item.collections.find((c) => c.REF_TARGET === refTarget)
 
@@ -148,8 +146,8 @@ const OtherSLScreen = ({ navigation, route }) => {
 				checkBox={!!checkboxChecked[index]}
 				editable={!!checkboxChecked[index]}
 				setCheckboxChecked={setCheckboxChecked}
-				isActive={isCollapsed[index] ? 'angle-down' : 'angle-up'}
-				enableTooltip={true}
+				// isActive={isCollapsed[index] ? 'angle-down' : 'angle-up'}
+				// enableTooltip={true}
 				toggleAccordion={() => handleAccordionToggle(index)}
 				isCollapsed={isCollapsed[index]}
 				principal={formatNumber(item.PRINDUE)}
@@ -164,69 +162,13 @@ const OtherSLScreen = ({ navigation, route }) => {
 		<SafeAreaView
 			style={[BaseStyle.safeAreaView, { flex: 1 }]}
 			edges={['right', 'top', 'left']}>
-			<Search
-				title={'Other SL Account'}
-				value={search}
-				onChangeText={(val) => {
-					setSearch(val)
-					// handleSearch(val)
-				}}
-				clearStatus={true ? clearSearch : false}
-			/>
-
-			{/* <ScrollView
-				contentContainerStyle={styles.container}
-				showsHorizontalScrollIndicator={false}
-				showsVerticalScrollIndicator={false}>
-				<View key={item.id}>
-					<View style={styles.specifications}>
-						{item &&
-							item.collections &&
-							item.collections
-								.filter((collection) => collection.is_default === 0)
-								.map((collection, index) => {
-									const a = parseFloat(collection.PRINDUE)
-									const b = parseFloat(collection.INTDUE)
-									const c = parseFloat(collection.PENDUE)
-
-									const total = a + b + c
-									const formatNumber = (number) => {
-										return number
-											.toString()
-											.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-									}
-
-									return (
-										<CardReport02
-											key={index}
-											index={index}
-											style={{ flex: 1, width: width - 30, marginVertical: 10 }}
-											title={collection.SLDESCR}
-											description={collection.REF_TARGET}
-											placeholder='0.00'
-											checkedBoxLabel='Amount'
-											value={inputAmounts[collection.REF_TARGET]?.SLDESCR || ''}
-											onChangeText={(val) =>
-												handleInputChange(collection.REF_TARGET, 'SLDESCR', val)
-											}
-											checkBoxEnabled={true}
-											checkBox={!!checkboxChecked[index]}
-											editable={!!checkboxChecked[index]}
-											setCheckboxChecked={setCheckboxChecked}
-											isActive={isCollapsed[index] ? 'angle-down' : 'angle-up'}
-											enableTooltip={true}
-											toggleAccordion={() => handleAccordionToggle(index)}
-											isCollapsed={isCollapsed[index]}
-											principal={formatNumber(collection.PRINDUE)}
-											interest={formatNumber(collection.INTDUE)}
-											penalty={formatNumber(collection.PENDUE)}
-											total={formatNumber(total.toFixed(2))}
-										/>
-									)
-								})}
-					</View>
-				</View>
-			</ScrollView> */}
+			<View className='px-2 mt-1'>
+				<Text
+					numberOfLines={1}
+					className='text-black dark:text-white text-lg font-bold'>
+					Other SL Account
+				</Text>
+			</View>
 
 			<FlashList
 				data={

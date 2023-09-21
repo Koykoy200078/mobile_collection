@@ -93,6 +93,8 @@ export const collectionReportSchema = {
 		CLIENTID: { type: 'int' },
 		CLIENT_NAME: { type: 'string' },
 		ACTUAL_PAY: { type: 'string' },
+		TYPE_OF_PAYMENT: { type: 'string' },
+		TRANS_DATETIME: { type: 'string' },
 	},
 }
 
