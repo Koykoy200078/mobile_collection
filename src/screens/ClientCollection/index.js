@@ -20,8 +20,10 @@ import { FlashList } from '@shopify/flash-list'
 import { useFocusEffect } from '@react-navigation/native'
 
 import { FloatingAction } from 'react-native-floating-action'
+import { showError, showInfo } from '../../app/components/AlertMessage'
 
 const ClientCollection = ({ navigation }) => {
+	const auth = useSelector((state) => state.auth.authData)
 	const realm = new Realm(databaseOptions)
 	const { colors } = useTheme()
 	const [search, setSearch] = useState('')
@@ -93,12 +95,14 @@ const ClientCollection = ({ navigation }) => {
 				{
 					text: 'YES',
 					onPress: async () => {
-						dispatch(
-							getDetails({
-								branchid: 0,
-								collectorid: 1,
-							})
-						)
+						if (auth && auth.data) {
+							dispatch(
+								getDetails({
+									branchid: auth.data.branchid,
+									collectorid: auth.data.collector,
+								})
+							)
+						}
 					},
 				},
 			]
@@ -136,12 +140,19 @@ const ClientCollection = ({ navigation }) => {
 								realm.create(Client, clientData, Realm.UpdateMode.Modified)
 							})
 						})
-						Alert.alert('Success', 'Data saved successfully!')
+						showInfo({
+							message: 'Operation Successful',
+							description: 'Your data has been saved successfully.',
+						})
 						dispatch(resetGetDetails())
 
 						showData()
 					} catch (error) {
-						Alert.alert('Error', 'Error saving data!')
+						showError({
+							message: 'Error: Data Save Failed',
+							description:
+								'There was an issue while attempting to save the data. An error occurred in the API.',
+						})
 						console.error(error)
 					}
 				},

@@ -23,10 +23,11 @@ import { Shadow } from 'react-native-shadow-2'
 import { isDeviceSupported } from '../../app/config/DeviceSupport'
 import DeviceInfo from 'react-native-device-info'
 import { showError } from '../../app/components/AlertMessage'
+import { useSelector } from 'react-redux'
 
 const PrintOutScreen = ({ navigation, route }) => {
 	const { width, height } = useWindowDimensions()
-
+	const auth = useSelector((state) => state.auth.authData)
 	const [printers, setPrinters] = useState([])
 	const [currentPrinter, setCurrentPrinter] = useState(null) // Initialize as null
 	const [isPrinterConnected, setIsPrinterConnected] = useState(false) // Add state for connection status
@@ -67,27 +68,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 
 	const formattedDate = `${day} ${monthNames[monthIndex]} ${year}, ${formattedHour}:${formattedMinute} ${ampm}`
 
-	// Function to generate a random number within a range
-	const getRandomNumber = (min, max) => {
-		return Math.floor(Math.random() * (max - min + 1) + min)
-	}
-
-	// Generate random Receipt No.
-	const receiptNo = getRandomNumber(1000, 9999)
-
-	// Generate random Reference ID
-	const referenceID = getRandomNumber(100000000000, 999999999999)
-
-	const { name, allData, inputAmounts, ID, total } = route.params
-
-	const Fullname = [
-		allData.LName.trim() ? `${allData.LName},` : '',
-		allData.FName.trim() ? allData.FName : '',
-		allData.MName,
-		allData.SName,
-	]
-		.filter(Boolean)
-		.join(' ')
+	const { getName, allData, inputAmounts, refNo, total } = route.params
 
 	useEffect(() => {
 		if (Platform.OS === 'android') {
@@ -131,80 +112,42 @@ const PrintOutScreen = ({ navigation, route }) => {
 		maximumFractionDigits: 2,
 	})
 
-	const filteredData =
-		allData && allData.collections.find((item) => item.ID === item.ID)
+	const renderedItem = allData.collections.map((collection) => {
+		const matchingInputAmount = inputAmounts[collection.ID]
 
-	const renderedItem = Object.keys(inputAmounts)
-		.map((refNo) => {
-			const { REF_TARGET, AMOUNT } = inputAmounts[refNo]
-			const matchingItem = allData.collections.find(
-				(item) => item.REF_TARGET === refNo
-			)
-
-			const matchingItemID = allData.collections.find((item) => item.ID === ID)
-
-			// if (!matchingItem) {
-			// 	return null // Skip if there is no matching item in the API data
-			// }
-
-			// if (!matchingItemID) {
-			// 	return null // Skip if there is no matching item in the API data
-			// }
-
-			if (!AMOUNT) {
-				return null // Skip if name is missing or both deposit and share capital are empty
-			}
-
-			// Generate the HTML markup for each item
-			let itemHTML = ''
-			let name = matchingItemID ? matchingItemID.SLDESCR : matchingItem.SLDESCR
-			let ref_target = matchingItemID
-				? matchingItemID.REF_TARGET
-				: matchingItem.REF_TARGET
+		if (matchingInputAmount) {
+			const { AMOUNT } = matchingInputAmount
 
 			if (AMOUNT) {
-				let sldescr = parseFloat(AMOUNT).toLocaleString('en-US', {
+				let getAMNT = parseFloat(AMOUNT).toLocaleString('en-US', {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2,
 				})
-				itemHTML += `${name}\n${ref_target}\nAmount Paid          ${sldescr}\n\n`
+				return `${collection.SLDESCR}\n${collection.REF_TARGET}\nAmount Paid          ${getAMNT}\n\n`
 			}
+		}
+	})
 
-			return itemHTML
-		})
-		.filter(Boolean)
-		.join('')
+	// Join the renderedItems array with line breaks to create a single string
+	const renderedText = renderedItem.join('')
 
-	// RenderData
-	const renderData = Object.keys(inputAmounts)
-		.map((refNo) => {
-			const { AMOUNT } = inputAmounts[refNo]
-			const matchingItem = allData.collections.find(
-				(item) => item.REF_TARGET.toString() === refNo.toString()
-			)
+	const renderedData = allData.collections.map((collection) => {
+		const matchingInputAmount = inputAmounts[collection.ID]
 
-			const matchingItemID = allData.collections.find((item) => item.ID === ID)
+		if (matchingInputAmount) {
+			const { AMOUNT } = matchingInputAmount
 
-			if (!AMOUNT) {
-				return null
-			}
-
-			let name = matchingItemID ? matchingItemID.SLDESCR : matchingItem.SLDESCR
-			let ref_target = matchingItemID
-				? matchingItemID.REF_TARGET
-				: matchingItem.REF_TARGET
-
-			const ref_targetAmount = parseFloat(AMOUNT).toLocaleString('en-US', {
+			let getAMNT = parseFloat(AMOUNT).toLocaleString('en-US', {
 				minimumFractionDigits: 2,
 				maximumFractionDigits: 2,
 			})
 
 			return (
-				<View key={refNo} className='items-start'>
+				<View key={collection.ID} className='items-start'>
 					<Text
 						className='text-center text-base font-bold'
 						style={{ color: '#000' }}>
-						{name}
+						{collection.SLDESCR}
 					</Text>
 					<View style={{ flexDirection: 'row' }}>
 						<View style={{ width: '50%' }}>
@@ -219,7 +162,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 									flexShrink: 1,
 									color: '#000',
 								}}>
-								{ref_target}
+								{collection.REF_TARGET}
 							</Text>
 						</View>
 					</View>
@@ -237,30 +180,36 @@ const PrintOutScreen = ({ navigation, route }) => {
 									flexShrink: 1,
 									color: '#000',
 								}}>
-								{ref_targetAmount}
+								{getAMNT}
 							</Text>
 						</View>
 					</View>
 				</View>
 			)
-		})
-		.filter(Boolean)
+		} else {
+			return null // Don't render if there's no matching inputAmount
+		}
+	})
 
 	const printME = async () => {
 		try {
 			currentPrinter &&
-				BLEPrinter.printText(
-					'<C>Statement of Account</C>\n' +
+				BLEPrinter.printBill(
+					'<C> Collection Receipt</C>\n' +
 						'<C>Sacred Heart Coop</C>\n' +
 						'<C>Cruz na Daan 3008 San Rafael, Philippines</C>\n' +
 						'<C>--------------------------------</C>\n' +
-						`Account Number: ${allData.client_id}\n` +
-						`Biller Name: ${Fullname}\n` +
+						`Client No.: ${allData.client_id}\n` +
+						`Client Name: ${getName}\n` +
 						'<C>--------------------------------</C>\n' +
-						`${renderedItem}\n` +
+						`${renderedText}` +
 						`Total Paid Amount    ${totalAmount}\n` +
 						'<C>--------------------------------</C>\n' +
-						`<C>${formattedDate}</C>\n` +
+						`Ref No.: ${refNo}\n` +
+						`Date: ${formattedDate}\n` +
+						`Collected By ${
+							auth && auth.data ? auth.data.collector_desc : '...'
+						}\n` +
 						'<C>--------------------------------</C>\n' +
 						'<C>Thank you for using our service!<C>'
 				)
@@ -310,13 +259,8 @@ const PrintOutScreen = ({ navigation, route }) => {
 									Cruz na Daan 3008 San Rafael, Philippines
 								</Text>
 							</View>
-							<View className='space-y-4'>
+							<View className='space-y-2'>
 								<View className='items-start'>
-									<Text
-										className='text-center text-base font-bold'
-										style={{ color: '#000' }}>
-										BILLER
-									</Text>
 									<View style={{ flexDirection: 'row', padding: 5 }}>
 										<View style={{ width: '38%' }}>
 											<Text
@@ -325,31 +269,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 													fontWeight: 'bold',
 													color: '#000',
 												}}>
-												Account Name
-											</Text>
-										</View>
-										<View
-											style={{ width: '70%' }}
-											numberOfLines={1}
-											ellipsizeMode='tail'>
-											<Text
-												style={{
-													flexShrink: 1,
-													color: '#000',
-												}}>
-												{Fullname}
-											</Text>
-										</View>
-									</View>
-									<View style={{ flexDirection: 'row', padding: 5 }}>
-										<View style={{ width: '38%' }}>
-											<Text
-												style={{
-													flexShrink: 1,
-													fontWeight: 'bold',
-													color: '#000',
-												}}>
-												Account ID
+												Client ID
 											</Text>
 										</View>
 										<View style={{ width: '70%' }}>
@@ -361,6 +281,31 @@ const PrintOutScreen = ({ navigation, route }) => {
 													color: '#000',
 												}}>
 												{allData.client_id || 'N/A'}
+											</Text>
+										</View>
+									</View>
+
+									<View style={{ flexDirection: 'row', padding: 5 }}>
+										<View style={{ width: '38%' }}>
+											<Text
+												style={{
+													flexShrink: 1,
+													fontWeight: 'bold',
+													color: '#000',
+												}}>
+												Client Name
+											</Text>
+										</View>
+										<View
+											style={{ width: '70%' }}
+											numberOfLines={1}
+											ellipsizeMode='tail'>
+											<Text
+												style={{
+													flexShrink: 1,
+													color: '#000',
+												}}>
+												{getName}
 											</Text>
 										</View>
 									</View>
@@ -382,7 +327,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 									/>
 								</View>
 
-								{renderData}
+								{renderedData}
 
 								<View className='items-start'>
 									<Text
@@ -444,6 +389,28 @@ const PrintOutScreen = ({ navigation, route }) => {
 													fontWeight: 'bold',
 													color: '#000',
 												}}>
+												Reference No.
+											</Text>
+										</View>
+										<View>
+											<Text
+												style={{
+													flexShrink: 1,
+													color: '#000',
+												}}>
+												{refNo}
+											</Text>
+										</View>
+									</View>
+
+									<View style={{ flexDirection: 'row', padding: 5 }}>
+										<View style={{ width: '35%' }}>
+											<Text
+												style={{
+													flexShrink: 1,
+													fontWeight: 'bold',
+													color: '#000',
+												}}>
 												Date
 											</Text>
 										</View>
@@ -454,6 +421,28 @@ const PrintOutScreen = ({ navigation, route }) => {
 													color: '#000',
 												}}>
 												{formattedDate}
+											</Text>
+										</View>
+									</View>
+
+									<View style={{ flexDirection: 'row', padding: 5 }}>
+										<View style={{ width: '35%' }}>
+											<Text
+												style={{
+													flexShrink: 1,
+													fontWeight: 'bold',
+													color: '#000',
+												}}>
+												Collected By
+											</Text>
+										</View>
+										<View>
+											<Text
+												style={{
+													flexShrink: 1,
+													color: '#000',
+												}}>
+												{auth && auth.data ? auth.data.collector_desc : '...'}
 											</Text>
 										</View>
 									</View>

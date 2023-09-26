@@ -26,25 +26,34 @@ import databaseOptions, {
 } from '../../app/database/allSchemas'
 import Realm from 'realm'
 import { showInfo } from '../../app/components/AlertMessage'
+import ReferenceNo from '../../app/config/ReferenceNo'
 
 const CheckOutScreen = ({ navigation, route }) => {
 	const { width } = useWindowDimensions()
 	const { colors } = useTheme()
-	const [data, setData] = useState([])
-	const [getID, setID] = useState('')
-	const { name, allData, inputAmounts, total } = route.params
-
 	const [isCashChecked, setCashChecked] = useState(false)
 	const [isCOCIChecked, setCOCIChecked] = useState(false)
 
-	useEffect(() => {}, [
-		name,
+	const [getUpload, setGetUpload] = useState([])
+
+	const [referenceNumber, setReferenceNumber] = useState('')
+	const [lastSavedIncrement, setLastSavedIncrement] = useState(null)
+
+	const { getName, allData, inputAmounts, total } = route.params
+
+	console.log('lastSavedIncrement: ', lastSavedIncrement)
+
+	useEffect(() => {
+		checkAndShowData()
+	}, [
+		getName,
 		allData,
 		inputAmounts,
 		total,
-		data,
 		isCashChecked,
 		isCOCIChecked,
+		referenceNumber,
+		lastSavedIncrement,
 	])
 
 	const handleCashCheckBox = () => {
@@ -57,71 +66,44 @@ const CheckOutScreen = ({ navigation, route }) => {
 		setCashChecked(false)
 	}
 
-	const totalAmount = total.toLocaleString('en-US', {
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	})
+	// Function to set the reference number received from the child component
+	function handleReferenceNumber(reference) {
+		setReferenceNumber(reference)
+	}
 
-	let idToSet = ''
-	const renderedItem = Object.keys(inputAmounts)
-		.map((refNo) => {
-			const { AMOUNT } = inputAmounts[refNo]
+	const checkAndShowData = useCallback(async () => {
+		try {
+			const realm = await Realm.open(databaseOptions)
+			const uploadData = realm.objects(UploadData)
 
-			const matchingItem = allData.collections.find(
-				(item) => item.REF_TARGET === refNo
-			)
-
-			const matchingItemID = allData.collections.find(
-				(item) => item.ID === inputAmounts[refNo].ID
-			)
-
-			// Determine when to set the ID (e.g., once)
-			if (idToSet === '') {
-				idToSet = inputAmounts[refNo].ID
-				// Optionally set other state or perform other actions
-				// setOtherStateValue(someValue);
+			if (uploadData.length > 0) {
+				setGetUpload(Array.from(uploadData))
+			} else {
+				setGetUpload(0)
 			}
-
-			return (
-				<View key={refNo}>
-					{matchingItemID !== null && matchingItemID !== undefined ? (
-						<CardReport02
-							style={{ flex: 1, width: width - 30, marginVertical: 10 }}
-							title={matchingItemID.SLDESCR}
-							description={matchingItemID.REF_TARGET}
-							checkedBoxLabel='Total Amount Paid'
-							value={inputAmounts[refNo].AMOUNT}
-							editable={false}
-						/>
-					) : (
-						AMOUNT && (
-							<CardReport02
-								style={{ flex: 1, width: width - 30, marginVertical: 10 }}
-								title={matchingItem.SLDESCR}
-								description={refNo}
-								checkedBoxLabel='Total Amount Paid'
-								value={AMOUNT}
-								editable={false}
-							/>
-						)
-					)}
-				</View>
-			)
-		})
-		.filter(Boolean)
+		} catch (error) {
+			Alert.alert('Error retrieving data: ', error)
+			console.error(error)
+		}
+	}, [])
 
 	const updateData = async () => {
 		if (isCashChecked || isCOCIChecked) {
 			Alert.alert('Confirmation', 'Would you like to save the new data?', [
 				{
 					text: 'Cancel',
-					onPress: () => null,
-					style: 'cancel',
+					onPress: () => {
+						if (lastSavedIncrement !== null) {
+							// Revert to the last saved increment if available
+							setReferenceNumber(lastSavedIncrement)
+						}
+					},
 				},
 				{
 					text: 'Yes',
 					onPress: async () => {
-						await saveNewData()
+						await saveNewData(referenceNumber)
+						setLastSavedIncrement(referenceNumber)
 					},
 				},
 			])
@@ -158,90 +140,56 @@ const CheckOutScreen = ({ navigation, route }) => {
 				LName: targetClient.LName,
 				MName: targetClient.MName,
 				SName: targetClient.SName,
+				REF_NO: lastSavedIncrement ? lastSavedIncrement : referenceNumber,
 				collections: [],
 			}
 
 			targetClient.collections.forEach((collection) => {
-				const refNo = collection.REF_TARGET
-				const inputAmount = inputAmounts[refNo]
+				const inputAmount = inputAmounts[collection.ID]
 				const matchingItem = allData.collections.find(
-					(item) => item.REF_TARGET === refNo
+					(item) => item.ID === collection.ID
 				)
-
-				const matchingItemID = allData.collections.find(
-					(item) => item.ID === idToSet
-				)
-
-				console.log('matchingItemID: ', matchingItemID)
 
 				if (matchingItem && inputAmount) {
 					const amount = inputAmount.AMOUNT
 
+					// Check if the collection already exists in transformedData
 					const existingCollection = transformedData.collections.find(
-						(item) => item.REF_TARGET === refNo
-					)
-
-					const existingCollectionID = transformedData.collections.find(
 						(item) => item.ID === collection.ID
 					)
 
 					if (existingCollection) {
+						// Update the existing collection with the payment amount
 						existingCollection.ACTUAL_PAY = amount
-					} else if (existingCollectionID) {
-						existingCollectionID.ACTUAL_PAY = amount
 					} else {
-						if (matchingItemID) {
-							amount.length > 0 &&
-								transformedData.collections.push({
-									ID: collection.ID,
-									BRCODE: collection.BRCODE,
-									SLC: collection.SLC,
-									SLT: collection.SLT,
-									REF: collection.REF,
-									SLDESCR: matchingItem.SLDESCR,
-									REF_TARGET: collection.REF_TARGET,
-									REF_SOURCE: collection.REF_SOURCE,
-									PRINCIPAL: collection.PRINCIPAL,
-									BALANCE: collection.BALANCE,
-									PRINDUE: collection.PRINDUE,
-									INTDUE: collection.INTDUE,
-									PENDUE: collection.PENDUE,
-									INSDUE: collection.INSDUE,
-									TOTALDUE: collection.TOTALDUE,
-									ACTUAL_PAY: amount,
-									TOP: isCashChecked ? 'CASH' : 'COCI',
-									STATUS: 1, // 1 - Active, 4 - Cancelled, 5 - Disapproved
-									is_default: collection.is_default,
-								})
-						} else {
-							amount.length > 0 &&
-								transformedData.collections.push({
-									ID: collection.ID,
-									BRCODE: collection.BRCODE,
-									SLC: collection.SLC,
-									SLT: collection.SLT,
-									REF: collection.REF,
-									SLDESCR: matchingItem.SLDESCR,
-									REF_TARGET: collection.REF_TARGET,
-									REF_SOURCE: collection.REF_SOURCE,
-									PRINCIPAL: collection.PRINCIPAL,
-									BALANCE: collection.BALANCE,
-									PRINDUE: collection.PRINDUE,
-									INTDUE: collection.INTDUE,
-									PENDUE: collection.PENDUE,
-									INSDUE: collection.INSDUE,
-									TOTALDUE: collection.TOTALDUE,
-									ACTUAL_PAY: amount,
-									TOP: isCashChecked ? 'CASH' : 'COCI',
-									STATUS: 1, // 1 - Active, 4 - Cancelled, 5 - Disapproved
-									is_default: collection.is_default,
-								})
-						}
+						// Create a new collection entry in transformedData
+						amount.length > 0 &&
+							transformedData.collections.push({
+								ID: collection.ID,
+								BRCODE: collection.BRCODE,
+								SLC: collection.SLC,
+								SLT: collection.SLT,
+								REF: collection.REF,
+								SLDESCR: matchingItem.SLDESCR,
+								REF_TARGET: collection.REF_TARGET,
+								REF_SOURCE: collection.REF_SOURCE,
+								PRINCIPAL: collection.PRINCIPAL,
+								BALANCE: collection.BALANCE,
+								PRINDUE: collection.PRINDUE,
+								INTDUE: collection.INTDUE,
+								PENDUE: collection.PENDUE,
+								INSDUE: collection.INSDUE,
+								TOTALDUE: collection.TOTALDUE,
+								ACTUAL_PAY: amount,
+								TOP: isCashChecked ? 'CASH' : 'COCI',
+								STATUS: 1, // 1 - Active, 4 - Cancelled, 5 - Disapproved
+								is_default: collection.is_default,
+							})
 					}
 				}
 			})
 
-			// console.log(JSON.stringify(transformedData, null, 2))
+			console.log(JSON.stringify(transformedData, null, 2))
 
 			realm.write(() => {
 				realm.create(UploadData, transformedData, Realm.UpdateMode.Modified)
@@ -291,16 +239,89 @@ const CheckOutScreen = ({ navigation, route }) => {
 				Alert.alert('Error', 'An unexpected error occurred.')
 			} else {
 				navigation.navigate(ROUTES.PRINTOUT, {
-					name: name,
+					getName: getName,
 					allData: allData,
 					inputAmounts: inputAmounts,
-					ID: idToSet || '',
 					total: total,
+					refNo: lastSavedIncrement ? lastSavedIncrement : referenceNumber,
 					isSuccessful: true,
 				})
 			}
 		}
 	}
+
+	const totalAmount = total.toLocaleString('en-US', {
+		minimumFractionDigits: 2,
+		maximumFractionDigits: 2,
+	})
+
+	const renderedItem = allData.collections.map((collection) => {
+		const matchingInputAmount = inputAmounts[collection.ID]
+
+		if (matchingInputAmount && matchingInputAmount.AMOUNT.length > 0) {
+			const { AMOUNT } = matchingInputAmount
+			let getAMNT = parseFloat(AMOUNT).toLocaleString('en-US', {
+				minimumFractionDigits: 2,
+				maximumFractionDigits: 2,
+			})
+			return (
+				<View key={collection.ID}>
+					<CardReport02
+						style={{ flex: 1, width: width - 30, marginVertical: 10 }}
+						title={collection.SLDESCR}
+						description={collection.REF_TARGET}
+						checkedBoxLabel='Total Amount Paid'
+						value={getAMNT}
+						editable={false}
+					/>
+				</View>
+			)
+		} else {
+			return null // Don't render if there's no matching inputAmount
+		}
+	})
+
+	// function getCurrentDateFormatted() {
+	// 	const today = new Date()
+	// 	const year = today.getFullYear()
+	// 	const month = String(today.getMonth() + 1).padStart(2, '0')
+	// 	const day = String(today.getDate()).padStart(2, '0')
+	// 	return `${year}${month}${day}`
+	// }
+
+	// const collectorId = allData.client_id
+
+	// // Keep track of the incremental number using a variable outside the function
+	// let incrementalNumber = 1
+
+	// function generateIncrementalNumber() {
+	// 	// Generate the incremental number with leading zeros to make it 7 digits long
+	// 	const formattedIncrement = String(incrementalNumber).padStart(7, '0')
+
+	// 	// Increment the variable for the next time
+	// 	incrementalNumber++
+
+	// 	return formattedIncrement
+	// }
+
+	// // Create the reference number
+	// const currentDate = getCurrentDateFormatted()
+
+	// // Calculate the total length so far
+	// const totalLengthSoFar = currentDate.length + collectorId.length
+
+	// // Calculate the remaining length required to reach a total length of 17
+	// const remainingLength = 17 - totalLengthSoFar
+
+	// // Pad the incremental number with leading zeros to reach the desired total length
+	// const paddedIncrementalNumber = generateIncrementalNumber()
+
+	// // Create the reference number by concatenating all components
+	// const referenceNumber = `${currentDate}${collectorId}${paddedIncrementalNumber}`
+
+	// // Now, referenceNumber contains your generated reference number with a total length of 17 characters
+	// // console.log(referenceNumber)
+	// console.log('referenceNumber: ', ReferenceNo())
 
 	return (
 		<SafeAreaView
@@ -354,6 +375,7 @@ const CheckOutScreen = ({ navigation, route }) => {
 							isEnable={false}
 						/>
 					</View>
+
 					<View style={styles.specifications}>
 						<View className='space-y-2 rounded-md p-2'>
 							<Text className='text-black font-bold text-base'>
@@ -382,9 +404,18 @@ const CheckOutScreen = ({ navigation, route }) => {
 
 					<View className='p-[10]'>
 						<View style={styles.specifications}>
-							<Button full onPress={() => updateData()}>
+							<Button
+								full
+								onPress={() => {
+									updateData()
+								}}>
 								Proceed to Payment
 							</Button>
+
+							<ReferenceNo
+								onReferenceNumberChange={handleReferenceNumber}
+								collectorId={allData.client_id}
+							/>
 						</View>
 					</View>
 				</View>

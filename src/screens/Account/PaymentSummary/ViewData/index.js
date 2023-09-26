@@ -456,7 +456,6 @@ const ViewData = ({ navigation, route }) => {
 						: null
 				}}
 			/>
-
 			<FlashList
 				data={
 					item &&
@@ -486,7 +485,6 @@ const ViewData = ({ navigation, route }) => {
 				estimatedItemSize={360}
 				onScroll={handleScroll}
 			/>
-
 			{visible && (
 				<Animated.View style={floatingActionStyle}>
 					<FloatingAction
@@ -503,23 +501,60 @@ const ViewData = ({ navigation, route }) => {
 					/>
 				</Animated.View>
 			)}
+			<View
+				style={{
+					padding: 15,
+					paddingTop: 0,
+				}}>
+				<View
+					className='h-14'
+					style={{
+						marginVertical: 10,
+						flexDirection: 'column',
+						alignItems: 'flex-start',
+					}}>
+					<View
+						className='flex-row items-center justify-between'
+						style={{ width: width / 1.1 }}>
+						<View>
+							<Text className='font-bold text-black text-base'>Ref No.</Text>
+						</View>
+						<View>
+							<Text className='text-black'>{item.REF_NO}</Text>
+						</View>
+					</View>
 
-			<View style={styles.container}>
-				<View className='h-11' style={styles.specifications}>
-					<ProductSpecGrid
-						title={
-							item && item.TOP === 'COCI'
-								? 'COCI (Check and Other Cash Items)'
-								: 'CASH'
-						}
-						description={'Payment Type'}
-						isEnable={false}
-					/>
-					<ProductSpecGrid
-						title={totalDue ? formatNumber(totalDue.toFixed(2)) : '0.00'}
-						description={'Total Paid Amount'}
-						isEnable={false}
-					/>
+					<View
+						className='flex-row items-center justify-between'
+						style={{ width: width / 1.1 }}>
+						<View>
+							<Text className='font-bold text-black text-base'>
+								Payment Type
+							</Text>
+						</View>
+						<View>
+							<Text className='text-black'>
+								{item && item.TOP === 'COCI'
+									? 'COCI (Check and Other Cash Items)'
+									: 'CASH'}
+							</Text>
+						</View>
+					</View>
+
+					<View
+						className='flex-row items-center justify-between'
+						style={{ width: width / 1.1 }}>
+						<View>
+							<Text className='font-bold text-black text-base'>
+								Total Paid Amount
+							</Text>
+						</View>
+						<View>
+							<Text className='text-black'>
+								{totalDue ? formatNumber(totalDue.toFixed(2)) : '0.00'}
+							</Text>
+						</View>
+					</View>
 				</View>
 			</View>
 		</SafeAreaView>

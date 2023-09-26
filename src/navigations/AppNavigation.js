@@ -143,7 +143,7 @@ export default () => {
 			StatusBar.setBackgroundColor(isDarkMode ? 'black' : 'white', true)
 		}
 		StatusBar.setBarStyle(isDarkMode ? 'light-content' : 'dark-content', true)
-	}, [isDarkMode])
+	}, [isDarkMode, authData])
 
 	return (
 		<View style={{ flex: 1, position: 'relative' }}>

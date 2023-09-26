@@ -11,6 +11,7 @@ import { ROUTES } from '../../app/config'
 import { Project02, Text } from '../../app/components'
 import databaseOptions, {
 	Client,
+	Collection,
 	CollectionReport,
 	UploadData,
 	UploadDataCollection,
@@ -19,10 +20,11 @@ import databaseOptions, {
 import { Icons } from '../../app/config/icons'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useDispatch, useSelector } from 'react-redux'
-import { getDetails } from '../../app/reducers/batchDetails'
+import { getDetails, resetGetDetails } from '../../app/reducers/batchDetails'
 import { resetUploadData, uploadData } from '../../app/reducers/upload'
 import { showInfo } from '../../app/components/AlertMessage'
 import { Realm } from '@realm/react'
+import { resetLogin } from '../../app/reducers/auth'
 
 const Account = ({ navigation }) => {
 	const realm = new Realm(databaseOptions)
@@ -96,6 +98,41 @@ const Account = ({ navigation }) => {
 		}
 		return 0 // Default to 0 if there is no data
 	}
+
+	const deleteData = useCallback(async () => {
+		try {
+			const schemaNamesToDelete = [
+				Client,
+				Collection,
+				UploadData,
+				UploadDataCollection,
+				CollectionReport,
+				totalAmountUpload,
+			]
+
+			const realm = await Realm.open(databaseOptions) // Open the Realm database
+
+			realm.write(() => {
+				for (const schemaName of schemaNamesToDelete) {
+					const schema = realm.schema.find((s) => s.name === schemaName)
+					if (schema) {
+						realm.delete(realm.objects(schemaName))
+					}
+				}
+			})
+
+			// realm.close() // Close the Realm database
+
+			dispatch(resetLogin())
+			dispatch(resetGetDetails())
+			dispatch(resetUploadData())
+			setAmountDB([])
+
+			console.log('Data deleted successfully')
+		} catch (error) {
+			console.error(error)
+		}
+	}, [])
 
 	const deleteUpload = useCallback(async () => {
 		try {
@@ -185,12 +222,14 @@ const Account = ({ navigation }) => {
 				{
 					text: 'YES',
 					onPress: async () => {
-						dispatch(
-							getDetails({
-								branchid: 0,
-								collectorid: 1,
-							})
-						)
+						if (auth && auth.data) {
+							dispatch(
+								getDetails({
+									branchid: auth.data.branchid,
+									collectorid: auth.data.collector,
+								})
+							)
+						}
 					},
 				},
 			]
@@ -297,6 +336,17 @@ const Account = ({ navigation }) => {
 					onPress={() => navigation.navigate(ROUTES.DETAILED_SUMMARY)}
 					style={{ marginBottom: 10 }}
 				/>
+			</View>
+
+			<View style={{ width: width }}>
+				<TouchableOpacity
+					onPress={() => {
+						deleteData()
+					}}>
+					<View className='items-center justify-center'>
+						<Text className='text-sm font-bold'>LOGOUT</Text>
+					</View>
+				</TouchableOpacity>
 			</View>
 		</View>
 	)

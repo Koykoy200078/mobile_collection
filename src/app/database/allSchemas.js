@@ -1,6 +1,6 @@
 // CLIENT
 export const Client = 'Client'
-const Collection = 'Collection'
+export const Collection = 'Collection'
 
 export const ClientSchema = {
 	name: Client,
@@ -53,6 +53,7 @@ export const uploadSchema = {
 		LName: { type: 'string' },
 		MName: { type: 'string', optional: true },
 		SName: { type: 'string', optional: true },
+		REF_NO: { type: 'string' },
 		collections: { type: 'list', objectType: UploadDataCollection },
 	},
 }

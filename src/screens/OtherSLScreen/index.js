@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import {
 	View,
 	Text,
@@ -9,6 +9,7 @@ import {
 	Alert,
 	Animated,
 	TextInput,
+	Keyboard,
 } from 'react-native'
 import { useDispatch } from 'react-redux'
 import { BaseStyle, Images, ROUTES, useTheme } from '../../app/config'
@@ -18,51 +19,93 @@ import {
 	CardReport02,
 	Header,
 	ProductSpecGrid,
-	Search,
 } from '../../app/components'
 import { Icons } from '../../app/config/icons'
 import databaseOptions, { Client } from '../../app/database/allSchemas'
 import { FloatingAction } from 'react-native-floating-action'
 import { showInfo } from '../../app/components/AlertMessage'
 import { FlashList } from '@shopify/flash-list'
+import { TouchableOpacity } from 'react-native-gesture-handler'
 
 const OtherSLScreen = ({ navigation, route }) => {
 	const { width } = useWindowDimensions()
 	const { colors } = useTheme()
-	// const [item, setItem] = useState('')
-	const [search, setSearch] = useState('')
-	const [filteredClients, setFilteredClients] = useState([])
+
+	const { clientData, clientName, getInputAmounts, getTotal } = route.params
+	const item = clientData
 
 	const [isCollapsed, setIsCollapsed] = useState({})
-	const [inputAmounts, setInputAmounts] = useState({})
+	const [inputAmounts, setInputAmounts] = useState(getInputAmounts || {})
 	const [checkboxChecked, setCheckboxChecked] = useState({})
 
 	const [totalValue, setTotalValue] = useState(0)
 
-	const { clientData } = route.params
+	const [textInputFocused, setTextInputFocused] = useState(false)
 
-	const item = clientData
+	const [visible, setVisible] = useState(true)
+	const [animation, setAnimation] = useState(new Animated.Value(1))
+
+	const Fullname = useMemo(() => {
+		return [
+			clientData.LName ? `${clientData.LName},` : '',
+			clientData.FName ? clientData.FName : '',
+			clientData.MName,
+			clientData.SName,
+		]
+			.filter(Boolean)
+			.join(' ')
+	}, [clientData])
 
 	useEffect(() => {
 		calculateTotalValue()
-	}, [isCollapsed, inputAmounts, search])
+	}, [isCollapsed, inputAmounts, textInputFocused, route])
+
+	console.log('inputAmounts: ', inputAmounts)
 
 	useEffect(() => {
-		// if (route.params?.item) {
-		// 	setItem(route.params.item)
-		// }
-	}, [route])
-
-	useEffect(() => {
-		// Assuming apiData is an array of items
 		const initialIsCollapsed = {}
 		if (item && item.collections && item.collections.length > 0) {
 			item.collections.forEach((_, index) => {
-				initialIsCollapsed[index] = true // Set each item to be initially collapsed
+				initialIsCollapsed[index] = true
 			})
 		}
 		setIsCollapsed(initialIsCollapsed)
 	}, [item])
+
+	useEffect(() => {
+		const keyboardDidShowListener = Keyboard.addListener(
+			'keyboardDidShow',
+			() => {
+				if (visible) {
+					setVisible(false)
+					Animated.timing(animation, {
+						toValue: 0,
+						duration: 300,
+						useNativeDriver: false,
+					}).start()
+				}
+			}
+		)
+
+		const keyboardDidHideListener = Keyboard.addListener(
+			'keyboardDidHide',
+			() => {
+				if (!visible && !textInputFocused) {
+					setVisible(true)
+					Animated.timing(animation, {
+						toValue: 1,
+						duration: 300,
+						useNativeDriver: false,
+					}).start()
+				}
+			}
+		)
+
+		return () => {
+			keyboardDidShowListener.remove()
+			keyboardDidHideListener.remove()
+		}
+	}, [textInputFocused, visible, animation])
 
 	const handleAccordionToggle = (index) => {
 		setIsCollapsed((prevState) => ({
@@ -71,29 +114,66 @@ const OtherSLScreen = ({ navigation, route }) => {
 		}))
 	}
 
-	const handleInputChange = (refTarget, id, name, value) => {
-		const collection = item.collections.find((c) => c.REF_TARGET === refTarget)
+	const handleInputChange = (id, slc, refTarget, name, value) => {
+		const collection = item.collections.find((c) => c.ID === id)
 
-		if (collection) {
-			const balance = parseFloat(collection.TOTALDUE)
-			const inputValue = parseFloat(value)
+		if (!collection) {
+			return
+		}
 
-			if (inputValue) {
-				setInputAmounts((prevState) => ({
-					...prevState,
-					[refTarget]: {
-						...prevState[refTarget],
-						ID: id,
-						[name]: value,
-					},
-				}))
+		const balance = parseFloat(collection.TOTALDUE)
+		const inputValue = parseFloat(value)
 
-				// Update the checkboxChecked state
-				setCheckboxChecked((prevState) => ({
-					...prevState,
-					[refTarget]: !!value, // Set to true if there is a value, otherwise false
-				}))
+		const newBal = balance.toLocaleString('en-US', {
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2,
+		})
+
+		if (slc === 12 || slc === 33) {
+			if (inputValue > balance) {
+				Alert.alert(
+					'Warning',
+					`The input amount should not exceed the total due of ${newBal}`
+				)
+				return
+			} else {
+				setTextInputFocused(true)
 			}
+		} else {
+			setTextInputFocused(true)
+		}
+
+		const updatedInputAmounts = {
+			...inputAmounts,
+			[id]: {
+				...inputAmounts[id],
+				ID: id,
+				[name]: value,
+			},
+		}
+
+		const updatedCheckboxChecked = {
+			...checkboxChecked,
+			[id]: !!value,
+		}
+
+		setInputAmounts(updatedInputAmounts)
+		setCheckboxChecked(updatedCheckboxChecked)
+	}
+
+	const handleCheckout = () => {
+		if (totalAmount.trim() === '' || totalAmount !== '0.00') {
+			navigation.navigate(ROUTES.CHECKOUT, {
+				getName: Fullname,
+				allData: item,
+				inputAmounts: inputAmounts,
+				total: parseFloat(totalValue),
+			})
+		} else {
+			showInfo({
+				message: 'Input Amount',
+				description: 'Input the amount you want to pay for this collection.',
+			})
 		}
 	}
 
@@ -105,7 +185,6 @@ const OtherSLScreen = ({ navigation, route }) => {
 				total += parseFloat(value)
 			}
 		}
-
 		setTotalValue(total)
 	}
 
@@ -114,12 +193,7 @@ const OtherSLScreen = ({ navigation, route }) => {
 		maximumFractionDigits: 2,
 	})
 
-	const clearSearch = () => {
-		setSearch('')
-		setFilteredClients([])
-	}
-
-	const renderItem = ({ item, index }) => {
+	const renderItem = ({ item }) => {
 		const a = parseFloat(item.PRINDUE)
 		const b = parseFloat(item.INTDUE)
 		const c = parseFloat(item.PENDUE)
@@ -131,25 +205,32 @@ const OtherSLScreen = ({ navigation, route }) => {
 
 		return (
 			<CardReport02
-				key={index}
-				index={index}
-				style={{ flex: 1, width: width, marginVertical: 10, padding: 5 }}
+				key={item.ID}
+				index={item.ID}
+				style={{
+					flex: 1,
+					width: width - 20,
+					marginVertical: 10,
+					marginHorizontal: 10,
+				}}
 				title={item.SLDESCR}
 				description={item.REF_TARGET}
 				placeholder='0.00'
 				checkedBoxLabel='Amount'
-				value={inputAmounts[item.REF_TARGET]?.AMOUNT || ''}
-				onChangeText={(val) =>
-					handleInputChange(item.REF_TARGET, item.ID, 'AMOUNT', val)
+				value={
+					inputAmounts[item.REF_TARGET]?.AMOUNT || inputAmounts[item.ID]?.AMOUNT
 				}
+				onChangeText={(val) => {
+					handleInputChange(item.ID, item.SLC, item.REF_TARGET, 'AMOUNT', val)
+				}}
 				checkBoxEnabled={true}
-				checkBox={!!checkboxChecked[index]}
-				editable={!!checkboxChecked[index]}
+				checkBox={!!checkboxChecked[item.ID]}
+				editable={!!checkboxChecked[item.ID]}
 				setCheckboxChecked={setCheckboxChecked}
-				// isActive={isCollapsed[index] ? 'angle-down' : 'angle-up'}
-				// enableTooltip={true}
-				toggleAccordion={() => handleAccordionToggle(index)}
-				isCollapsed={isCollapsed[index]}
+				isActive={isCollapsed[item.ID] ? 'angle-down' : 'angle-up'}
+				enableTooltip={item.SLC === 12 || item.SLC === 33 ? true : false}
+				toggleAccordion={() => handleAccordionToggle(item.ID)}
+				isCollapsed={isCollapsed[item.ID]}
 				principal={formatNumber(item.PRINDUE)}
 				interest={formatNumber(item.INTDUE)}
 				penalty={formatNumber(item.PENDUE)}
@@ -162,13 +243,20 @@ const OtherSLScreen = ({ navigation, route }) => {
 		<SafeAreaView
 			style={[BaseStyle.safeAreaView, { flex: 1 }]}
 			edges={['right', 'top', 'left']}>
-			<View className='px-2 mt-1'>
-				<Text
-					numberOfLines={1}
-					className='text-black dark:text-white text-lg font-bold'>
-					Other SL Account
-				</Text>
-			</View>
+			<Header
+				title='Other SL'
+				renderLeft={() => (
+					<Icons.FontAwesome5
+						name='angle-left'
+						size={20}
+						color={colors.text}
+						enableRTL={true}
+					/>
+				)}
+				onPressLeft={() => {
+					navigation.goBack()
+				}}
+			/>
 
 			<FlashList
 				data={
@@ -195,24 +283,7 @@ const OtherSLScreen = ({ navigation, route }) => {
 				</View>
 
 				<View style={styles.buttonContainer}>
-					<Button
-						full
-						onPress={() => {
-							if (totalAmount.trim() === '' || totalAmount !== '0.00') {
-								navigation.navigate(ROUTES.CHECKOUT, {
-									name: item.Fullname,
-									allData: item,
-									inputAmounts: inputAmounts,
-									total: parseFloat(totalValue),
-								})
-							} else {
-								showInfo({
-									message: 'Input Amount',
-									description:
-										'Input the amount you want to pay for this collection.',
-								})
-							}
-						}}>
+					<Button full onPress={handleCheckout}>
 						Checkout
 					</Button>
 				</View>

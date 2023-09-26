@@ -31,8 +31,8 @@ const ViewScreen = ({ navigation, route }) => {
 	const { width } = useWindowDimensions()
 	const { colors } = useTheme()
 	const [item, setItem] = useState('')
+	const { LName, FName, MName, SName } = item
 
-	const [checkEnable, setCheckEnable] = useState(false)
 	const [isCollapsed, setIsCollapsed] = useState({})
 	const [inputAmounts, setInputAmounts] = useState({})
 	const [checkboxChecked, setCheckboxChecked] = useState({})
@@ -44,11 +44,15 @@ const ViewScreen = ({ navigation, route }) => {
 	const [visible, setVisible] = useState(true)
 	const [animation, setAnimation] = useState(new Animated.Value(1))
 
-	const [isGreaterValue, setIsGreaterValue] = useState(false)
+	const Fullname = useMemo(() => {
+		return [LName ? `${LName},` : '', FName ? FName : '', MName, SName]
+			.filter(Boolean)
+			.join(' ')
+	}, [LName, FName, MName, SName])
 
 	useEffect(() => {
 		calculateTotalValue()
-	}, [isCollapsed, inputAmounts, textInputFocused, isGreaterValue])
+	}, [isCollapsed, inputAmounts, textInputFocused])
 
 	useEffect(() => {
 		const initialIsCollapsed = {}
@@ -101,21 +105,6 @@ const ViewScreen = ({ navigation, route }) => {
 		}
 	}, [textInputFocused, visible, animation])
 
-	const actions = [
-		{
-			text: 'Other SL Accounts',
-			icon: (
-				<Icons.MaterialCommunityIcons
-					name='draw-pen'
-					size={25}
-					color='#FFFFFF'
-				/>
-			),
-			name: 'bt_SLAccounts',
-			position: 1,
-		},
-	]
-
 	const handleAccordionToggle = (index) => {
 		setIsCollapsed((prevState) => ({
 			...prevState,
@@ -123,66 +112,57 @@ const ViewScreen = ({ navigation, route }) => {
 		}))
 	}
 
-	const handleInputChange = (index, name, value) => {
-		const collection = item.collections.find((c) => c.REF_TARGET === index)
+	const handleInputChange = (id, slc, refTarget, name, value) => {
+		const collection = item.collections.find((c) => c.ID === id)
 
-		if (collection) {
-			const balance = parseFloat(collection.TOTALDUE)
-			const inputValue = parseFloat(value)
-
-			const newBal = balance.toLocaleString('en-US', {
-				minimumFractionDigits: 2,
-				maximumFractionDigits: 2,
-			})
-			if (inputValue <= balance) {
-				setIsGreaterValue(false)
-				setTextInputFocused(true)
-				setInputAmounts((prevState) => ({
-					...prevState,
-					[index]: {
-						...prevState[index],
-						[name]: value,
-					},
-				}))
-
-				// Update the checkboxChecked state
-				setCheckboxChecked((prevState) => ({
-					...prevState,
-					[index]: !!value, // Set to true if there is a value, otherwise false
-				}))
-			} else {
-				setIsGreaterValue(true)
-				setTextInputFocused(true)
-				setInputAmounts((prevState) => ({
-					...prevState,
-					[index]: {
-						...prevState[index],
-						[name]: value,
-					},
-				}))
-
-				// Update the checkboxChecked state
-				setCheckboxChecked((prevState) => ({
-					...prevState,
-					[index]: !!value, // Set to true if there is a value, otherwise false
-				}))
-			}
-		}
-	}
-
-	const handleCheckout = () => {
-		if (!isGreaterValue) {
-			showInfo({
-				message: 'Invalid Input Amount',
-				description:
-					'The total input amount should be greater than the total due amount.',
-			})
+		if (!collection) {
 			return
 		}
 
+		const balance = parseFloat(collection.TOTALDUE)
+		const inputValue = parseFloat(value)
+
+		const newBal = balance.toLocaleString('en-US', {
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2,
+		})
+
+		if (slc === 12 || slc === 33) {
+			if (inputValue > balance) {
+				Alert.alert(
+					'Warning',
+					`The input amount should not exceed the total due of ${newBal}`
+				)
+				return
+			} else {
+				setTextInputFocused(true)
+			}
+		} else {
+			setTextInputFocused(true)
+		}
+
+		const updatedInputAmounts = {
+			...inputAmounts,
+			[id]: {
+				...inputAmounts[id],
+				ID: id,
+				[name]: value,
+			},
+		}
+
+		const updatedCheckboxChecked = {
+			...checkboxChecked,
+			[id]: !!value,
+		}
+
+		setInputAmounts(updatedInputAmounts)
+		setCheckboxChecked(updatedCheckboxChecked)
+	}
+
+	const handleCheckout = () => {
 		if (totalAmount.trim() === '' || totalAmount !== '0.00') {
 			navigation.navigate(ROUTES.CHECKOUT, {
-				name: item.Fullname,
+				getName: Fullname,
 				allData: item,
 				inputAmounts: inputAmounts,
 				total: parseFloat(totalValue),
@@ -197,40 +177,21 @@ const ViewScreen = ({ navigation, route }) => {
 
 	const calculateTotalValue = () => {
 		let total = 0
-		Object.values(inputAmounts).forEach((values) => {
-			Object.values(values).forEach((value) => {
-				if (value) {
-					total += parseFloat(value)
-				}
-			})
-		})
+		for (const refTarget in inputAmounts) {
+			const value = inputAmounts[refTarget].AMOUNT
+			if (value) {
+				total += parseFloat(value)
+			}
+		}
 		setTotalValue(total)
 	}
 
-	const totalAmount = useMemo(() => {
-		let total = 0
-		Object.values(inputAmounts).forEach((values) => {
-			Object.values(values).forEach((value) => {
-				if (value) {
-					total += parseFloat(value)
-				}
-			})
-		})
-		return total.toLocaleString('en-US', {
-			minimumFractionDigits: 2,
-			maximumFractionDigits: 2,
-		})
-	}, [inputAmounts])
+	const totalAmount = totalValue.toLocaleString('en-US', {
+		minimumFractionDigits: 2,
+		maximumFractionDigits: 2,
+	})
 
-	const { LName, FName, MName, SName } = item
-
-	const Fullname = useMemo(() => {
-		return [LName ? `${LName},` : '', FName ? FName : '', MName, SName]
-			.filter(Boolean)
-			.join(' ')
-	}, [LName, FName, MName, SName])
-
-	const renderItem = ({ item, index }) => {
+	const renderItem = ({ item }) => {
 		const a = parseFloat(item.PRINDUE)
 		const b = parseFloat(item.INTDUE)
 		const c = parseFloat(item.PENDUE)
@@ -242,8 +203,8 @@ const ViewScreen = ({ navigation, route }) => {
 
 		return (
 			<CardReport02
-				key={index}
-				index={index}
+				key={item.ID}
+				index={item.ID}
 				style={{
 					flex: 1,
 					width: width - 20,
@@ -254,18 +215,20 @@ const ViewScreen = ({ navigation, route }) => {
 				description={item.REF_TARGET}
 				placeholder='0.00'
 				checkedBoxLabel='Amount'
-				value={inputAmounts[item.REF_TARGET]?.AMOUNT || ''}
+				value={
+					inputAmounts[item.REF_TARGET]?.AMOUNT || inputAmounts[item.ID]?.AMOUNT
+				}
 				onChangeText={(val) => {
-					handleInputChange(item.REF_TARGET, 'AMOUNT', val)
+					handleInputChange(item.ID, item.SLC, item.REF_TARGET, 'AMOUNT', val)
 				}}
 				checkBoxEnabled={true}
-				checkBox={!!checkboxChecked[index]}
-				editable={!!checkboxChecked[index]}
+				checkBox={!!checkboxChecked[item.ID]}
+				editable={!!checkboxChecked[item.ID]}
 				setCheckboxChecked={setCheckboxChecked}
-				isActive={isCollapsed[index] ? 'angle-down' : 'angle-up'}
-				enableTooltip={true}
-				toggleAccordion={() => handleAccordionToggle(index)}
-				isCollapsed={isCollapsed[index]}
+				isActive={isCollapsed[item.ID] ? 'angle-down' : 'angle-up'}
+				enableTooltip={item.SLC === 12 || item.SLC === 33 ? true : false}
+				toggleAccordion={() => handleAccordionToggle(item.ID)}
+				isCollapsed={isCollapsed[item.ID]}
 				principal={formatNumber(item.PRINDUE)}
 				interest={formatNumber(item.INTDUE)}
 				penalty={formatNumber(item.PENDUE)}
@@ -297,6 +260,9 @@ const ViewScreen = ({ navigation, route }) => {
 							onPress={() =>
 								navigation.navigate(ROUTES.OTHERSLSCREEN, {
 									clientData: item,
+									clientName: Fullname,
+									getInputAmounts: inputAmounts,
+									getTotal: parseFloat(totalValue),
 								})
 							}>
 							<View className='items-center justify-center flex-row'>
