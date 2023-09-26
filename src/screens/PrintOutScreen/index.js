@@ -49,18 +49,18 @@ const PrintOutScreen = ({ navigation, route }) => {
 	const ampm = hour >= 12 ? 'PM' : 'AM'
 
 	const monthNames = [
-		'January',
-		'February',
-		'March',
-		'April',
+		'Jan',
+		'Feb',
+		'Mar',
+		'Apr',
 		'May',
-		'June',
-		'July',
-		'August',
-		'September',
-		'October',
-		'November',
-		'December',
+		'Jun',
+		'Jul',
+		'Aug',
+		'Sept',
+		'Oct',
+		'Nov',
+		'Dec',
 	]
 
 	const formattedHour = hour % 12 === 0 ? 12 : hour % 12 // Convert hour to 12-hour format
@@ -207,7 +207,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 						'<C>--------------------------------</C>\n' +
 						`Ref No.: ${refNo}\n` +
 						`Date: ${formattedDate}\n` +
-						`Collected By ${
+						`Collected by ${
 							auth && auth.data ? auth.data.collector_desc : '...'
 						}\n` +
 						'<C>--------------------------------</C>\n' +
