@@ -272,13 +272,13 @@ const CheckOutScreen = ({ navigation, route }) => {
 				}
 			})
 
-			console.log(JSON.stringify(transformedData, null, 2))
+			// console.log(JSON.stringify(transformedData, null, 2))
 
-			// realm.write(() => {
-			// 	realm.create(UploadData, transformedData, Realm.UpdateMode.Modified)
-			// })
+			realm.write(() => {
+				realm.create(UploadData, transformedData, Realm.UpdateMode.Modified)
+			})
 
-			// transactionData()
+			transactionData()
 		} catch (error) {
 			Alert.alert(
 				'Error',
