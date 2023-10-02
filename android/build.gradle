@@ -10,9 +10,10 @@ buildscript {
         versionCode = 9
         versionName = "1.0.49"
         // We use NDK 23 which has both M1 support and is the side-by-side NDK version from AGP.
-        ndkVersion = "23.1.7779620"
+        ndkVersion =  "26.0.10792818" // "23.1.7779620"
         kotlinVersion = "1.9.10" // "1.8.22"
     }
+
     repositories {
         google()
         mavenCentral()

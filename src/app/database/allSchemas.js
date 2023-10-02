@@ -42,6 +42,7 @@ export const CollectionSchema = {
 // UPLOAD
 export const UploadData = 'UploadData'
 export const UploadDataCollection = 'UploadDataCollection'
+export const UploadTOP = 'UploadTypeOfPayment'
 
 export const uploadSchema = {
 	name: UploadData,
@@ -76,9 +77,22 @@ export const uploadDataCollection = {
 		INSDUE: { type: 'string' },
 		TOTALDUE: { type: 'string' },
 		ACTUAL_PAY: { type: 'string' },
-		TOP: { type: 'string' },
+		TOP: { type: 'list', objectType: UploadTOP },
 		STATUS: { type: 'int' }, // 1 - Active, 4 - Cancelled, 5 - Disapproved
 		is_default: { type: 'int' },
+	},
+}
+
+export const topSchema = {
+	name: UploadTOP,
+	properties: {
+		TYPE: 'string',
+		AMOUNT: 'string',
+		CHECK_NUMBER: { type: 'int', optional: true },
+		BANK_CODE: { type: 'string', optional: true },
+		CHECK_TYPE: { type: 'string', optional: true },
+		CLEARING_DAYS: { type: 'string', optional: true },
+		DATE_OF_CHECK: { type: 'string', optional: true },
 	},
 }
 
@@ -113,6 +127,7 @@ const allSchema = [
 	CollectionSchema,
 	uploadSchema,
 	uploadDataCollection,
+	topSchema,
 	collectionReportSchema,
 	lastAmountSchema,
 ]

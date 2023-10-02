@@ -16,7 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { BaseStyle, ROUTES, useTheme } from '../../app/config'
 import { Icons } from '../../app/config/icons'
-import { ScrollView } from 'react-native-gesture-handler'
+import { ScrollView, TextInput } from 'react-native-gesture-handler'
 import styles from './styles'
 import databaseOptions, {
 	Client,
@@ -28,20 +28,41 @@ import Realm from 'realm'
 import { showInfo } from '../../app/components/AlertMessage'
 import ReferenceNo from '../../app/config/ReferenceNo'
 
+import { Dropdown } from 'react-native-element-dropdown'
+import DatePicker from 'react-native-date-picker'
+
 const CheckOutScreen = ({ navigation, route }) => {
 	const { width } = useWindowDimensions()
 	const { colors } = useTheme()
 	const [isCashChecked, setCashChecked] = useState(false)
 	const [isCOCIChecked, setCOCIChecked] = useState(false)
+	const [checkNumber, setCheckNumber] = useState('')
+	const [bankCode, setBankCode] = useState('')
+	const [checkType, setCheckType] = useState('')
+	const [clearingDays, setClearingDays] = useState('')
+
+	const [dateOfCheck, setDateOfCheck] = useState('')
+	const [open, setOpen] = useState(false)
 
 	const [getUpload, setGetUpload] = useState([])
 
 	const [referenceNumber, setReferenceNumber] = useState('')
 	const [lastSavedIncrement, setLastSavedIncrement] = useState(null)
 
+	// Calculate today's date
+	const today = new Date()
+	today.setHours(0, 0, 0, 0)
+
 	const { getName, allData, inputAmounts, total } = route.params
 
-	console.log('lastSavedIncrement: ', lastSavedIncrement)
+	const data = [
+		{ ChkTypeID: '1', ChkTypeDesc: 'Local', ChkTypeDays: '2' },
+		{ ChkTypeID: '2', ChkTypeDesc: 'Regional', ChkTypeDays: '7' },
+		{ ChkTypeID: '3', ChkTypeDesc: 'Out of Town', ChkTypeDays: '15' },
+		{ ChkTypeID: '4', ChkTypeDesc: 'Foreign', ChkTypeDays: '45' },
+		{ ChkTypeID: '5', ChkTypeDesc: 'On Us', ChkTypeDays: '0' },
+		{ ChkTypeID: '6', ChkTypeDesc: 'Good Check', ChkTypeDays: '0' },
+	]
 
 	useEffect(() => {
 		checkAndShowData()
@@ -54,7 +75,18 @@ const CheckOutScreen = ({ navigation, route }) => {
 		isCOCIChecked,
 		referenceNumber,
 		lastSavedIncrement,
+
+		checkNumber,
+		bankCode,
+		checkType,
+		clearingDays,
+		dateOfCheck,
 	])
+
+	const formatDate = (date) => {
+		const options = { year: 'numeric', month: '2-digit', day: '2-digit' }
+		return date.toLocaleDateString(undefined, options)
+	}
 
 	const handleCashCheckBox = () => {
 		setCashChecked(true) // Toggle the value
@@ -89,24 +121,58 @@ const CheckOutScreen = ({ navigation, route }) => {
 
 	const updateData = async () => {
 		if (isCashChecked || isCOCIChecked) {
-			Alert.alert('Confirmation', 'Would you like to save the new data?', [
-				{
-					text: 'Cancel',
-					onPress: () => {
-						if (lastSavedIncrement !== null) {
-							// Revert to the last saved increment if available
-							setReferenceNumber(lastSavedIncrement)
-						}
+			if (isCOCIChecked) {
+				if (
+					checkNumber.length > 0 &&
+					bankCode.length > 0 &&
+					checkType.length > 0 &&
+					clearingDays.length > 0 &&
+					dateOfCheck.length > 0
+				) {
+					Alert.alert('Confirmation', 'Would you like to save the new data?', [
+						{
+							text: 'Cancel',
+							onPress: () => {
+								if (lastSavedIncrement !== null) {
+									// Revert to the last saved increment if available
+									setReferenceNumber(lastSavedIncrement)
+								}
+							},
+						},
+						{
+							text: 'Yes',
+							onPress: async () => {
+								await saveNewData(referenceNumber)
+								setLastSavedIncrement(referenceNumber)
+							},
+						},
+					])
+				} else {
+					showInfo({
+						message: 'COCI',
+						description: 'Please complete the COCI details.',
+					})
+				}
+			} else if (isCashChecked) {
+				Alert.alert('Confirmation', 'Would you like to save the new data?', [
+					{
+						text: 'Cancel',
+						onPress: () => {
+							if (lastSavedIncrement !== null) {
+								// Revert to the last saved increment if available
+								setReferenceNumber(lastSavedIncrement)
+							}
+						},
 					},
-				},
-				{
-					text: 'Yes',
-					onPress: async () => {
-						await saveNewData(referenceNumber)
-						setLastSavedIncrement(referenceNumber)
+					{
+						text: 'Yes',
+						onPress: async () => {
+							await saveNewData(referenceNumber)
+							setLastSavedIncrement(referenceNumber)
+						},
 					},
-				},
-			])
+				])
+			}
 		} else {
 			showInfo({
 				message: 'Type of Payment',
@@ -181,7 +247,24 @@ const CheckOutScreen = ({ navigation, route }) => {
 								INSDUE: collection.INSDUE,
 								TOTALDUE: collection.TOTALDUE,
 								ACTUAL_PAY: amount,
-								TOP: isCashChecked ? 'CASH' : 'COCI',
+								TOP: isCashChecked
+									? [
+											{
+												TYPE: 'CASH',
+												AMOUNT: amount,
+											},
+									  ]
+									: [
+											{
+												TYPE: 'CHECK',
+												AMOUNT: amount,
+												CHECK_NUMBER: parseInt(checkNumber),
+												BANK_CODE: bankCode,
+												CHECK_TYPE: checkType,
+												CLEARING_DAYS: clearingDays,
+												DATE_OF_CHECK: dateOfCheck,
+											},
+									  ],
 								STATUS: 1, // 1 - Active, 4 - Cancelled, 5 - Disapproved
 								is_default: collection.is_default,
 							})
@@ -191,11 +274,11 @@ const CheckOutScreen = ({ navigation, route }) => {
 
 			console.log(JSON.stringify(transformedData, null, 2))
 
-			realm.write(() => {
-				realm.create(UploadData, transformedData, Realm.UpdateMode.Modified)
-			})
+			// realm.write(() => {
+			// 	realm.create(UploadData, transformedData, Realm.UpdateMode.Modified)
+			// })
 
-			transactionData()
+			// transactionData()
 		} catch (error) {
 			Alert.alert(
 				'Error',
@@ -277,51 +360,9 @@ const CheckOutScreen = ({ navigation, route }) => {
 				</View>
 			)
 		} else {
-			return null // Don't render if there's no matching inputAmount
+			return null
 		}
 	})
-
-	// function getCurrentDateFormatted() {
-	// 	const today = new Date()
-	// 	const year = today.getFullYear()
-	// 	const month = String(today.getMonth() + 1).padStart(2, '0')
-	// 	const day = String(today.getDate()).padStart(2, '0')
-	// 	return `${year}${month}${day}`
-	// }
-
-	// const collectorId = allData.client_id
-
-	// // Keep track of the incremental number using a variable outside the function
-	// let incrementalNumber = 1
-
-	// function generateIncrementalNumber() {
-	// 	// Generate the incremental number with leading zeros to make it 7 digits long
-	// 	const formattedIncrement = String(incrementalNumber).padStart(7, '0')
-
-	// 	// Increment the variable for the next time
-	// 	incrementalNumber++
-
-	// 	return formattedIncrement
-	// }
-
-	// // Create the reference number
-	// const currentDate = getCurrentDateFormatted()
-
-	// // Calculate the total length so far
-	// const totalLengthSoFar = currentDate.length + collectorId.length
-
-	// // Calculate the remaining length required to reach a total length of 17
-	// const remainingLength = 17 - totalLengthSoFar
-
-	// // Pad the incremental number with leading zeros to reach the desired total length
-	// const paddedIncrementalNumber = generateIncrementalNumber()
-
-	// // Create the reference number by concatenating all components
-	// const referenceNumber = `${currentDate}${collectorId}${paddedIncrementalNumber}`
-
-	// // Now, referenceNumber contains your generated reference number with a total length of 17 characters
-	// // console.log(referenceNumber)
-	// console.log('referenceNumber: ', ReferenceNo())
 
 	return (
 		<SafeAreaView
@@ -398,6 +439,87 @@ const CheckOutScreen = ({ navigation, route }) => {
 									style={{ flex: 1 }}
 									onPress={handleCOCICheckBox}
 								/>
+
+								{isCOCIChecked && (
+									<View className='mt-2'>
+										<Text className='text-black font-bold text-base'>
+											Check Number:
+										</Text>
+										<TextInput
+											placeholder='Enter check number'
+											keyboardType='numeric'
+											onChangeText={(text) => setCheckNumber(text)}
+										/>
+
+										<Text className='text-black font-bold text-base'>
+											Bank Code:
+										</Text>
+										<TextInput
+											placeholder='Enter bank code'
+											onChangeText={(text) => setBankCode(text)}
+										/>
+
+										<Text className='text-black font-bold text-base'>
+											Check Type:
+										</Text>
+										<Dropdown
+											data={data}
+											placeholder='--- Select Check Type ---'
+											value={checkType}
+											labelField='ChkTypeDesc'
+											valueField='ChkTypeID'
+											maxHeight={100}
+											onChange={(item) => {
+												setCheckType(item.ChkTypeID)
+											}}
+										/>
+
+										<Text className='text-black font-bold text-base'>
+											Clearing Days:
+										</Text>
+										<Dropdown
+											data={data}
+											placeholder='--- Select Clearing Days ---'
+											value={clearingDays}
+											labelField='ChkTypeDays'
+											valueField='ChkTypeDays'
+											maxHeight={100}
+											onChange={(item) => {
+												setClearingDays(item.ChkTypeDays)
+											}}
+										/>
+
+										<Text className='text-black font-bold text-base'>
+											Date of Check:
+										</Text>
+										<TouchableOpacity onPress={() => setOpen(true)}>
+											<View>
+												{dateOfCheck.length > 0 ? (
+													<Text>{dateOfCheck}</Text>
+												) : (
+													<Text className='text-base'>--- Select date ---</Text>
+												)}
+											</View>
+										</TouchableOpacity>
+
+										<DatePicker
+											modal
+											mode='date'
+											theme='auto'
+											open={open}
+											date={today}
+											maximumDate={today}
+											onConfirm={(selectedDate) => {
+												setOpen(false)
+												// setDate(selectedDate)
+												setDateOfCheck(formatDate(selectedDate))
+											}}
+											onCancel={() => {
+												setOpen(false)
+											}}
+										/>
+									</View>
+								)}
 							</View>
 						</View>
 					</View>
