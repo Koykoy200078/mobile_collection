@@ -35,6 +35,7 @@ export const CollectionSchema = {
 		PENDUE: { type: 'string' },
 		INSDUE: { type: 'string' },
 		TOTALDUE: { type: 'string' },
+		trans_datetime: { type: 'string' },
 		is_default: { type: 'int' },
 	},
 }
@@ -105,6 +106,9 @@ export const collectionReportSchema = {
 	properties: {
 		TRANSID: { type: 'int' },
 		TRANS_REFNO: { type: 'string' },
+		DSHBRD_REFNO: { type: 'string' },
+		REF_TARGET: { type: 'string' },
+		REF_SOURCE: { type: 'string' },
 		CLIENTID: { type: 'int' },
 		CLIENT_NAME: { type: 'string' },
 		ACTUAL_PAY: { type: 'string' },

@@ -18,7 +18,7 @@ export function* getBatchDetails(payload) {
 		}
 		const response = yield fetch(
 			BASE_URL +
-				`/mobile-api/collector/collection/batch-details?branchid=${branchid}&collectorid=${collectorid}`, // &clientid=${clientid}&slclass=${slclass}
+				`/dashboard/download/collection/details?branchid=${branchid}&collectorid=${collectorid}`, // &clientid=${clientid}&slclass=${slclass}
 			options
 		)
 		const data = yield response.json()

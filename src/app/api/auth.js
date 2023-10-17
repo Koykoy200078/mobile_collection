@@ -1,5 +1,5 @@
 import { showError } from '../components/AlertMessage'
-import { BASE_URL } from '../config/url'
+import { BASE_URL, LOGIN_URL } from '../config/url'
 
 export function* userLogin(payload) {
 	const { password, username } = payload
@@ -13,7 +13,7 @@ export function* userLogin(payload) {
 		}
 
 		const response = yield fetch(
-			BASE_URL + `/mobile-api/login?username=${username}&password=${password}`,
+			LOGIN_URL + `/mobile-api/login?username=${username}&password=${password}`,
 			options
 		)
 		const data = yield response.json()

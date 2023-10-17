@@ -82,6 +82,42 @@ const ClientCollection = ({ navigation }) => {
 		[showAll, memoizedFilterData]
 	)
 
+	const ONE_DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000
+
+	const isDataOld = (dataDate) => {
+		const currentDate = new Date()
+		const tomorrow = new Date(currentDate.getTime() + ONE_DAY_IN_MILLISECONDS)
+
+		return new Date(dataDate) < tomorrow
+	}
+
+	const checkDataAgeAndShowAlert = (dataToShow, showInfo) => {
+		const currentDate = new Date()
+		const currentDateString = currentDate.toISOString().split('T')[0] // Get only the date part
+
+		for (const data of dataToShow) {
+			for (const item of data.collections) {
+				const itemDate = item.trans_datetime.split(' ')[0]
+
+				if (isDataOld(itemDate)) {
+					if (itemDate !== currentDateString) {
+						// Check if the data date is not the same as today
+						// Show an alert if the data is old
+						showInfo({
+							message: 'Data is old!',
+							description: `Data downloaded is from ${itemDate}. Download today's data.`,
+						})
+						return
+					}
+				}
+			}
+		}
+	}
+
+	useEffect(() => {
+		checkDataAgeAndShowAlert(dataToShow, showInfo)
+	}, [dataToShow])
+
 	const fetchData = useCallback(async () => {
 		Alert.alert(
 			'Downloading Data',

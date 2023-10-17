@@ -32,7 +32,7 @@ const App = () => {
 				</PersistGate>
 			</Provider>
 
-			<Toast position={'top'} visibilityTime={3000} config={alertMsgConfig} />
+			<Toast position={'top'} visibilityTime={8000} config={alertMsgConfig} />
 		</>
 	)
 }

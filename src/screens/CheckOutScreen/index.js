@@ -442,7 +442,7 @@ const CheckOutScreen = ({ navigation, route }) => {
 
 								{isCOCIChecked && (
 									<View className='mt-2'>
-										<Text className='text-black font-bold text-base'>
+										<Text className='text-black dark:text-white font-bold text-base'>
 											Check Number:
 										</Text>
 										<TextInput
@@ -451,15 +451,15 @@ const CheckOutScreen = ({ navigation, route }) => {
 											onChangeText={(text) => setCheckNumber(text)}
 										/>
 
-										<Text className='text-black font-bold text-base'>
-											Bank Code:
+										<Text className='text-black dark:text-white font-bold text-base'>
+											Bank:
 										</Text>
 										<TextInput
-											placeholder='Enter bank code'
+											placeholder='Enter bank'
 											onChangeText={(text) => setBankCode(text)}
 										/>
 
-										<Text className='text-black font-bold text-base'>
+										<Text className='text-black dark:text-white font-bold text-base'>
 											Check Type:
 										</Text>
 										<Dropdown
@@ -468,13 +468,18 @@ const CheckOutScreen = ({ navigation, route }) => {
 											value={checkType}
 											labelField='ChkTypeDesc'
 											valueField='ChkTypeID'
-											maxHeight={100}
+											maxHeight={200}
 											onChange={(item) => {
 												setCheckType(item.ChkTypeID)
 											}}
+											itemTextStyle={{ color: '#000000' }}
+											containerStyle={{
+												borderBottomLeftRadius: 10,
+												borderBottomRightRadius: 10,
+											}}
 										/>
 
-										<Text className='text-black font-bold text-base'>
+										<Text className='text-black dark:text-white font-bold text-base'>
 											Clearing Days:
 										</Text>
 										<Dropdown
@@ -483,13 +488,18 @@ const CheckOutScreen = ({ navigation, route }) => {
 											value={clearingDays}
 											labelField='ChkTypeDays'
 											valueField='ChkTypeDays'
-											maxHeight={100}
+											maxHeight={200}
 											onChange={(item) => {
 												setClearingDays(item.ChkTypeDays)
 											}}
+											itemTextStyle={{ color: '#000000' }}
+											containerStyle={{
+												borderBottomLeftRadius: 10,
+												borderBottomRightRadius: 10,
+											}}
 										/>
 
-										<Text className='text-black font-bold text-base'>
+										<Text className='text-black dark:text-white font-bold text-base'>
 											Date of Check:
 										</Text>
 										<TouchableOpacity onPress={() => setOpen(true)}>
@@ -505,13 +515,11 @@ const CheckOutScreen = ({ navigation, route }) => {
 										<DatePicker
 											modal
 											mode='date'
-											theme='auto'
+											theme='light'
 											open={open}
 											date={today}
-											maximumDate={today}
 											onConfirm={(selectedDate) => {
 												setOpen(false)
-												// setDate(selectedDate)
 												setDateOfCheck(formatDate(selectedDate))
 											}}
 											onCancel={() => {
