@@ -385,6 +385,10 @@ const ViewData = ({ navigation, route }) => {
 		)
 	}
 
+	let aa =
+		item && item.collections.map((item) => item.TOP.map((data) => data.TYPE))
+
+	console.log('aa 001:', aa)
 	return (
 		<SafeAreaView
 			style={[BaseStyle.safeAreaView, { flex: 1 }]}
@@ -517,10 +521,12 @@ const ViewData = ({ navigation, route }) => {
 						className='flex-row items-center justify-between'
 						style={{ width: width / 1.1 }}>
 						<View>
-							<Text className='font-bold text-black text-base'>Ref No.</Text>
+							<Text className='font-bold text-black dark:text-white text-base'>
+								Ref No.
+							</Text>
 						</View>
 						<View>
-							<Text className='text-black'>{item.REF_NO}</Text>
+							<Text className='text-black dark:text-white'>{item.REF_NO}</Text>
 						</View>
 					</View>
 
@@ -528,14 +534,14 @@ const ViewData = ({ navigation, route }) => {
 						className='flex-row items-center justify-between'
 						style={{ width: width / 1.1 }}>
 						<View>
-							<Text className='font-bold text-black text-base'>
+							<Text className='font-bold text-black dark:text-white text-base'>
 								Payment Type
 							</Text>
 						</View>
 						<View>
-							<Text className='text-black'>
-								{item && item.TOP === 'COCI'
-									? 'COCI (Check and Other Cash Items)'
+							<Text className='text-black dark:text-white'>
+								{item && aa[0].toString() === 'CHECK'
+									? 'COCI (Check and Other Cash...'
 									: 'CASH'}
 							</Text>
 						</View>
@@ -545,12 +551,12 @@ const ViewData = ({ navigation, route }) => {
 						className='flex-row items-center justify-between'
 						style={{ width: width / 1.1 }}>
 						<View>
-							<Text className='font-bold text-black text-base'>
+							<Text className='font-bold text-black dark:text-white text-base'>
 								Total Paid Amount
 							</Text>
 						</View>
 						<View>
-							<Text className='text-black'>
+							<Text className='text-black dark:text-white'>
 								{totalDue ? formatNumber(totalDue.toFixed(2)) : '0.00'}
 							</Text>
 						</View>

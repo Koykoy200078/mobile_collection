@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Image, TouchableOpacity, View } from 'react-native'
+import { Image, TouchableOpacity, View, useColorScheme } from 'react-native'
 import { Images, useTheme } from '../../../config'
 
 import Text from '../../../components/Text'
@@ -17,6 +17,7 @@ const Project02 = ({
 	isCancelled,
 }) => {
 	const { colors } = useTheme()
+	const isDarkMode = useColorScheme() === 'dark'
 
 	return (
 		<TouchableOpacity
@@ -28,7 +29,7 @@ const Project02 = ({
 					styles.content,
 					{
 						backgroundColor: colors.background,
-						borderColor: colors.border,
+						borderColor: isDarkMode ? '#f1f1f1' : colors.border,
 					},
 				]}>
 				<View style={styles.viewProgress}>

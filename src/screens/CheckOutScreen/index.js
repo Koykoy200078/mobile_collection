@@ -199,83 +199,105 @@ const CheckOutScreen = ({ navigation, route }) => {
 				return
 			}
 
-			const transformedData = {
-				branch_id: targetClient.branch_id,
-				client_id: targetClient.client_id,
-				FName: targetClient.FName,
-				LName: targetClient.LName,
-				MName: targetClient.MName,
-				SName: targetClient.SName,
-				REF_NO: lastSavedIncrement ? lastSavedIncrement : referenceNumber,
-				collections: [],
-			}
+			realm.write(() => {
+				// Fetch existing data
+				let existingData = realm
+					.objects(UploadData)
+					.filtered('client_id = $0', targetClient.client_id)
 
-			targetClient.collections.forEach((collection) => {
-				const inputAmount = inputAmounts[collection.ID]
-				const matchingItem = allData.collections.find(
-					(item) => item.ID === collection.ID
-				)
+				if (existingData.length === 0) {
+					existingData = {
+						branch_id: targetClient.branch_id,
+						client_id: targetClient.client_id,
+						FName: targetClient.FName,
+						LName: targetClient.LName,
+						MName: targetClient.MName,
+						SName: targetClient.SName,
+						REF_NO: lastSavedIncrement ? lastSavedIncrement : referenceNumber,
+						collections: [],
+					}
+				} else {
+					// If existing data, use the first object
+					existingData = existingData[0]
+				}
 
-				if (matchingItem && inputAmount) {
-					const amount = inputAmount.AMOUNT
-
-					// Check if the collection already exists in transformedData
-					const existingCollection = transformedData.collections.find(
+				targetClient.collections.forEach((collection) => {
+					const inputAmount = inputAmounts[collection.ID]
+					const matchingItem = allData.collections.find(
 						(item) => item.ID === collection.ID
 					)
 
-					if (existingCollection) {
-						// Update the existing collection with the payment amount
-						existingCollection.ACTUAL_PAY = amount
-					} else {
-						// Create a new collection entry in transformedData
-						amount.length > 0 &&
-							transformedData.collections.push({
-								ID: collection.ID,
-								BRCODE: collection.BRCODE,
-								SLC: collection.SLC,
-								SLT: collection.SLT,
-								REF: collection.REF,
-								SLDESCR: matchingItem.SLDESCR,
-								REF_TARGET: collection.REF_TARGET,
-								REF_SOURCE: collection.REF_SOURCE,
-								PRINCIPAL: collection.PRINCIPAL,
-								BALANCE: collection.BALANCE,
-								PRINDUE: collection.PRINDUE,
-								INTDUE: collection.INTDUE,
-								PENDUE: collection.PENDUE,
-								INSDUE: collection.INSDUE,
-								TOTALDUE: collection.TOTALDUE,
+					if (matchingItem && inputAmount) {
+						const amount = inputAmount.AMOUNT
+
+						// Check if the collection already exists in transformedData
+						const existingCollection = existingData.collections.find(
+							(item) => item.ID === collection.ID
+						)
+
+						if (existingCollection) {
+							const updatedCollection = {
+								...existingCollection,
 								ACTUAL_PAY: amount,
-								TOP: isCashChecked
-									? [
-											{
-												TYPE: 'CASH',
-												AMOUNT: amount,
-											},
-									  ]
-									: [
-											{
-												TYPE: 'CHECK',
-												AMOUNT: amount,
-												CHECK_NUMBER: parseInt(checkNumber),
-												BANK_CODE: bankCode,
-												CHECK_TYPE: checkType,
-												CLEARING_DAYS: clearingDays,
-												DATE_OF_CHECK: dateOfCheck,
-											},
-									  ],
-								STATUS: 1, // 1 - Active, 4 - Cancelled, 5 - Disapproved
-								is_default: collection.is_default,
-							})
+							}
+
+							// Find the index of the existingCollection in the collections array
+							const index = existingData.collections.findIndex(
+								(item) => item.ID === collection.ID
+							)
+
+							// Replace the existingCollection with the updatedCollection
+							if (index !== -1) {
+								existingData.collections[index] = updatedCollection
+							}
+						} else {
+							// Create a new collection entry in transformedData
+							amount.length > 0 &&
+								existingData.collections.push({
+									ID: collection.ID,
+									BRCODE: collection.BRCODE,
+									SLC: collection.SLC,
+									SLT: collection.SLT,
+									REF: collection.REF,
+									SLDESCR: matchingItem.SLDESCR,
+									REF_TARGET: collection.REF_TARGET,
+									REF_SOURCE: collection.REF_SOURCE,
+									PRINCIPAL: collection.PRINCIPAL,
+									BALANCE: collection.BALANCE,
+									PRINDUE: collection.PRINDUE,
+									INTDUE: collection.INTDUE,
+									PENDUE: collection.PENDUE,
+									INSDUE: collection.INSDUE,
+									TOTALDUE: collection.TOTALDUE,
+									ACTUAL_PAY: amount,
+									TOP: isCashChecked
+										? [
+												{
+													TYPE: 'CASH',
+													AMOUNT: amount,
+												},
+										  ]
+										: [
+												{
+													TYPE: 'CHECK',
+													AMOUNT: amount,
+													CHECK_NUMBER: parseInt(checkNumber),
+													BANK_CODE: bankCode,
+													CHECK_TYPE: checkType,
+													CLEARING_DAYS: clearingDays,
+													DATE_OF_CHECK: dateOfCheck,
+												},
+										  ],
+									STATUS: 1, // 1 - Active, 4 - Cancelled, 5 - Disapproved
+									is_default: collection.is_default,
+								})
+						}
 					}
-				}
-			})
+				})
 
-			// console.log(JSON.stringify(transformedData, null, 2))
+				console.log(JSON.stringify(existingData, null, 2))
 
-			realm.write(() => {
-				realm.create(UploadData, transformedData, Realm.UpdateMode.Modified)
+				realm.create(UploadData, existingData, 'modified')
 			})
 
 			transactionData()

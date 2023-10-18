@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
-import { TouchableOpacity, View } from 'react-native'
+import { TouchableOpacity, View, useColorScheme } from 'react-native'
 import { useTheme } from '../../../config'
 import Text from '../../../components/Text'
 import styles from './styles'
@@ -50,6 +50,8 @@ const CardReport02 = ({
 	const { colors } = useTheme()
 	const textInputRef = useRef(null)
 
+	const isDarkMode = useColorScheme() === 'dark'
+
 	useEffect(() => {}, [isCollapsed])
 	return (
 		<View
@@ -61,7 +63,7 @@ const CardReport02 = ({
 					styles.content,
 					{
 						backgroundColor: colors.background,
-						borderColor: colors.border,
+						borderColor: isDarkMode ? '#f1f1f1' : colors.border,
 					},
 				]}>
 				<View style={[styles.header]} className='justify-between'>

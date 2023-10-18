@@ -151,7 +151,9 @@ const PaymentSummary = ({ navigation }) => {
 							}
 						}
 
-						let aa = item && item.collections.map((item) => item.TOP)
+						let aa =
+							item &&
+							item.collections.map((item) => item.TOP.map((data) => data.TYPE))
 
 						console.log('TOP: ', aa)
 
@@ -159,7 +161,7 @@ const PaymentSummary = ({ navigation }) => {
 							<Project02
 								title={Fullname}
 								description={
-									aa.toString() === 'COCI'
+									aa[0].toString() === 'CHECK'
 										? 'COCI (Check and Other Cash Items)'
 										: 'CASH'
 								}
