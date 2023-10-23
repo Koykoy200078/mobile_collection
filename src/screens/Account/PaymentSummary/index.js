@@ -151,20 +151,12 @@ const PaymentSummary = ({ navigation }) => {
 							}
 						}
 
-						let aa =
-							item &&
-							item.collections.map((item) => item.TOP.map((data) => data.TYPE))
-
-						console.log('TOP: ', aa)
+						let aa = item && item.COCI.map((item) => item.TYPE)
 
 						return (
 							<Project02
 								title={Fullname}
-								description={
-									aa[0].toString() === 'CHECK'
-										? 'COCI (Check and Other Cash Items)'
-										: 'CASH'
-								}
+								description={aa.toString()}
 								// isPaid={item.isPaid}
 								total_loans={totalDue ? formatNumber(totalDue.toFixed(2)) : ''}
 								// isCancelled={}

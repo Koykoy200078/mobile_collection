@@ -36,6 +36,11 @@ const CheckOutScreen = ({ navigation, route }) => {
 	const { colors } = useTheme()
 	const [isCashChecked, setCashChecked] = useState(false)
 	const [isCOCIChecked, setCOCIChecked] = useState(false)
+
+	const [isCashCheck, setCashCheck] = useState(false)
+	const [cashTotal, setCashTotal] = useState('')
+	const [checkTotal, setCheckTotal] = useState('')
+
 	const [checkNumber, setCheckNumber] = useState('')
 	const [bankCode, setBankCode] = useState('')
 	const [checkType, setCheckType] = useState('')
@@ -73,6 +78,11 @@ const CheckOutScreen = ({ navigation, route }) => {
 		total,
 		isCashChecked,
 		isCOCIChecked,
+
+		isCashCheck,
+		cashTotal,
+		checkTotal,
+
 		referenceNumber,
 		lastSavedIncrement,
 
@@ -91,11 +101,39 @@ const CheckOutScreen = ({ navigation, route }) => {
 	const handleCashCheckBox = () => {
 		setCashChecked(true) // Toggle the value
 		setCOCIChecked(false)
+		setCashCheck(false)
+
+		setCheckNumber('')
+		setBankCode('')
+		setCheckType('')
+		setClearingDays('')
+		setDateOfCheck('')
 	}
 
 	const handleCOCICheckBox = () => {
 		setCOCIChecked(true) // Toggle the value
 		setCashChecked(false)
+		setCashCheck(false)
+
+		setCashTotal('')
+		setCheckNumber('')
+		setBankCode('')
+		setCheckType('')
+		setClearingDays('')
+		setDateOfCheck('')
+	}
+
+	const handleCashCheck = () => {
+		setCashCheck(true)
+		setCashChecked(false)
+		setCOCIChecked(false)
+
+		setCashTotal('')
+		setCheckNumber('')
+		setBankCode('')
+		setCheckType('')
+		setClearingDays('')
+		setDateOfCheck('')
 	}
 
 	// Function to set the reference number received from the child component
@@ -120,7 +158,7 @@ const CheckOutScreen = ({ navigation, route }) => {
 	}, [])
 
 	const updateData = async () => {
-		if (isCashChecked || isCOCIChecked) {
+		if (isCashChecked || isCOCIChecked || isCashCheck) {
 			if (isCOCIChecked) {
 				if (
 					checkNumber.length > 0 &&
@@ -172,6 +210,39 @@ const CheckOutScreen = ({ navigation, route }) => {
 						},
 					},
 				])
+			} else if (isCashCheck) {
+				if (
+					cashTotal.length > 0 &&
+					checkNumber.length > 0 &&
+					bankCode.length > 0 &&
+					checkType.length > 0 &&
+					clearingDays.length > 0 &&
+					dateOfCheck.length > 0
+				) {
+					Alert.alert('Confirmation', 'Would you like to save the new data?', [
+						{
+							text: 'Cancel',
+							onPress: () => {
+								if (lastSavedIncrement !== null) {
+									// Revert to the last saved increment if available
+									setReferenceNumber(lastSavedIncrement)
+								}
+							},
+						},
+						{
+							text: 'Yes',
+							onPress: async () => {
+								await saveNewData(referenceNumber)
+								setLastSavedIncrement(referenceNumber)
+							},
+						},
+					])
+				} else {
+					showInfo({
+						message: 'CASH & CHECK',
+						description: 'Please complete the CASH & CHECK details.',
+					})
+				}
 			}
 		} else {
 			showInfo({
@@ -215,6 +286,7 @@ const CheckOutScreen = ({ navigation, route }) => {
 						SName: targetClient.SName,
 						REF_NO: lastSavedIncrement ? lastSavedIncrement : referenceNumber,
 						collections: [],
+						COCI: [], // Add the COCI field here
 					}
 				} else {
 					// If existing data, use the first object
@@ -270,28 +342,88 @@ const CheckOutScreen = ({ navigation, route }) => {
 									INSDUE: collection.INSDUE,
 									TOTALDUE: collection.TOTALDUE,
 									ACTUAL_PAY: amount,
-									TOP: isCashChecked
-										? [
-												{
-													TYPE: 'CASH',
-													AMOUNT: amount,
-												},
-										  ]
-										: [
-												{
-													TYPE: 'CHECK',
-													AMOUNT: amount,
-													CHECK_NUMBER: parseInt(checkNumber),
-													BANK_CODE: bankCode,
-													CHECK_TYPE: checkType,
-													CLEARING_DAYS: clearingDays,
-													DATE_OF_CHECK: dateOfCheck,
-												},
-										  ],
 									STATUS: 1, // 1 - Active, 4 - Cancelled, 5 - Disapproved
 									is_default: collection.is_default,
 								})
 						}
+
+						// if (isCashChecked) {
+						// 	existingData.COCI = [
+						// 		{
+						// 			TYPE: 'CASH',
+						// 			AMOUNT: amount,
+						// 		},
+						// 	]
+						// } else if (isCOCIChecked) {
+						// 	existingData.COCI = [
+						// 		{
+						// 			TYPE: 'CHECK',
+						// 			AMOUNT: amount,
+						// 			CHECK_NUMBER: parseInt(checkNumber),
+						// 			BANK_CODE: bankCode,
+						// 			CHECK_TYPE: checkType,
+						// 			CLEARING_DAYS: clearingDays,
+						// 			DATE_OF_CHECK: dateOfCheck,
+						// 		},
+						// 	]
+						// } else if (isCashCheck) {
+						// 	existingData.COCI = [
+						// 		{
+						// 			TYPE: 'CASH',
+						// 			AMOUNT: cashTotal,
+						// 		},
+						// 		{
+						// 			TYPE: 'CHECK',
+						// 			AMOUNT: checkTotal,
+						// 			CHECK_NUMBER: parseInt(checkNumber),
+						// 			BANK_CODE: bankCode,
+						// 			CHECK_TYPE: checkType,
+						// 			CLEARING_DAYS: clearingDays,
+						// 			DATE_OF_CHECK: dateOfCheck,
+						// 		},
+						// 	]
+						// }
+
+						const COCI = []
+						const getTotal = total.toString()
+						if (isCashChecked) {
+							// Add COCI data for CASH
+							COCI.push({
+								TYPE: 'CASH',
+								AMOUNT: getTotal,
+							})
+						}
+						if (isCOCIChecked) {
+							// Add COCI data for CHECK
+							COCI.push({
+								TYPE: 'CHECK',
+								AMOUNT: getTotal,
+								CHECK_NUMBER: parseInt(checkNumber),
+								BANK_CODE: bankCode,
+								CHECK_TYPE: checkType,
+								CLEARING_DAYS: clearingDays,
+								DATE_OF_CHECK: dateOfCheck,
+							})
+						}
+						if (isCashCheck) {
+							// Add COCI data for CASH and CHECK combined
+							COCI.push({
+								TYPE: 'CASH',
+								AMOUNT: cashTotal,
+							})
+							COCI.push({
+								TYPE: 'CHECK',
+								AMOUNT: checkTotal,
+								CHECK_NUMBER: parseInt(checkNumber),
+								BANK_CODE: bankCode,
+								CHECK_TYPE: checkType,
+								CLEARING_DAYS: clearingDays,
+								DATE_OF_CHECK: dateOfCheck,
+							})
+						}
+
+						// Set the COCI array in existingData
+						existingData.COCI = COCI
 					}
 				})
 
@@ -461,6 +593,213 @@ const CheckOutScreen = ({ navigation, route }) => {
 									style={{ flex: 1 }}
 									onPress={handleCOCICheckBox}
 								/>
+
+								{/* {isCOCIChecked && (
+									<View className='mt-2'>
+										<Text className='text-black dark:text-white font-bold text-base'>
+											Check Number:
+										</Text>
+										<TextInput
+											placeholder='Enter check number'
+											keyboardType='numeric'
+											onChangeText={(text) => setCheckNumber(text)}
+										/>
+
+										<Text className='text-black dark:text-white font-bold text-base'>
+											Bank:
+										</Text>
+										<TextInput
+											placeholder='Enter bank'
+											onChangeText={(text) => setBankCode(text)}
+										/>
+
+										<Text className='text-black dark:text-white font-bold text-base'>
+											Check Type:
+										</Text>
+										<Dropdown
+											data={data}
+											placeholder='--- Select Check Type ---'
+											value={checkType}
+											labelField='ChkTypeDesc'
+											valueField='ChkTypeID'
+											maxHeight={200}
+											onChange={(item) => {
+												setCheckType(item.ChkTypeID)
+											}}
+											itemTextStyle={{ color: '#000000' }}
+											containerStyle={{
+												borderBottomLeftRadius: 10,
+												borderBottomRightRadius: 10,
+											}}
+										/>
+
+										<Text className='text-black dark:text-white font-bold text-base'>
+											Clearing Days:
+										</Text>
+										<Dropdown
+											data={data}
+											placeholder='--- Select Clearing Days ---'
+											value={clearingDays}
+											labelField='ChkTypeDays'
+											valueField='ChkTypeDays'
+											maxHeight={200}
+											onChange={(item) => {
+												setClearingDays(item.ChkTypeDays)
+											}}
+											itemTextStyle={{ color: '#000000' }}
+											containerStyle={{
+												borderBottomLeftRadius: 10,
+												borderBottomRightRadius: 10,
+											}}
+										/>
+
+										<Text className='text-black dark:text-white font-bold text-base'>
+											Date of Check:
+										</Text>
+										<TouchableOpacity onPress={() => setOpen(true)}>
+											<View>
+												{dateOfCheck.length > 0 ? (
+													<Text>{dateOfCheck}</Text>
+												) : (
+													<Text className='text-base'>--- Select date ---</Text>
+												)}
+											</View>
+										</TouchableOpacity>
+
+										<DatePicker
+											modal
+											mode='date'
+											theme='light'
+											open={open}
+											date={today}
+											onConfirm={(selectedDate) => {
+												setOpen(false)
+												setDateOfCheck(formatDate(selectedDate))
+											}}
+											onCancel={() => {
+												setOpen(false)
+											}}
+										/>
+									</View>
+								)} */}
+							</View>
+
+							{/* Option 3 */}
+							<View>
+								<CheckBox
+									title='Cash & Check'
+									checked={isCashCheck}
+									color={colors.primary}
+									style={{ flex: 1 }}
+									onPress={handleCashCheck}
+								/>
+
+								{isCashCheck && (
+									<View className='mt-2'>
+										<Text className='text-black dark:text-white font-bold text-base'>
+											Cash Amount:
+										</Text>
+										<TextInput
+											placeholder='Enter cash amount'
+											keyboardType='numeric'
+											onChangeText={(text) => setCashTotal(text)}
+										/>
+
+										<Text className='text-black dark:text-white font-bold text-base'>
+											Check Amount:
+										</Text>
+										<TextInput
+											placeholder='Enter cash amount'
+											keyboardType='numeric'
+											onChangeText={(text) => setCheckTotal(text)}
+										/>
+
+										<Text className='text-black dark:text-white font-bold text-base'>
+											Check Number:
+										</Text>
+										<TextInput
+											placeholder='Enter check number'
+											keyboardType='numeric'
+											onChangeText={(text) => setCheckNumber(text)}
+										/>
+
+										<Text className='text-black dark:text-white font-bold text-base'>
+											Bank:
+										</Text>
+										<TextInput
+											placeholder='Enter bank'
+											onChangeText={(text) => setBankCode(text)}
+										/>
+
+										<Text className='text-black dark:text-white font-bold text-base'>
+											Check Type:
+										</Text>
+										<Dropdown
+											data={data}
+											placeholder='--- Select Check Type ---'
+											value={checkType}
+											labelField='ChkTypeDesc'
+											valueField='ChkTypeID'
+											maxHeight={200}
+											onChange={(item) => {
+												setCheckType(item.ChkTypeID)
+											}}
+											itemTextStyle={{ color: '#000000' }}
+											containerStyle={{
+												borderBottomLeftRadius: 10,
+												borderBottomRightRadius: 10,
+											}}
+										/>
+
+										<Text className='text-black dark:text-white font-bold text-base'>
+											Clearing Days:
+										</Text>
+										<Dropdown
+											data={data}
+											placeholder='--- Select Clearing Days ---'
+											value={clearingDays}
+											labelField='ChkTypeDays'
+											valueField='ChkTypeDays'
+											maxHeight={200}
+											onChange={(item) => {
+												setClearingDays(item.ChkTypeDays)
+											}}
+											itemTextStyle={{ color: '#000000' }}
+											containerStyle={{
+												borderBottomLeftRadius: 10,
+												borderBottomRightRadius: 10,
+											}}
+										/>
+
+										<Text className='text-black dark:text-white font-bold text-base'>
+											Date of Check:
+										</Text>
+										<TouchableOpacity onPress={() => setOpen(true)}>
+											<View>
+												{dateOfCheck.length > 0 ? (
+													<Text>{dateOfCheck}</Text>
+												) : (
+													<Text className='text-base'>--- Select date ---</Text>
+												)}
+											</View>
+										</TouchableOpacity>
+
+										<DatePicker
+											modal
+											mode='date'
+											theme='light'
+											open={open}
+											date={today}
+											onConfirm={(selectedDate) => {
+												setOpen(false)
+												setDateOfCheck(formatDate(selectedDate))
+											}}
+											onCancel={() => {
+												setOpen(false)
+											}}
+										/>
+									</View>
+								)}
 
 								{isCOCIChecked && (
 									<View className='mt-2'>

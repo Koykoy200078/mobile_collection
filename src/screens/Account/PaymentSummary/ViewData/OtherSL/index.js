@@ -274,8 +274,7 @@ const OtherSL = ({ navigation, route }) => {
 		)
 	}
 
-	let aa =
-		item && item.collections.map((item) => item.TOP.map((data) => data.TYPE))
+	let aa = item && item.COCI.map((item) => item.TYPE)
 
 	return (
 		<SafeAreaView
@@ -308,11 +307,7 @@ const OtherSL = ({ navigation, route }) => {
 			<View style={styles.container}>
 				<View className='h-11' style={styles.specifications}>
 					<ProductSpecGrid
-						title={
-							item && aa[0].toString() === 'CHECK'
-								? 'COCI (Check and Other Cash...'
-								: 'CASH'
-						}
+						title={aa.toString()}
 						description={'Payment Type'}
 						isEnable={false}
 					/>

@@ -385,10 +385,8 @@ const ViewData = ({ navigation, route }) => {
 		)
 	}
 
-	let aa =
-		item && item.collections.map((item) => item.TOP.map((data) => data.TYPE))
+	let aa = item && item.COCI.map((item) => item.TYPE)
 
-	console.log('aa 001:', aa)
 	return (
 		<SafeAreaView
 			style={[BaseStyle.safeAreaView, { flex: 1 }]}
@@ -540,9 +538,7 @@ const ViewData = ({ navigation, route }) => {
 						</View>
 						<View>
 							<Text className='text-black dark:text-white'>
-								{item && aa[0].toString() === 'CHECK'
-									? 'COCI (Check and Other Cash...'
-									: 'CASH'}
+								{aa.toString()}
 							</Text>
 						</View>
 					</View>
