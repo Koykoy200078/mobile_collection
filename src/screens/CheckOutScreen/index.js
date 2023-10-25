@@ -69,6 +69,8 @@ const CheckOutScreen = ({ navigation, route }) => {
 		{ ChkTypeID: '6', ChkTypeDesc: 'Good Check', ChkTypeDays: '0' },
 	]
 
+	useEffect(() => {}, [isCashCheck, cashTotal, checkTotal])
+
 	useEffect(() => {
 		checkAndShowData()
 	}, [
@@ -232,8 +234,22 @@ const CheckOutScreen = ({ navigation, route }) => {
 						{
 							text: 'Yes',
 							onPress: async () => {
-								await saveNewData(referenceNumber)
-								setLastSavedIncrement(referenceNumber)
+								const totalPaid = Number(total)
+								const cash = Number(cashTotal)
+								const check = Number(checkTotal)
+
+								if (totalPaid !== cash + check) {
+									showInfo({
+										message: 'Payment Alert',
+										description:
+											'The total amount paid must be the exact sum of the cash and check total amount combined.',
+									})
+								} else {
+									await saveNewData(referenceNumber)
+									setLastSavedIncrement(referenceNumber)
+								}
+								// await saveNewData(referenceNumber)
+								// setLastSavedIncrement(referenceNumber)
 							},
 						},
 					])
@@ -346,43 +362,6 @@ const CheckOutScreen = ({ navigation, route }) => {
 									is_default: collection.is_default,
 								})
 						}
-
-						// if (isCashChecked) {
-						// 	existingData.COCI = [
-						// 		{
-						// 			TYPE: 'CASH',
-						// 			AMOUNT: amount,
-						// 		},
-						// 	]
-						// } else if (isCOCIChecked) {
-						// 	existingData.COCI = [
-						// 		{
-						// 			TYPE: 'CHECK',
-						// 			AMOUNT: amount,
-						// 			CHECK_NUMBER: parseInt(checkNumber),
-						// 			BANK_CODE: bankCode,
-						// 			CHECK_TYPE: checkType,
-						// 			CLEARING_DAYS: clearingDays,
-						// 			DATE_OF_CHECK: dateOfCheck,
-						// 		},
-						// 	]
-						// } else if (isCashCheck) {
-						// 	existingData.COCI = [
-						// 		{
-						// 			TYPE: 'CASH',
-						// 			AMOUNT: cashTotal,
-						// 		},
-						// 		{
-						// 			TYPE: 'CHECK',
-						// 			AMOUNT: checkTotal,
-						// 			CHECK_NUMBER: parseInt(checkNumber),
-						// 			BANK_CODE: bankCode,
-						// 			CHECK_TYPE: checkType,
-						// 			CLEARING_DAYS: clearingDays,
-						// 			DATE_OF_CHECK: dateOfCheck,
-						// 		},
-						// 	]
-						// }
 
 						const COCI = []
 						const getTotal = total.toString()

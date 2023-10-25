@@ -151,34 +151,36 @@ const DetailedSummary = ({ navigation }) => {
 									<View className='rounded-md p-2 w-full'>
 										<View className='flex-row items-center justify-between'>
 											<View>
-												<Text className='text-black text-sm'>
+												<Text className='text-black dark:text-white text-sm'>
 													Transaction ID
 												</Text>
 											</View>
 											<View>
-												<Text className='text-black text-sm font-bold'>
+												<Text className='text-black dark:text-white text-sm font-bold'>
 													{item.TRANSID}
 												</Text>
 											</View>
 										</View>
 										<View className='flex-row items-center justify-between'>
 											<View>
-												<Text className='text-black text-sm'>
+												<Text className='text-black dark:text-white text-sm'>
 													Reference No.
 												</Text>
 											</View>
 											<View>
-												<Text className='text-black text-sm font-bold'>
+												<Text className='text-black dark:text-white text-sm font-bold'>
 													{item.TRANS_REFNO}
 												</Text>
 											</View>
 										</View>
 										<View className='flex-row items-center justify-between'>
 											<View>
-												<Text className='text-black text-sm'>Date</Text>
+												<Text className='text-black dark:text-white text-sm'>
+													Date
+												</Text>
 											</View>
 											<View>
-												<Text className='text-black text-sm font-bold'>
+												<Text className='text-black dark:text-white text-sm font-bold'>
 													{formatDateString(item.TRANS_DATETIME)}
 												</Text>
 											</View>
@@ -202,37 +204,43 @@ const DetailedSummary = ({ navigation }) => {
 
 										<View className='flex-row items-center justify-between'>
 											<View>
-												<Text className='text-black text-sm'>Client ID</Text>
+												<Text className='text-black dark:text-white text-sm'>
+													Client ID
+												</Text>
 											</View>
 											<View>
-												<Text className='text-black text-sm font-bold'>
+												<Text className='text-black dark:text-white text-sm font-bold'>
 													{item.CLIENTID}
 												</Text>
 											</View>
 										</View>
 
 										<View className='flex-row items-center justify-between'>
-											<Text className='text-black text-sm'>Client Name</Text>
-											<Text className='text-black text-sm font-bold'>
+											<Text className='text-black dark:text-white text-sm'>
+												Client Name
+											</Text>
+											<Text className='text-black dark:text-white text-sm font-bold'>
 												{item.CLIENT_NAME}
 											</Text>
 										</View>
 
 										<View className='flex-row items-center justify-between'>
-											<Text className='text-black text-sm'>Amount Paid</Text>
-											<Text className='text-black text-sm font-bold'>
+											<Text className='text-black dark:text-white text-sm'>
+												Amount Paid
+											</Text>
+											<Text className='text-black dark:text-white text-sm font-bold'>
 												{amntPaid}
 											</Text>
 										</View>
 
-										<View className='flex-row items-center justify-between'>
-											<Text className='text-black text-sm'>
+										{/* <View className='flex-row items-center justify-between'>
+											<Text className='text-black dark:text-white text-sm'>
 												Type of Payment
 											</Text>
-											<Text className='text-black text-sm font-bold'>
+											<Text className='text-black dark:text-white text-sm font-bold'>
 												{item.TYPE_OF_PAYMENT}
 											</Text>
-										</View>
+										</View> */}
 									</View>
 								</Shadow>
 							</ScrollView>
