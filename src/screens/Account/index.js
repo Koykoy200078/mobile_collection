@@ -22,7 +22,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useDispatch, useSelector } from 'react-redux'
 import { getDetails, resetGetDetails } from '../../app/reducers/batchDetails'
 import { resetUploadData, uploadData } from '../../app/reducers/upload'
-import { showInfo } from '../../app/components/AlertMessage'
+import { showError, showInfo } from '../../app/components/AlertMessage'
 import { Realm } from '@realm/react'
 import { resetLogin } from '../../app/reducers/auth'
 
@@ -237,15 +237,35 @@ const Account = ({ navigation }) => {
 	}, [dispatch])
 
 	const uploadME = () => {
-		dispatch(
-			uploadData({
-				service: 'collection',
-				collectorid: auth && auth.data.collector,
-				branchid: auth && auth.data.branchid,
-				trans_date: formattedDate,
-				data: getUpload,
+		let trans_date =
+			clientData &&
+			clientData.flatMap((item) =>
+				item.collections.map((data) => data.trans_datetime.split(' ')[0])
+			)
+
+		if (trans_date) {
+			if (getUpload.length > 0) {
+				dispatch(
+					uploadData({
+						service: 'collection',
+						collectorid: auth && auth.data.collector,
+						branchid: auth && auth.data.branchid,
+						trans_date: trans_date[0],
+						data: getUpload,
+					})
+				)
+			} else {
+				showInfo({
+					message: 'No data',
+					description: 'No data to be uploaded',
+				})
+			}
+		} else {
+			showError({
+				message: 'Error Uploading',
+				description: 'Transaction date not found.',
 			})
-		)
+		}
 	}
 
 	// Calculate the collected sum and update the database sum when the component mounts

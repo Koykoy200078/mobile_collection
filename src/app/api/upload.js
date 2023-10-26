@@ -34,7 +34,7 @@ const saveHistory = async (item) => {
 
 		showInfo({
 			message: 'Success',
-			description: 'Data saved successfully!',
+			description: 'Uploading data successfully!',
 		})
 	} catch (error) {
 		showError({
@@ -63,10 +63,8 @@ export function* uploadDetails(payload) {
 			options
 		)
 		const data = yield response.json()
-
 		if (response.ok) {
 			saveHistory(data)
-
 			return data
 		} else {
 			throw new Error(data)
