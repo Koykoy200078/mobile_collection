@@ -20,4 +20,7 @@ export default {
 	OTHERSL: 'Other SL',
 
 	TAB: 'Tab',
+
+	PRINTCONFIG: 'Print Configuration',
+	SYSTEMINFO: 'System Info'
 }

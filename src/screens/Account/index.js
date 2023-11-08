@@ -25,6 +25,12 @@ import { resetUploadData, uploadData } from '../../app/reducers/upload'
 import { showError, showInfo } from '../../app/components/AlertMessage'
 import { Realm } from '@realm/react'
 import { resetLogin } from '../../app/reducers/auth'
+import NetInfo from '@react-native-community/netinfo'
+import DeviceInfo, {
+	getSystemVersion,
+	getUniqueId,
+	getVersion,
+} from 'react-native-device-info'
 
 const Account = ({ navigation }) => {
 	const realm = new Realm(databaseOptions)
@@ -41,6 +47,9 @@ const Account = ({ navigation }) => {
 	const [getAmountDB, setAmountDB] = useState([])
 	const [getHistory, setHistory] = useState([])
 
+	const [isConnected, setIsConnected] = useState(false)
+	const [ConnectionType, setConnectionType] = useState(null)
+
 	const countPaidItems = getUpload && getUpload.filter((item) => item).length
 	const countHistoryItems =
 		getHistory && getHistory.filter((item) => item).length
@@ -54,9 +63,11 @@ const Account = ({ navigation }) => {
 	const currentDate = new Date()
 	const formattedDate = formatDateToYYYYMMDD(currentDate)
 
+	const allPaid = clientData.every((item) => item.isPaid === true)
+
 	useEffect(() => {
 		checkAndShowData()
-	}, [isSuccess, isLoading, loading])
+	}, [isSuccess, isLoading, loading, isConnected, ConnectionType])
 
 	useEffect(() => {
 		const fetchDataAndScheduleUpdate = async () => {
@@ -67,10 +78,18 @@ const Account = ({ navigation }) => {
 			}
 		}
 
-		fetchDataAndScheduleUpdate() // Initial fetch
+		const checkConnection = async () => {
+			const state = await NetInfo.fetch()
+			setIsConnected(state.isConnected)
+			setConnectionType(state.type)
+		}
+
+		fetchDataAndScheduleUpdate()
+		checkConnection()
 
 		const updateInterval = setInterval(() => {
-			fetchDataAndScheduleUpdate() // Fetch and update every 60 seconds (adjust as needed)
+			fetchDataAndScheduleUpdate()
+			checkConnection()
 		}, 1000)
 
 		return () => {
@@ -282,14 +301,28 @@ const Account = ({ navigation }) => {
 		}
 	}, [getUpload])
 
+	const deviceId = getUniqueId()
+	const appVersion = getVersion()
+
 	return (
-		<View style={{ flex: 1, width, height }}>
+		<View style={{ flex: 1, width: width, height: height }}>
 			<View
-				style={{ padding: 16, alignItems: 'center', justifyContent: 'center' }}>
+				style={{ padding: 5, alignItems: 'center', justifyContent: 'center' }}>
 				<Text title1>Account</Text>
 
-				<View className='flex-row items-center justify-center space-x-12 my-4'>
-					<TouchableOpacity onPress={fetchData}>
+				<View className='flex-row items-center justify-center space-x-12 mt-4'>
+					<TouchableOpacity
+						onPress={() => {
+							if (allPaid === false) {
+								showError({
+									message: 'Download Unsuccessful',
+									description:
+										'Unable to download new data as there are pending collections yet to be gathered.',
+								})
+							} else {
+								fetchData()
+							}
+						}}>
 						<View className='items-center justify-center'>
 							<Icons.Feather
 								name='download-cloud'
@@ -303,17 +336,29 @@ const Account = ({ navigation }) => {
 					<TouchableOpacity
 						disabled={getUpload.length === 0}
 						onPress={() => {
-							Alert.alert('Upload', 'Are you sure you want to upload data?', [
-								{
-									text: 'NO',
-									onPress: () => Alert.alert('Cancelled', 'Data not uploaded'),
-									style: 'cancel',
-								},
-								{
-									text: 'YES',
-									onPress: () => uploadME(),
-								},
-							])
+							if (
+								(isConnected && ConnectionType === 'wifi') ||
+								ConnectionType === 'cellular'
+							) {
+								Alert.alert('Upload', 'Are you sure you want to upload data?', [
+									{
+										text: 'NO',
+										onPress: () =>
+											Alert.alert('Cancelled', 'Data not uploaded'),
+										style: 'cancel',
+									},
+									{
+										text: 'YES',
+										onPress: () => uploadME(),
+									},
+								])
+							} else {
+								showError({
+									message: 'Data Upload Failed',
+									description:
+										'Network connection is unavailable. Please check your internet settings and try again.',
+								})
+							}
 						}}>
 						<View className='items-center justify-center'>
 							<Icons.SimpleLineIcons
@@ -340,21 +385,55 @@ const Account = ({ navigation }) => {
 				</View>
 			) : null}
 
-			<View style={{ padding: 32, marginLeft: 8, marginRight: 8 }}>
+			<View
+				style={{ padding: 15, marginLeft: 8, marginRight: 8, marginTop: -10 }}>
 				<Project02
-					title='Payments'
-					description='Payment type summary'
+					title='Payment Overview'
+					description='Summary of various payment methods available.'
+					isTotal={true}
 					total_loans={countPaidItems}
 					onPress={() => navigation.navigate(ROUTES.PAYMENT_SUMMARY)}
 					style={{ marginBottom: 10 }}
 				/>
 
 				<Project02
-					title="Client's Report"
-					description='Detailed Collection Report'
+					title="Client's Detailed Report"
+					description='Comprehensive collection report for each client.'
+					isTotal={true}
 					total_loans={countHistoryItems}
 					onPress={() => navigation.navigate(ROUTES.DETAILED_SUMMARY)}
+				/>
+
+				<View
+					style={{
+						width: '100%',
+						marginVertical: 10,
+					}}>
+					<View
+						style={{
+							width: '100%',
+							borderWidth: 1,
+							borderColor: '#E5E5E5',
+							borderStyle: 'dashed',
+							marginTop: -2,
+						}}
+					/>
+				</View>
+
+				<Project02
+					title='Print Configuration'
+					description='Manage and customize your printing preferences and settings.'
+					// total_loans={countHistoryItems}
+					onPress={() => navigation.navigate(ROUTES.PRINTCONFIG)}
 					style={{ marginBottom: 10 }}
+				/>
+
+				<Project02
+					title={`App Version - v${appVersion}`}
+					description={`Machine ID Number: ${deviceId._j}`}
+					description2={`Serial Number: `}
+					des2={true}
+					// total_loans={countHistoryItems}
 				/>
 			</View>
 

@@ -34,6 +34,8 @@ import PaymentSummary from '../screens/Account/PaymentSummary'
 import DetailedSummary from '../screens/Account/DetailedSummary'
 import Summary from '../screens/Account/DetailedSummary/Summary'
 import OtherSL from '../screens/Account/PaymentSummary/ViewData/OtherSL'
+import PrintConfiguration from '../screens/Account/PrintConfiguration'
+import SystemInfo from '../screens/Account/SystemInfo'
 
 const width = Dimensions.get('window').width
 
@@ -82,6 +84,13 @@ const Main = () => {
 			<MainStack.Screen name={ROUTES.OTHERSL} component={OtherSL} />
 			<MainStack.Screen name={ROUTES.SUMMARY} component={Summary} />
 			<MainStack.Screen name={ROUTES.OTHERSLSCREEN} component={OtherSLScreen} />
+
+			{/* Settings */}
+			<MainStack.Screen
+				name={ROUTES.PRINTCONFIG}
+				component={PrintConfiguration}
+			/>
+			<MainStack.Screen name={ROUTES.SYSTEMINFO} component={SystemInfo} />
 		</MainStack.Navigator>
 	)
 }

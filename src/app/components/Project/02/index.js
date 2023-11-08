@@ -15,6 +15,10 @@ const Project02 = ({
 	total_loans = 0,
 	isPaid,
 	isCancelled,
+	isTotal = false,
+
+	des2 = false,
+	description2,
 }) => {
 	const { colors } = useTheme()
 	const isDarkMode = useColorScheme() === 'dark'
@@ -38,6 +42,11 @@ const Project02 = ({
 						<Text caption1 light style={styles.description}>
 							{description}
 						</Text>
+						{des2 && (
+							<Text caption1 light>
+								{description2}
+							</Text>
+						)}
 					</View>
 					<View className='flex-col items-end'>
 						<View>
@@ -54,11 +63,13 @@ const Project02 = ({
 								/>
 							) : null}
 						</View>
-						<View style={styles.viewRight}>
-							<Text footnote light>
-								{total_loans}
-							</Text>
-						</View>
+						{isTotal && (
+							<View style={styles.viewRight}>
+								<Text footnote light>
+									{total_loans}
+								</Text>
+							</View>
+						)}
 					</View>
 				</View>
 			</View>

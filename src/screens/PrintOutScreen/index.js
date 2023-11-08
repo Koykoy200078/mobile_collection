@@ -24,6 +24,7 @@ import { isDeviceSupported } from '../../app/config/DeviceSupport'
 import DeviceInfo from 'react-native-device-info'
 import { showError } from '../../app/components/AlertMessage'
 import { useSelector } from 'react-redux'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const PrintOutScreen = ({ navigation, route }) => {
 	const { width, height } = useWindowDimensions()
@@ -36,6 +37,10 @@ const PrintOutScreen = ({ navigation, route }) => {
 
 	const [data, setData] = useState(null)
 	const [selectedPrinter, setSelectedPrinter] = useState(null)
+
+	const [count, setCount] = useState(1)
+
+	const [configData, setConfigData] = useState(null)
 
 	const logoUri = 'data:image/png;base64,' + imageUri.data
 
@@ -57,7 +62,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 		'Jun',
 		'Jul',
 		'Aug',
-		'Sept',
+		'Sep',
 		'Oct',
 		'Nov',
 		'Dec',
@@ -68,9 +73,12 @@ const PrintOutScreen = ({ navigation, route }) => {
 
 	const formattedDate = `${day} ${monthNames[monthIndex]} ${year}, ${formattedHour}:${formattedMinute} ${ampm}`
 
-	const { getName, allData, inputAmounts, refNo, total } = route.params
+	const { getName, allData, inputAmounts, refNo, total, dataToPrint } =
+		route.params
 
 	useEffect(() => {
+		retrieveData()
+
 		if (Platform.OS === 'android') {
 			let model = DeviceInfo.getModel()
 
@@ -95,6 +103,10 @@ const PrintOutScreen = ({ navigation, route }) => {
 		}
 	}, [])
 
+	// console.log('configData: ', configData)
+	const paymentType = dataToPrint.COCI.map((item) => item.TYPE)
+	console.log('paymentType: ', paymentType)
+
 	const _connectPrinter = (printer) => {
 		BLEPrinter.connectPrinter(printer.inner_mac_address)
 			.then(() => {
@@ -107,12 +119,26 @@ const PrintOutScreen = ({ navigation, route }) => {
 			})
 	}
 
+	const retrieveData = async () => {
+		try {
+			const value = await AsyncStorage.getItem('print_config')
+			if (value !== null) {
+				// We have data!!
+				setConfigData(JSON.parse(value))
+			}
+		} catch (error) {
+			// Error retrieving data
+			console.log(error)
+		}
+	}
+
 	const totalAmount = total.toLocaleString('en-US', {
 		minimumFractionDigits: 2,
 		maximumFractionDigits: 2,
 	})
 
-	const renderedItem = allData.collections.map((collection) => {
+	let rowIndex = 0
+	const renderedItem = allData.collections.map((collection, index) => {
 		const matchingInputAmount = inputAmounts[collection.ID]
 
 		if (matchingInputAmount) {
@@ -123,7 +149,72 @@ const PrintOutScreen = ({ navigation, route }) => {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2,
 				})
-				return `${collection.SLDESCR}\n${collection.REF_TARGET}\nAmount Paid          ${getAMNT}\n\n`
+
+				rowIndex = index + 1
+
+				let aa = ''
+				// if (collection.SLDESCR.length === 7) {
+				// 	name = `${collection.SLDESCR}      ${collection.REF_TARGET}`
+				// } else if (collection.SLDESCR.length === 10) {
+				// 	name = `${collection.SLDESCR}   ${collection.REF_TARGET}`
+				// } else if (collection.SLDESCR.length === 12) {
+				// 	name = `${collection.SLDESCR} ${collection.REF_TARGET}`
+				// } else if (collection.SLDESCR.length === 14) {
+				// 	name = `${collection.SLDESCR}${collection.REF_TARGET}`
+				// } else if (collection.SLDESCR.length === 15) {
+				// 	name = `${collection.SLDESCR}${collection.REF_TARGET}`
+				// } else {
+				// 	name = `${collection.SLDESCR}    ${collection.REF_TARGET}`
+				// }
+
+				if (getAMNT.length === 4) {
+					aa = `${collection.REF_TARGET}           ${getAMNT}`
+				} else if (getAMNT.length === 5) {
+					aa = `${collection.REF_TARGET}          ${getAMNT}`
+				} else if (getAMNT.length === 6) {
+					aa = `${collection.REF_TARGET}         ${getAMNT}`
+				} else if (getAMNT.length === 7) {
+					aa = `${collection.REF_TARGET}        ${getAMNT}`
+				} else if (getAMNT.length === 8) {
+					aa = `${collection.REF_TARGET}       ${getAMNT}`
+				} else if (getAMNT.length === 9) {
+					aa = `${collection.REF_TARGET}      ${getAMNT}`
+				} else if (getAMNT.length === 10) {
+					aa = `${collection.REF_TARGET}     ${getAMNT}`
+				} else if (getAMNT.length === 11) {
+					aa = `${collection.REF_TARGET}    ${getAMNT}`
+				} else if (getAMNT.length === 12) {
+					aa = `${collection.REF_TARGET}   ${getAMNT}`
+				} else if (getAMNT.length === 13) {
+					aa = `${collection.REF_TARGET}  ${getAMNT}`
+				}
+
+				// let amount = ''
+				// if (getAMNT.length === 3) {
+				// 	amount = `                             ${getAMNT}`
+				// } else if (getAMNT.length === 4) {
+				// 	amount = `                            ${getAMNT}`
+				// } else if (getAMNT.length === 5) {
+				// 	amount = `                           ${getAMNT}`
+				// } else if (getAMNT.length === 6) {
+				// 	amount = `                         ${getAMNT}`
+				// } else if (getAMNT.length === 7) {
+				// 	amount = `                        ${getAMNT}`
+				// } else if (getAMNT.length === 8) {
+				// 	amount = `                       ${getAMNT}`
+				// } else if (getAMNT.length === 9) {
+				// 	amount = `                      ${getAMNT}`
+				// } else if (getAMNT.length === 10) {
+				// 	amount = `                     ${getAMNT}`
+				// } else if (getAMNT.length === 11) {
+				// 	amount = `                    ${getAMNT}`
+				// } else if (getAMNT.length === 12) {
+				// 	amount = `                   ${getAMNT}`
+				// } else if (getAMNT.length === 13) {
+				// 	amount = `                  ${getAMNT}`
+				// }
+
+				return `${aa}\n${collection.SLDESCR}\n\n`
 			}
 		}
 	})
@@ -192,26 +283,79 @@ const PrintOutScreen = ({ navigation, route }) => {
 	})
 
 	const printME = async () => {
+		let finalAmount = ''
+		if (totalAmount.length === 4) {
+			finalAmount = `           ${totalAmount}`
+		} else if (totalAmount.length === 5) {
+			finalAmount = `          ${totalAmount}`
+		} else if (totalAmount.length === 6) {
+			finalAmount = `         ${totalAmount}`
+		} else if (totalAmount.length === 8) {
+			finalAmount = `       ${totalAmount}`
+		} else if (totalAmount.length === 9) {
+			finalAmount = `      ${totalAmount}`
+		} else if (totalAmount.length === 10) {
+			finalAmount = `     ${totalAmount}`
+		} else if (totalAmount.length === 12) {
+			finalAmount = `   ${totalAmount}`
+		} else if (totalAmount.length === 13) {
+			finalAmount = `  ${totalAmount}`
+		} else if (totalAmount.length === 14) {
+			finalAmount = ` ${totalAmount}`
+		} else if (totalAmount.length === 15) {
+			finalAmount = `${totalAmount}`
+		}
+
+		let reprentCount = ''
+		let space = ''
+		if (count > 1) {
+			space = '\n\n'
+			reprentCount = 'PRINT COPY #' + count
+		}
+
+		// Payment Type
+		let payment_type = ''
+		if (paymentType.length > 1) {
+			payment_type = `      ${paymentType.join(', ')}`
+		} else {
+			payment_type = `            ${paymentType[0]}`
+		}
+
+		// Date
+		let date = ''
+		if (formattedDate.length === 20) {
+			date = `        ${formattedDate}`
+		} else {
+			date = `       ${formattedDate}`
+		}
+
 		try {
 			currentPrinter &&
 				BLEPrinter.printBill(
-					'<C> Collection Receipt</C>\n' +
-						'<C>Sacred Heart Coop</C>\n' +
-						'<C>Cruz na Daan 3008 San Rafael, Philippines</C>\n' +
+					`<C>${configData && configData.Print_Header}</C>\n` +
+						`<C>${configData && configData.COOP_Name}</C>\n` +
+						`<C>${configData && configData.COOP_Address}</C>\n` +
+						`<C>${configData && configData.COOP_TIN}</C>\n` +
 						'<C>--------------------------------</C>\n' +
 						`Client No.: ${allData.client_id}\n` +
 						`Client Name: ${getName}\n` +
 						'<C>--------------------------------</C>\n' +
-						`${renderedText}` +
-						`Total Paid Amount    ${totalAmount}\n` +
+						'Particulars          Amount Paid\n' +
 						'<C>--------------------------------</C>\n' +
-						`Ref No.: ${refNo}\n` +
-						`Date: ${formattedDate}\n` +
+						`${renderedText}` +
+						`Total Items: ${rowIndex}\n` +
+						'<C>--------------------------------</C>\n' +
+						`Type of Payment${payment_type}\n` +
+						`Total Paid Amount${finalAmount}\n` +
+						'<C>--------------------------------</C>\n' +
+						`Reciept No.: ${refNo}\n` +
+						`Date:${date}\n` +
 						`Collected by ${
 							auth && auth.data ? auth.data.collector_desc : '...'
 						}\n` +
 						'<C>--------------------------------</C>\n' +
-						'<C>Thank you for using our service!<C>'
+						`<C>${configData && configData.Print_Footer}</C>${space}` +
+						`<C>${reprentCount}</C>`
 				)
 		} catch (error) {
 			console.error(error)
@@ -251,12 +395,12 @@ const PrintOutScreen = ({ navigation, route }) => {
 								<Text
 									className='text-center text-2xl font-bold'
 									style={{ color: '#000' }}>
-									Sacred Heart Coop
+									{configData && configData.COOP_Name}
 								</Text>
 								<Text
 									className='text-center text-xs font-bold'
 									style={{ color: '#000' }}>
-									Cruz na Daan 3008 San Rafael, Philippines
+									{configData && configData.COOP_Address}
 								</Text>
 							</View>
 							<View className='space-y-2'>
@@ -336,6 +480,33 @@ const PrintOutScreen = ({ navigation, route }) => {
 										TOTAL PAID
 									</Text>
 									<View style={{ flexDirection: 'row', padding: 5 }}>
+										<View style={{ width: '50%' }}>
+											<Text
+												style={{
+													flexShrink: 1,
+													fontWeight: 'bold',
+													color: '#000',
+												}}>
+												Payment Type
+											</Text>
+										</View>
+										<View>
+											<Text
+												className='text-sm'
+												style={{
+													flexShrink: 1,
+													color: '#000',
+												}}>
+												{paymentType}
+											</Text>
+										</View>
+									</View>
+									<View
+										style={{
+											flexDirection: 'row',
+											padding: 5,
+											marginTop: -10,
+										}}>
 										<View style={{ width: '50%' }}>
 											<Text
 												style={{
@@ -458,7 +629,10 @@ const PrintOutScreen = ({ navigation, route }) => {
 					floatingIcon={
 						<Icons.AntDesign name='printer' size={20} color='#FFFFFF' />
 					}
-					onPressMain={() => printME()}
+					onPressMain={() => {
+						setCount(count + 1)
+						printME()
+					}}
 				/>
 			)}
 

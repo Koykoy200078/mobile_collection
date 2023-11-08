@@ -35,7 +35,7 @@ const CheckOutScreen = ({ navigation, route }) => {
 	const { width } = useWindowDimensions()
 	const { colors } = useTheme()
 	const [isCashChecked, setCashChecked] = useState(false)
-	const [isCOCIChecked, setCOCIChecked] = useState(false)
+	const [isCheck, setIsCheck] = useState(false)
 
 	const [isCashCheck, setCashCheck] = useState(false)
 	const [cashTotal, setCashTotal] = useState('')
@@ -54,6 +54,9 @@ const CheckOutScreen = ({ navigation, route }) => {
 	const [referenceNumber, setReferenceNumber] = useState('')
 	const [lastSavedIncrement, setLastSavedIncrement] = useState(null)
 
+	const [isNavSuccess, setNavSuccess] = useState(false)
+	const [passToPrint, setPassToPrint] = useState()
+
 	// Calculate today's date
 	const today = new Date()
 	today.setHours(0, 0, 0, 0)
@@ -69,7 +72,19 @@ const CheckOutScreen = ({ navigation, route }) => {
 		{ ChkTypeID: '6', ChkTypeDesc: 'Good Check', ChkTypeDays: '0' },
 	]
 
-	useEffect(() => {}, [isCashCheck, cashTotal, checkTotal])
+	useEffect(() => {
+		if (isNavSuccess) {
+			navigation.navigate(ROUTES.PRINTOUT, {
+				getName: getName,
+				allData: allData,
+				inputAmounts: inputAmounts,
+				total: total,
+				refNo: lastSavedIncrement ? lastSavedIncrement : referenceNumber,
+				isSuccessful: true,
+				dataToPrint: passToPrint,
+			})
+		}
+	}, [isCashCheck, cashTotal, checkTotal, isNavSuccess])
 
 	useEffect(() => {
 		checkAndShowData()
@@ -79,7 +94,7 @@ const CheckOutScreen = ({ navigation, route }) => {
 		inputAmounts,
 		total,
 		isCashChecked,
-		isCOCIChecked,
+		isCheck,
 
 		isCashCheck,
 		cashTotal,
@@ -93,6 +108,8 @@ const CheckOutScreen = ({ navigation, route }) => {
 		checkType,
 		clearingDays,
 		dateOfCheck,
+
+		passToPrint,
 	])
 
 	const formatDate = (date) => {
@@ -102,7 +119,7 @@ const CheckOutScreen = ({ navigation, route }) => {
 
 	const handleCashCheckBox = () => {
 		setCashChecked(true) // Toggle the value
-		setCOCIChecked(false)
+		setIsCheck(false)
 		setCashCheck(false)
 
 		setCheckNumber('')
@@ -112,8 +129,8 @@ const CheckOutScreen = ({ navigation, route }) => {
 		setDateOfCheck('')
 	}
 
-	const handleCOCICheckBox = () => {
-		setCOCIChecked(true) // Toggle the value
+	const handleCheckCheckBox = () => {
+		setIsCheck(true) // Toggle the value
 		setCashChecked(false)
 		setCashCheck(false)
 
@@ -128,7 +145,7 @@ const CheckOutScreen = ({ navigation, route }) => {
 	const handleCashCheck = () => {
 		setCashCheck(true)
 		setCashChecked(false)
-		setCOCIChecked(false)
+		setIsCheck(false)
 
 		setCashTotal('')
 		setCheckNumber('')
@@ -160,8 +177,8 @@ const CheckOutScreen = ({ navigation, route }) => {
 	}, [])
 
 	const updateData = async () => {
-		if (isCashChecked || isCOCIChecked || isCashCheck) {
-			if (isCOCIChecked) {
+		if (isCashChecked || isCheck || isCashCheck) {
+			if (isCheck) {
 				if (
 					checkNumber.length > 0 &&
 					bankCode.length > 0 &&
@@ -189,8 +206,8 @@ const CheckOutScreen = ({ navigation, route }) => {
 					])
 				} else {
 					showInfo({
-						message: 'COCI',
-						description: 'Please complete the COCI details.',
+						message: 'CHECK',
+						description: 'Please complete the CHECK details.',
 					})
 				}
 			} else if (isCashChecked) {
@@ -372,7 +389,7 @@ const CheckOutScreen = ({ navigation, route }) => {
 								AMOUNT: getTotal,
 							})
 						}
-						if (isCOCIChecked) {
+						if (isCheck) {
 							// Add COCI data for CHECK
 							COCI.push({
 								TYPE: 'CHECK',
@@ -406,12 +423,11 @@ const CheckOutScreen = ({ navigation, route }) => {
 					}
 				})
 
-				console.log(JSON.stringify(existingData, null, 2))
-
+				setPassToPrint(existingData)
 				realm.create(UploadData, existingData, 'modified')
 			})
 
-			transactionData()
+			await transactionData()
 		} catch (error) {
 			Alert.alert(
 				'Error',
@@ -452,16 +468,10 @@ const CheckOutScreen = ({ navigation, route }) => {
 				inputAmounts === '' &&
 				inputAmounts === 0
 			) {
+				setNavSuccess(false)
 				Alert.alert('Error', 'An unexpected error occurred.')
 			} else {
-				navigation.navigate(ROUTES.PRINTOUT, {
-					getName: getName,
-					allData: allData,
-					inputAmounts: inputAmounts,
-					total: total,
-					refNo: lastSavedIncrement ? lastSavedIncrement : referenceNumber,
-					isSuccessful: true,
-				})
+				setNavSuccess(true)
 			}
 		}
 	}
@@ -566,107 +576,21 @@ const CheckOutScreen = ({ navigation, route }) => {
 							</View>
 							<View>
 								<CheckBox
-									title='COCI (Check and Other Cash Items)'
-									checked={isCOCIChecked}
+									title='CHECK'
+									checked={isCheck}
 									color={colors.primary}
 									style={{ flex: 1 }}
-									onPress={handleCOCICheckBox}
+									onPress={handleCheckCheckBox}
 								/>
-
-								{/* {isCOCIChecked && (
-									<View className='mt-2'>
-										<Text className='text-black dark:text-white font-bold text-base'>
-											Check Number:
-										</Text>
-										<TextInput
-											placeholder='Enter check number'
-											keyboardType='numeric'
-											onChangeText={(text) => setCheckNumber(text)}
-										/>
-
-										<Text className='text-black dark:text-white font-bold text-base'>
-											Bank:
-										</Text>
-										<TextInput
-											placeholder='Enter bank'
-											onChangeText={(text) => setBankCode(text)}
-										/>
-
-										<Text className='text-black dark:text-white font-bold text-base'>
-											Check Type:
-										</Text>
-										<Dropdown
-											data={data}
-											placeholder='--- Select Check Type ---'
-											value={checkType}
-											labelField='ChkTypeDesc'
-											valueField='ChkTypeID'
-											maxHeight={200}
-											onChange={(item) => {
-												setCheckType(item.ChkTypeID)
-											}}
-											itemTextStyle={{ color: '#000000' }}
-											containerStyle={{
-												borderBottomLeftRadius: 10,
-												borderBottomRightRadius: 10,
-											}}
-										/>
-
-										<Text className='text-black dark:text-white font-bold text-base'>
-											Clearing Days:
-										</Text>
-										<Dropdown
-											data={data}
-											placeholder='--- Select Clearing Days ---'
-											value={clearingDays}
-											labelField='ChkTypeDays'
-											valueField='ChkTypeDays'
-											maxHeight={200}
-											onChange={(item) => {
-												setClearingDays(item.ChkTypeDays)
-											}}
-											itemTextStyle={{ color: '#000000' }}
-											containerStyle={{
-												borderBottomLeftRadius: 10,
-												borderBottomRightRadius: 10,
-											}}
-										/>
-
-										<Text className='text-black dark:text-white font-bold text-base'>
-											Date of Check:
-										</Text>
-										<TouchableOpacity onPress={() => setOpen(true)}>
-											<View>
-												{dateOfCheck.length > 0 ? (
-													<Text>{dateOfCheck}</Text>
-												) : (
-													<Text className='text-base'>--- Select date ---</Text>
-												)}
-											</View>
-										</TouchableOpacity>
-
-										<DatePicker
-											modal
-											mode='date'
-											theme='light'
-											open={open}
-											date={today}
-											onConfirm={(selectedDate) => {
-												setOpen(false)
-												setDateOfCheck(formatDate(selectedDate))
-											}}
-											onCancel={() => {
-												setOpen(false)
-											}}
-										/>
-									</View>
-								)} */}
 							</View>
 
 							{/* Option 3 */}
-							<View>
+							<View
+								style={{
+									width: width,
+								}}>
 								<CheckBox
-									title='Cash & Check'
+									title='CASH & CHECK'
 									checked={isCashCheck}
 									color={colors.primary}
 									style={{ flex: 1 }}
@@ -780,7 +704,7 @@ const CheckOutScreen = ({ navigation, route }) => {
 									</View>
 								)}
 
-								{isCOCIChecked && (
+								{isCheck && (
 									<View className='mt-2'>
 										<Text className='text-black dark:text-white font-bold text-base'>
 											Check Number:

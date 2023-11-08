@@ -56,8 +56,6 @@ const ViewData = ({ navigation, route }) => {
 		calculateTotalValue()
 	}, [isCollapsed, inputAmounts, visible, animation, textInputFocused, item])
 
-	console.log('item: ', item)
-
 	useEffect(() => {
 		// Assuming apiData is an array of items
 		const initialIsCollapsed = {}
@@ -520,7 +518,7 @@ const ViewData = ({ navigation, route }) => {
 						style={{ width: width / 1.1 }}>
 						<View>
 							<Text className='font-bold text-black dark:text-white text-base'>
-								Ref No.
+								Reciept No.
 							</Text>
 						</View>
 						<View>

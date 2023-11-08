@@ -71,8 +71,6 @@ const OtherSL = ({ navigation, route }) => {
 		}))
 	}
 
-	console.log('inputAmounts: ', inputAmounts)
-
 	const handleInputChange = (refTarget, id, name, value) => {
 		const collection = item.collections.find((c) => c.REF_TARGET === refTarget)
 

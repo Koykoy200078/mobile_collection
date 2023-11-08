@@ -60,8 +60,6 @@ const OtherSLScreen = ({ navigation, route }) => {
 		calculateTotalValue()
 	}, [isCollapsed, inputAmounts, textInputFocused, route])
 
-	console.log('inputAmounts: ', inputAmounts)
-
 	useEffect(() => {
 		const initialIsCollapsed = {}
 		if (item && item.collections && item.collections.length > 0) {

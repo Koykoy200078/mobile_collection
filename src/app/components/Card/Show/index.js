@@ -14,6 +14,10 @@ const Show = ({
 	toggleAccordion,
 	isActive,
 	total,
+
+	totalCash,
+	totalCheck,
+	totalOthers,
 }) => {
 	const { width, height } = useWindowDimensions()
 
@@ -23,7 +27,7 @@ const Show = ({
 				<View>
 					<Text title3>{title}</Text>
 				</View>
-				{enableTooltip ? (
+				{/* {enableTooltip ? (
 					<View className='items-center justify-center'>
 						<TouchableOpacity onPress={toggleAccordion}>
 							<View className='flex-row items-center justify-between'>
@@ -44,13 +48,28 @@ const Show = ({
 							</View>
 						</TouchableOpacity>
 					</View>
-				) : null}
+				) : null} */}
 			</View>
 
-			<Collapsible collapsed={isCollapsed}>
-				<View className='mx-2' style={{ width: width * 0.78, height: 60 }}>
+			{/* <Collapsible collapsed={isCollapsed}>
+				<View className='mx-2' style={{ width: width * 0.78, height: 105 }}>
 					<View className='flex-row justify-between'>
-						<Text className='font-bold text-xs'>• Total Collected Amount:</Text>
+						<Text className='font-bold text-xs'>• Total Collected Amount</Text>
+						<Text className='font-bold text-xs'>{totalCollectedAmount}</Text>
+					</View>
+
+					<View className='flex-row justify-between'>
+						<Text className='font-bold text-xs ml-4'>• Cash</Text>
+						<Text className='font-bold text-xs'>{totalCollectedAmount}</Text>
+					</View>
+
+					<View className='flex-row justify-between'>
+						<Text className='font-bold text-xs ml-4'>• Check</Text>
+						<Text className='font-bold text-xs'>{totalCollectedAmount}</Text>
+					</View>
+
+					<View className='flex-row justify-between'>
+						<Text className='font-bold text-xs ml-4'>• Others</Text>
 						<Text className='font-bold text-xs'>{totalCollectedAmount}</Text>
 					</View>
 
@@ -64,7 +83,43 @@ const Show = ({
 						<Text className='font-extrabold text-sm'>{total}</Text>
 					</View>
 				</View>
-			</Collapsible>
+			</Collapsible> */}
+
+			<View className='mx-2' style={{ width: width * 0.81, height: 105 }}>
+				<View className='flex-row justify-between'>
+					<View className='flex-row'>
+						<Text className='font-bold text-xs'>• Total Collected Amount</Text>
+					</View>
+					<Text className='font-bold text-xs'>{totalCollectedAmount}</Text>
+				</View>
+
+				<Collapsible collapsed={isCollapsed}>
+					<View className='flex-row justify-between'>
+						<Text className='font-bold text-xs ml-4'>• Cash</Text>
+						<Text className='font-bold text-xs'>{totalCash}</Text>
+					</View>
+
+					<View className='flex-row justify-between'>
+						<Text className='font-bold text-xs ml-4'>• Check</Text>
+						<Text className='font-bold text-xs'>{totalCheck}</Text>
+					</View>
+
+					<View className='flex-row justify-between'>
+						<Text className='font-bold text-xs ml-4'>• Other's</Text>
+						<Text className='font-bold text-xs'>{totalOthers}</Text>
+					</View>
+				</Collapsible>
+
+				<View className='flex-row justify-between mt-2'>
+					<Text className='font-bold text-xs'>• Total Remitted Amount</Text>
+					<Text className='font-bold text-xs'>{totalRemittedAmount}</Text>
+				</View>
+
+				<View className='flex-row justify-between my-2'>
+					<Text className='font-extrabold text-sm'>TOTAL CASH ON HAND:</Text>
+					<Text className='font-extrabold text-sm'>{total}</Text>
+				</View>
+			</View>
 		</>
 	)
 }
