@@ -41,6 +41,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 	const [count, setCount] = useState(1)
 
 	const [configData, setConfigData] = useState(null)
+	const [deviceData, setDeviceData] = useState(null)
 
 	const logoUri = 'data:image/png;base64,' + imageUri.data
 
@@ -121,10 +122,15 @@ const PrintOutScreen = ({ navigation, route }) => {
 
 	const retrieveData = async () => {
 		try {
-			const value = await AsyncStorage.getItem('print_config')
-			if (value !== null) {
+			const print_config = await AsyncStorage.getItem('print_config')
+			const device_config = await AsyncStorage.getItem('device_config')
+			if (print_config !== null) {
 				// We have data!!
-				setConfigData(JSON.parse(value))
+				setConfigData(JSON.parse(print_config))
+			}
+			if (device_config !== null) {
+				// We have data!!
+				setDeviceData(JSON.parse(device_config))
 			}
 		} catch (error) {
 			// Error retrieving data
@@ -329,6 +335,79 @@ const PrintOutScreen = ({ navigation, route }) => {
 			date = `       ${formattedDate}`
 		}
 
+		// App Version
+		let appV = ''
+		if (deviceData && deviceData.AppVersion.length === 6) {
+			appV = `              v${deviceData.AppVersion}`
+		} else if (deviceData && deviceData.AppVersion.length === 7) {
+			appV = `             v${deviceData.AppVersion}`
+		} else if (deviceData && deviceData.AppVersion.length === 8) {
+			appV = `            v${deviceData.AppVersion}`
+		} else if (deviceData && deviceData.AppVersion.length === 9) {
+			appV = `           v${deviceData.AppVersion}`
+		} else if (deviceData && deviceData.AppVersion.length === 10) {
+			appV = `          v${deviceData.AppVersion}`
+		} else if (deviceData && deviceData.AppVersion.length === 11) {
+			appV = `         v${deviceData.AppVersion}`
+		} else if (deviceData && deviceData.AppVersion.length === 12) {
+			appV = `        v${deviceData.AppVersion}`
+		} else if (deviceData && deviceData.AppVersion.length === 13) {
+			appV = `       v${deviceData.AppVersion}`
+		} else if (deviceData && deviceData.AppVersion.length === 14) {
+			appV = `      v${deviceData.AppVersion}`
+		} else if (deviceData && deviceData.AppVersion.length === 15) {
+			appV = `     v${deviceData.AppVersion}`
+		}
+
+		// Model Name
+		let mName = ''
+		if (deviceData && deviceData.ModelName.length === 6) {
+			mName = `                ${deviceData.ModelName}`
+		} else if (deviceData && deviceData.ModelName.length === 7) {
+			mName = `               ${deviceData.ModelName}`
+		} else if (deviceData && deviceData.ModelName.length === 8) {
+			mName = `              ${deviceData.ModelName}`
+		} else if (deviceData && deviceData.ModelName.length === 9) {
+			mName = `             ${deviceData.ModelName}`
+		} else if (deviceData && deviceData.ModelName.length === 10) {
+			mName = `            ${deviceData.ModelName}`
+		} else if (deviceData && deviceData.ModelName.length === 11) {
+			mName = `           ${deviceData.ModelName}`
+		} else if (deviceData && deviceData.ModelName.length === 12) {
+			mName = `          ${deviceData.ModelName}`
+		} else if (deviceData && deviceData.ModelName.length === 13) {
+			mName = `         ${deviceData.ModelName}`
+		} else if (deviceData && deviceData.ModelName.length === 14) {
+			mName = `        ${deviceData.ModelName}`
+		} else if (deviceData && deviceData.ModelName.length === 15) {
+			mName = `       ${deviceData.ModelName}`
+		}
+
+		// Device ID
+		let dID = ''
+		if (deviceData && deviceData.MachineID.length === 16) {
+			dID = `       ${deviceData.MachineID}`
+		} else if (deviceData && deviceData.MachineID.length === 17) {
+			dID = `      ${deviceData.MachineID}`
+		} else if (deviceData && deviceData.MachineID.length === 18) {
+			dID = `     ${deviceData.MachineID}`
+		} else if (deviceData && deviceData.MachineID.length === 19) {
+			dID = `    ${deviceData.MachineID}`
+		} else if (deviceData && deviceData.MachineID.length === 20) {
+			dID = `   ${deviceData.MachineID}`
+		}
+
+		// DatePTU
+		let datePTU = ''
+		if (deviceData && deviceData.DatePTU.length === 9) {
+			datePTU = `             ${deviceData.DatePTU}`
+		} else if (deviceData && deviceData.DatePTU.length === 10) {
+			datePTU = `            ${deviceData.DatePTU}`
+		} else if (deviceData && deviceData.DatePTU.length === 11) {
+			datePTU = `           ${deviceData.DatePTU}`
+		} else if (deviceData && deviceData.DatePTU.length === 12) {
+			datePTU = `          ${deviceData.DatePTU}`
+		}
 		try {
 			currentPrinter &&
 				BLEPrinter.printBill(
@@ -353,6 +432,11 @@ const PrintOutScreen = ({ navigation, route }) => {
 						`Collected by ${
 							auth && auth.data ? auth.data.collector_desc : '...'
 						}\n` +
+						'<C>--------------------------------</C>\n' +
+						`App Version${appV}\n` +
+						`Model Name${mName}\n` +
+						`Device ID${dID}\n` +
+						`Date Issue${datePTU}\n` +
 						'<C>--------------------------------</C>\n' +
 						`<C>${configData && configData.Print_Footer}</C>${space}` +
 						`<C>${reprentCount}</C>`

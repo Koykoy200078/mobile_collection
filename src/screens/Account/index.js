@@ -27,6 +27,7 @@ import { Realm } from '@realm/react'
 import { resetLogin } from '../../app/reducers/auth'
 import NetInfo from '@react-native-community/netinfo'
 import DeviceInfo, {
+	getSerialNumber,
 	getSystemVersion,
 	getUniqueId,
 	getVersion,
@@ -228,32 +229,32 @@ const Account = ({ navigation }) => {
 		}
 	}, [getAmountDB])
 
-	const fetchData = useCallback(async () => {
-		Alert.alert(
-			'Downloading Data',
-			'Are you sure you want to download the data?',
-			[
-				{
-					text: 'NO',
-					onPress: () => Alert.alert('Cancelled', 'Data not downloaded'),
-					style: 'cancel',
-				},
-				{
-					text: 'YES',
-					onPress: async () => {
-						if (auth && auth.data) {
-							dispatch(
-								getDetails({
-									branchid: auth.data.branchid,
-									collectorid: auth.data.collector,
-								})
-							)
-						}
-					},
-				},
-			]
-		)
-	}, [dispatch])
+	// const fetchData = useCallback(async () => {
+	// 	Alert.alert(
+	// 		'Downloading Data',
+	// 		'Are you sure you want to download the data?',
+	// 		[
+	// 			{
+	// 				text: 'NO',
+	// 				onPress: () => Alert.alert('Cancelled', 'Data not downloaded'),
+	// 				style: 'cancel',
+	// 			},
+	// 			{
+	// 				text: 'YES',
+	// 				onPress: async () => {
+	// 					if (auth && auth.data) {
+	// 						dispatch(
+	// 							getDetails({
+	// 								branchid: auth.data.branchid,
+	// 								collectorid: auth.data.collector,
+	// 							})
+	// 						)
+	// 					}
+	// 				},
+	// 			},
+	// 		]
+	// 	)
+	// }, [dispatch])
 
 	const uploadME = () => {
 		let trans_date =
@@ -302,6 +303,7 @@ const Account = ({ navigation }) => {
 	}, [getUpload])
 
 	const deviceId = getUniqueId()
+	const deviceSerialNum = getSerialNumber()
 	const appVersion = getVersion()
 
 	return (
@@ -311,7 +313,7 @@ const Account = ({ navigation }) => {
 				<Text title1>Account</Text>
 
 				<View className='flex-row items-center justify-center space-x-12 mt-4'>
-					<TouchableOpacity
+					{/* <TouchableOpacity
 						onPress={() => {
 							if (allPaid === false) {
 								showError({
@@ -331,7 +333,7 @@ const Account = ({ navigation }) => {
 							/>
 							<Text className='text-sm font-bold'>Download Data</Text>
 						</View>
-					</TouchableOpacity>
+					</TouchableOpacity> */}
 
 					<TouchableOpacity
 						disabled={getUpload.length === 0}
@@ -429,11 +431,10 @@ const Account = ({ navigation }) => {
 				/>
 
 				<Project02
-					title={`App Version - v${appVersion}`}
-					description={`Machine ID Number: ${deviceId._j}`}
-					description2={`Serial Number: `}
-					des2={true}
+					title='Machine Configuration'
+					description='Manage and customize your machine preferences and settings.'
 					// total_loans={countHistoryItems}
+					onPress={() => navigation.navigate(ROUTES.SYSTEMINFO)}
 				/>
 			</View>
 
