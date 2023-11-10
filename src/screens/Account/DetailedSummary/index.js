@@ -70,37 +70,6 @@ const DetailedSummary = ({ navigation }) => {
 		}
 	}, [search])
 
-	const handleSearch = useCallback(
-		(query) => {
-			const normalizedQuery = query.toLowerCase()
-			const data = clientData.filter((client) => {
-				const transID = client.TRANSID && client.TRANSID.toString()
-				const transRefNo =
-					client.TRANS_REFNO &&
-					client.TRANS_REFNO.toLowerCase().includes(normalizedQuery)
-				const clientID = client.CLIENTID && client.CLIENTID.toString()
-				const clientName =
-					client.CLIENT_NAME &&
-					client.CLIENT_NAME.toLowerCase().includes(normalizedQuery)
-
-				// Return true if any of the properties match the query
-				return (
-					transID === normalizedQuery ||
-					transRefNo ||
-					clientID === normalizedQuery ||
-					clientName
-				)
-			})
-			setFilteredClients(data)
-		},
-		[clientData]
-	)
-
-	const clearSearch = () => {
-		setSearch('')
-		setFilteredClients([])
-	}
-
 	const renderContent = useCallback(() => {
 		return (
 			<View style={{ flex: 1 }}>

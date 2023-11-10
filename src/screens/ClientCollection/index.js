@@ -315,8 +315,6 @@ const ClientCollection = ({ navigation }) => {
 			const clients = realm.objects(Client)
 			if (clients.length) {
 				setClientData(Array.from(clients))
-			} else {
-				Alert.alert('No Data', 'No client data found in the database.')
 			}
 		} catch (error) {
 			Alert.alert('Error retrieving data', error.message)

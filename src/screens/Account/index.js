@@ -13,8 +13,12 @@ import databaseOptions, {
 	Client,
 	Collection,
 	CollectionReport,
+	Device,
+	Header,
+	Software,
 	UploadData,
 	UploadDataCollection,
+	UploadTOP,
 	totalAmountUpload,
 } from '../../app/database/allSchemas'
 import { Icons } from '../../app/config/icons'
@@ -63,8 +67,6 @@ const Account = ({ navigation }) => {
 
 	const currentDate = new Date()
 	const formattedDate = formatDateToYYYYMMDD(currentDate)
-
-	const allPaid = clientData.every((item) => item.isPaid === true)
 
 	useEffect(() => {
 		checkAndShowData()
@@ -122,10 +124,14 @@ const Account = ({ navigation }) => {
 	const deleteData = useCallback(async () => {
 		try {
 			const schemaNamesToDelete = [
+				Header,
+				Device,
+				Software,
 				Client,
 				Collection,
 				UploadData,
 				UploadDataCollection,
+				UploadTOP,
 				CollectionReport,
 				totalAmountUpload,
 			]
@@ -388,6 +394,22 @@ const Account = ({ navigation }) => {
 			) : null}
 
 			<View
+				style={{
+					width: '100%',
+					marginVertical: 10,
+				}}>
+				<View
+					style={{
+						width: '100%',
+						borderWidth: 1,
+						borderColor: '#E5E5E5',
+						borderStyle: 'dashed',
+						marginTop: -2,
+					}}
+				/>
+			</View>
+
+			<View
 				style={{ padding: 15, marginLeft: 8, marginRight: 8, marginTop: -10 }}>
 				<Project02
 					title='Payment Overview'
@@ -405,43 +427,22 @@ const Account = ({ navigation }) => {
 					total_loans={countHistoryItems}
 					onPress={() => navigation.navigate(ROUTES.DETAILED_SUMMARY)}
 				/>
-
-				<View
-					style={{
-						width: '100%',
-						marginVertical: 10,
-					}}>
-					<View
-						style={{
-							width: '100%',
-							borderWidth: 1,
-							borderColor: '#E5E5E5',
-							borderStyle: 'dashed',
-							marginTop: -2,
-						}}
-					/>
-				</View>
-
-				<Project02
-					title='Print Configuration'
-					description='Manage and customize your printing preferences and settings.'
-					// total_loans={countHistoryItems}
-					onPress={() => navigation.navigate(ROUTES.PRINTCONFIG)}
-					style={{ marginBottom: 10 }}
-				/>
-
-				<Project02
-					title='Machine Configuration'
-					description='Manage and customize your machine preferences and settings.'
-					// total_loans={countHistoryItems}
-					onPress={() => navigation.navigate(ROUTES.SYSTEMINFO)}
-				/>
 			</View>
 
-			<View style={{ width: width }}>
+			<View style={{ width: width, marginTop: 20 }}>
 				<TouchableOpacity
 					onPress={() => {
-						deleteData()
+						Alert.alert('Logout', 'Are you sure you want to logout?', [
+							{
+								text: 'No',
+								onPress: () => console.log('no'),
+								style: 'cancel',
+							},
+							{
+								text: 'Yes',
+								onPress: () => deleteData(),
+							},
+						])
 					}}>
 					<View className='items-center justify-center'>
 						<Text className='text-sm font-bold'>LOGOUT</Text>
