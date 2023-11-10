@@ -20,7 +20,7 @@ import { useSelector } from 'react-redux'
 import DeviceInfo from 'react-native-device-info'
 import { BLEPrinter } from 'react-native-thermal-receipt-printer'
 import { isDeviceSupported } from '../../app/config/DeviceSupport'
-import { showInfo } from '../../app/components/AlertMessage'
+import { showError, showInfo } from '../../app/components/AlertMessage'
 
 const isWithinTimeRangeGoodMorning = (hour, minute) => {
 	return hour >= 5 && hour < 12 // 5:00 AM to 11:59 AM
@@ -36,6 +36,7 @@ const isWithinTimeRangeGoodEvening = (hour, minute) => {
 
 const Dashboard = () => {
 	const auth = useSelector((state) => state.auth.authData)
+	const { isSuccess, isLoading } = useSelector((state) => state.upload)
 	const isDarkMode = useColorScheme() === 'dark'
 	const { width, height } = useWindowDimensions()
 	const [localHour, setLocalHour] = useState(null)
@@ -45,11 +46,6 @@ const Dashboard = () => {
 
 	const [uploadAMNT, setUploadAMNT] = useState(null)
 	const [amountDB, setAmountDB] = useState(null)
-
-	// Printer
-	const [printers, setPrinters] = useState([])
-	const [currentPrinter, setCurrentPrinter] = useState(null) // Initialize as null
-	const [isPrinterConnected, setIsPrinterConnected] = useState(false) // Add state for connection status
 
 	// Payment Type //
 	const [getCash, setCash] = useState(null)
@@ -95,51 +91,24 @@ const Dashboard = () => {
 	}, [])
 
 	const showCollectedAmount = (data) => {
-		const filteredData = data.filter((item) => item.collections.length > 0)
-		const totalDueArray = filteredData.map((item) =>
-			item.COCI.map((collected) => parseFloat(collected.AMOUNT))
-		)
+		const calculateTotal = (type) => {
+			return data
+				.filter((item) => item.collections.length > 0)
+				.map((item) => {
+					return item.COCI.filter((collected) => collected.TYPE === type).map(
+						(collected) => {
+							const amount = collected.AMOUNT ? parseFloat(collected.AMOUNT) : 0
+							return isNaN(amount) ? 0 : amount
+						}
+					)
+				})
+				.flat()
+				.reduce((acc, currentValue) => acc + currentValue, 0)
+		}
 
-		const flatTotalDueArray = totalDueArray.flat()
-		const totalDueSum = flatTotalDueArray.reduce(
-			(acc, currentValue) => acc + currentValue,
-			0
-		)
-
-		// Payment Type
-		const cash = filteredData.map((item) => {
-			const cashAmount = item.COCI.filter(
-				(collected) => collected.TYPE === 'CASH'
-			).map((cashCollected) => {
-				const amount = cashCollected.AMOUNT
-					? parseFloat(cashCollected.AMOUNT)
-					: 0
-				return isNaN(amount) ? 0 : amount
-			})
-			return cashAmount.length > 0 ? cashAmount : [0]
-		})
-		const flatCashArray = cash.flat()
-		const totalCash = flatCashArray.reduce(
-			(acc, currentValue) => acc + currentValue,
-			0
-		)
-
-		const check = filteredData.map((item) => {
-			const checkAmount = item.COCI.filter(
-				(collected) => collected.TYPE === 'CHECK'
-			).map((checkCollected) => {
-				const amount = checkCollected.AMOUNT
-					? parseFloat(checkCollected.AMOUNT)
-					: 0
-				return isNaN(amount) ? 0 : amount
-			})
-			return checkAmount.length > 0 ? checkAmount : [0]
-		})
-		const flatCheckArray = check.flat()
-		const totalCheck = flatCheckArray.reduce(
-			(acc, currentValue) => acc + currentValue,
-			0
-		)
+		const totalCash = calculateTotal('CASH')
+		const totalCheck = calculateTotal('CHECK')
+		const totalDueSum = totalCash + totalCheck
 
 		setCash(totalCash)
 		setCheck(totalCheck)
@@ -160,9 +129,8 @@ const Dashboard = () => {
 		}
 
 		const fetchDataAndUpdate = async () => {
-			// Fetch the data from the database and update state
 			await checkAndShowData()
-			updateLocalTime() // Update the local time
+			updateLocalTime()
 		}
 
 		intervalRef.current = setInterval(fetchDataAndUpdate, 1000)
@@ -182,15 +150,19 @@ const Dashboard = () => {
 	])
 
 	useEffect(() => {
+		if (isSuccess) {
+			setCash(0)
+			setCheck(0)
+		}
+	}, [isSuccess])
+
+	useEffect(() => {
 		if (Platform.OS === 'android') {
 			let model = DeviceInfo.getModel()
 
 			if (isDeviceSupported(model)) {
 				BLEPrinter.init().then(() => {
 					BLEPrinter.getDeviceList().then((deviceList) => {
-						setPrinters(deviceList)
-
-						// Check if there are printers and automatically connect to the first one
 						if (deviceList.length > 0) {
 							_connectPrinter(deviceList[0])
 						}
@@ -209,15 +181,12 @@ const Dashboard = () => {
 	const _connectPrinter = (printer) => {
 		BLEPrinter.connectPrinter(printer.inner_mac_address)
 			.then(() => {
-				setCurrentPrinter(printer)
-				setIsPrinterConnected(true) // Set connection status to true
 				showInfo({
 					message: 'Printer Connected',
 					description: 'Device linked with printer. Ready for direct printing.',
 				})
 			})
 			.catch((error) => {
-				setIsPrinterConnected(false)
 				console.warn(error)
 			})
 	}

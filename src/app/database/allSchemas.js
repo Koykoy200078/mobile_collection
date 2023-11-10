@@ -1,3 +1,44 @@
+// HEADER
+export const Header = 'Header'
+const HeaderSchema = {
+	name: Header,
+	properties: {
+		ClientName: 'string',
+		BranchName: 'string',
+		Address: 'string',
+		TIN: 'string',
+		['CDA_REG_NO.']: 'string',
+	},
+}
+
+// DEVICE
+export const Device = 'Device'
+const DeviceSchema = {
+	name: Device,
+	properties: {
+		Device_No: 'int',
+		Serial_No: 'string',
+		Machine_ID_No: 'string',
+		Permit_to_Use_No: 'string',
+		Permit_to_Use_Date_Issued: 'string',
+		Permit_to_Use_Valid_Until: 'string',
+	},
+}
+
+// SOFTWARE
+export const Software = 'Software'
+const SoftwareSchema = {
+	name: Software,
+	properties: {
+		Software: 'string',
+		Version: 'string',
+		Provider: 'string',
+		Address: 'string',
+		TIN: 'string',
+		Acc_No: 'string',
+	},
+}
+
 // CLIENT
 export const Client = 'Client'
 export const Collection = 'Collection'
@@ -126,6 +167,9 @@ export const lastAmountSchema = {
 }
 
 const allSchema = [
+	HeaderSchema,
+	DeviceSchema,
+	SoftwareSchema,
 	ClientSchema,
 	CollectionSchema,
 	uploadSchema,

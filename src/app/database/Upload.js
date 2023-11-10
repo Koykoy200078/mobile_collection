@@ -1,2 +1,0 @@
-import { UploadData } from './allSchemas'
-

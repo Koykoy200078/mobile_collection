@@ -10,7 +10,7 @@ import { Text, TextInput } from '../../../app/components'
 
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler'
-import { showInfo } from '../../../app/components/AlertMessage'
+import { showError, showInfo } from '../../../app/components/AlertMessage'
 import DeviceInfo from 'react-native-device-info'
 import { isDeviceSupported } from '../../../app/config/DeviceSupport'
 import { BLEPrinter } from 'react-native-thermal-receipt-printer'

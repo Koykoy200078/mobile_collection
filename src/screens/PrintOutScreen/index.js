@@ -6,7 +6,7 @@ import {
 	TouchableOpacity,
 	useWindowDimensions,
 } from 'react-native'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import styles from './styles'
 import { imageUri } from './imageUri'
@@ -25,6 +25,11 @@ import DeviceInfo from 'react-native-device-info'
 import { showError } from '../../app/components/AlertMessage'
 import { useSelector } from 'react-redux'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import databaseOptions, {
+	Device,
+	Header,
+	Software,
+} from '../../app/database/allSchemas'
 
 const PrintOutScreen = ({ navigation, route }) => {
 	const { width, height } = useWindowDimensions()
@@ -35,13 +40,11 @@ const PrintOutScreen = ({ navigation, route }) => {
 
 	const isDarkMode = useColorScheme() === 'dark'
 
-	const [data, setData] = useState(null)
-	const [selectedPrinter, setSelectedPrinter] = useState(null)
-
 	const [count, setCount] = useState(1)
 
-	const [configData, setConfigData] = useState(null)
-	const [deviceData, setDeviceData] = useState(null)
+	const [headerData, setHeaderData] = useState([])
+	const [deviceData, setDeviceData] = useState([])
+	const [softwareData, setSoftwareData] = useState([])
 
 	const logoUri = 'data:image/png;base64,' + imageUri.data
 
@@ -77,8 +80,10 @@ const PrintOutScreen = ({ navigation, route }) => {
 	const { getName, allData, inputAmounts, refNo, total, dataToPrint } =
 		route.params
 
+	const paymentType = dataToPrint.COCI.map((item) => item.TYPE)
+
 	useEffect(() => {
-		retrieveData()
+		checkAndShowData()
 
 		if (Platform.OS === 'android') {
 			let model = DeviceInfo.getModel()
@@ -87,8 +92,6 @@ const PrintOutScreen = ({ navigation, route }) => {
 				BLEPrinter.init().then(() => {
 					BLEPrinter.getDeviceList().then((deviceList) => {
 						setPrinters(deviceList)
-
-						// Check if there are printers and automatically connect to the first one
 						if (deviceList.length > 0) {
 							_connectPrinter(deviceList[0])
 						}
@@ -104,38 +107,49 @@ const PrintOutScreen = ({ navigation, route }) => {
 		}
 	}, [])
 
-	// console.log('configData: ', configData)
-	const paymentType = dataToPrint.COCI.map((item) => item.TYPE)
-	console.log('paymentType: ', paymentType)
+	const checkAndShowData = useCallback(async () => {
+		try {
+			const realm = await Realm.open(databaseOptions)
+			const header = realm.objects(Header)
+			const device = realm.objects(Device)
+			const software = realm.objects(Software)
+
+			if (header.length > 0) {
+				setHeaderData(Array.from(header))
+			}
+
+			if (device.length > 0) {
+				setDeviceData(Array.from(device))
+			}
+
+			if (software.length > 0) {
+				setSoftwareData(Array.from(software))
+			}
+		} catch (error) {
+			showError({
+				message: 'Error',
+				description: 'Something went wrong in retrieving data',
+			})
+			console.error(error)
+		}
+	}, [headerData, deviceData, softwareData])
+
+	console.group()
+	console.log('headerData: ', headerData)
+	console.log('deviceData: ', deviceData)
+	console.log('softwareData: ', softwareData)
+	console.groupEnd()
 
 	const _connectPrinter = (printer) => {
 		BLEPrinter.connectPrinter(printer.inner_mac_address)
 			.then(() => {
 				setCurrentPrinter(printer)
-				setIsPrinterConnected(true) // Set connection status to true
+				setIsPrinterConnected(true)
 			})
 			.catch((error) => {
 				setIsPrinterConnected(false)
 				console.warn(error)
 			})
-	}
-
-	const retrieveData = async () => {
-		try {
-			const print_config = await AsyncStorage.getItem('print_config')
-			const device_config = await AsyncStorage.getItem('device_config')
-			if (print_config !== null) {
-				// We have data!!
-				setConfigData(JSON.parse(print_config))
-			}
-			if (device_config !== null) {
-				// We have data!!
-				setDeviceData(JSON.parse(device_config))
-			}
-		} catch (error) {
-			// Error retrieving data
-			console.log(error)
-		}
 	}
 
 	const totalAmount = total.toLocaleString('en-US', {
@@ -157,75 +171,15 @@ const PrintOutScreen = ({ navigation, route }) => {
 				})
 
 				rowIndex = index + 1
+				const spaces = ' '.repeat(15 - getAMNT.length)
 
-				let aa = ''
-				// if (collection.SLDESCR.length === 7) {
-				// 	name = `${collection.SLDESCR}      ${collection.REF_TARGET}`
-				// } else if (collection.SLDESCR.length === 10) {
-				// 	name = `${collection.SLDESCR}   ${collection.REF_TARGET}`
-				// } else if (collection.SLDESCR.length === 12) {
-				// 	name = `${collection.SLDESCR} ${collection.REF_TARGET}`
-				// } else if (collection.SLDESCR.length === 14) {
-				// 	name = `${collection.SLDESCR}${collection.REF_TARGET}`
-				// } else if (collection.SLDESCR.length === 15) {
-				// 	name = `${collection.SLDESCR}${collection.REF_TARGET}`
-				// } else {
-				// 	name = `${collection.SLDESCR}    ${collection.REF_TARGET}`
-				// }
-
-				if (getAMNT.length === 4) {
-					aa = `${collection.REF_TARGET}           ${getAMNT}`
-				} else if (getAMNT.length === 5) {
-					aa = `${collection.REF_TARGET}          ${getAMNT}`
-				} else if (getAMNT.length === 6) {
-					aa = `${collection.REF_TARGET}         ${getAMNT}`
-				} else if (getAMNT.length === 7) {
-					aa = `${collection.REF_TARGET}        ${getAMNT}`
-				} else if (getAMNT.length === 8) {
-					aa = `${collection.REF_TARGET}       ${getAMNT}`
-				} else if (getAMNT.length === 9) {
-					aa = `${collection.REF_TARGET}      ${getAMNT}`
-				} else if (getAMNT.length === 10) {
-					aa = `${collection.REF_TARGET}     ${getAMNT}`
-				} else if (getAMNT.length === 11) {
-					aa = `${collection.REF_TARGET}    ${getAMNT}`
-				} else if (getAMNT.length === 12) {
-					aa = `${collection.REF_TARGET}   ${getAMNT}`
-				} else if (getAMNT.length === 13) {
-					aa = `${collection.REF_TARGET}  ${getAMNT}`
-				}
-
-				// let amount = ''
-				// if (getAMNT.length === 3) {
-				// 	amount = `                             ${getAMNT}`
-				// } else if (getAMNT.length === 4) {
-				// 	amount = `                            ${getAMNT}`
-				// } else if (getAMNT.length === 5) {
-				// 	amount = `                           ${getAMNT}`
-				// } else if (getAMNT.length === 6) {
-				// 	amount = `                         ${getAMNT}`
-				// } else if (getAMNT.length === 7) {
-				// 	amount = `                        ${getAMNT}`
-				// } else if (getAMNT.length === 8) {
-				// 	amount = `                       ${getAMNT}`
-				// } else if (getAMNT.length === 9) {
-				// 	amount = `                      ${getAMNT}`
-				// } else if (getAMNT.length === 10) {
-				// 	amount = `                     ${getAMNT}`
-				// } else if (getAMNT.length === 11) {
-				// 	amount = `                    ${getAMNT}`
-				// } else if (getAMNT.length === 12) {
-				// 	amount = `                   ${getAMNT}`
-				// } else if (getAMNT.length === 13) {
-				// 	amount = `                  ${getAMNT}`
-				// }
+				const aa = `${collection.REF_TARGET}${spaces}${getAMNT}`
 
 				return `${aa}\n${collection.SLDESCR}\n\n`
 			}
 		}
 	})
 
-	// Join the renderedItems array with line breaks to create a single string
 	const renderedText = renderedItem.join('')
 
 	const renderedData = allData.collections.map((collection) => {
@@ -284,137 +238,79 @@ const PrintOutScreen = ({ navigation, route }) => {
 				</View>
 			)
 		} else {
-			return null // Don't render if there's no matching inputAmount
+			return null
 		}
 	})
 
+	const maxWidth = 32
+	const formatString = (label, value) => {
+		const totalLength = label.length + value.length
+		const spaces = ' '.repeat(maxWidth - totalLength)
+		return `${label}${spaces}${value}`
+	}
+
 	const printME = async () => {
-		let finalAmount = ''
-		if (totalAmount.length === 4) {
-			finalAmount = `           ${totalAmount}`
-		} else if (totalAmount.length === 5) {
-			finalAmount = `          ${totalAmount}`
-		} else if (totalAmount.length === 6) {
-			finalAmount = `         ${totalAmount}`
-		} else if (totalAmount.length === 8) {
-			finalAmount = `       ${totalAmount}`
-		} else if (totalAmount.length === 9) {
-			finalAmount = `      ${totalAmount}`
-		} else if (totalAmount.length === 10) {
-			finalAmount = `     ${totalAmount}`
-		} else if (totalAmount.length === 12) {
-			finalAmount = `   ${totalAmount}`
-		} else if (totalAmount.length === 13) {
-			finalAmount = `  ${totalAmount}`
-		} else if (totalAmount.length === 14) {
-			finalAmount = ` ${totalAmount}`
-		} else if (totalAmount.length === 15) {
-			finalAmount = `${totalAmount}`
+		const maxWidth = 32
+		const formatString = (label, value) => {
+			const totalLength = label.length + value.length
+			// const spaces = ' '.repeat(maxWidth - totalLength)
+
+			const spacesLength = maxWidth - totalLength
+			const spaces = ' '.repeat(spacesLength > 0 ? spacesLength : 0)
+			return `${label}${spaces}${value}`
 		}
 
-		let reprentCount = ''
-		let space = ''
-		if (count > 1) {
-			space = '\n\n'
-			reprentCount = 'PRINT COPY #' + count
-		}
+		let finalAmount = formatString('Total Paid Amount', totalAmount)
+		let reprentCount = count > 1 ? `PRINT COPY #${count}` : ''
+		let space = count > 1 ? '\n\n' : ''
+		let payment_type = formatString('Type of Payment', paymentType.join(', '))
+		let refNoFormatted = formatString('Reciept No.', refNo)
+		let date = formatString('Date', formattedDate)
+		let collectedBy = formatString(
+			'Collected by',
+			auth && auth.data ? auth.data.collector_desc : '...'
+		)
 
-		// Payment Type
-		let payment_type = ''
-		if (paymentType.length > 1) {
-			payment_type = `      ${paymentType.join(', ')}`
-		} else {
-			payment_type = `            ${paymentType[0]}`
-		}
+		const getSoftware =
+			softwareData && softwareData.map((data) => data.Software)
+		const getVersion = softwareData && softwareData.map((data) => data.Version)
+		const getProvider =
+			softwareData && softwareData.map((data) => data.Provider)
+		const getAddress = softwareData && softwareData.map((data) => data.Address)
+		const getTIN = softwareData && softwareData.map((data) => data.TIN)
+		const getAccNo = softwareData && softwareData.map((data) => data.Acc_No)
 
-		// Date
-		let date = ''
-		if (formattedDate.length === 20) {
-			date = `        ${formattedDate}`
-		} else {
-			date = `       ${formattedDate}`
-		}
+		// Software
+		let softwareName = formatString('Software', `${getSoftware.join(',')}`)
+		let softwareVersion = formatString('Version', `${getVersion.join(',')}`)
+		let softwareProvider = formatString('Provider', `${getProvider.join(',')}`)
+		let softwareAddress = formatString('Address', `${getAddress.join(',')}`)
+		let softwareTIN = formatString('TIN#', `${getTIN.join(',')}`)
+		let softwareAcc_No = formatString('Acc_No', `${getAccNo.join(',')}`)
 
-		// App Version
-		let appV = ''
-		if (deviceData && deviceData.AppVersion.length === 6) {
-			appV = `              v${deviceData.AppVersion}`
-		} else if (deviceData && deviceData.AppVersion.length === 7) {
-			appV = `             v${deviceData.AppVersion}`
-		} else if (deviceData && deviceData.AppVersion.length === 8) {
-			appV = `            v${deviceData.AppVersion}`
-		} else if (deviceData && deviceData.AppVersion.length === 9) {
-			appV = `           v${deviceData.AppVersion}`
-		} else if (deviceData && deviceData.AppVersion.length === 10) {
-			appV = `          v${deviceData.AppVersion}`
-		} else if (deviceData && deviceData.AppVersion.length === 11) {
-			appV = `         v${deviceData.AppVersion}`
-		} else if (deviceData && deviceData.AppVersion.length === 12) {
-			appV = `        v${deviceData.AppVersion}`
-		} else if (deviceData && deviceData.AppVersion.length === 13) {
-			appV = `       v${deviceData.AppVersion}`
-		} else if (deviceData && deviceData.AppVersion.length === 14) {
-			appV = `      v${deviceData.AppVersion}`
-		} else if (deviceData && deviceData.AppVersion.length === 15) {
-			appV = `     v${deviceData.AppVersion}`
-		}
+		const devID = deviceData && deviceData.map((data) => data.Machine_ID_No)
+		const sn = deviceData && deviceData.map((data) => data.Serial_No)
+		const date_issued =
+			deviceData && deviceData.map((data) => data.Permit_to_Use_Date_Issued)
+		// Device
+		let deviceID = formatString('Machine ID', `${devID.join(',')}`)
+		let serialNo = formatString('S/N', `${sn.join(',')}`)
+		let dateIssued = formatString('Date Issued', `${date_issued.join(',')}`)
 
-		// Model Name
-		let mName = ''
-		if (deviceData && deviceData.ModelName.length === 6) {
-			mName = `                ${deviceData.ModelName}`
-		} else if (deviceData && deviceData.ModelName.length === 7) {
-			mName = `               ${deviceData.ModelName}`
-		} else if (deviceData && deviceData.ModelName.length === 8) {
-			mName = `              ${deviceData.ModelName}`
-		} else if (deviceData && deviceData.ModelName.length === 9) {
-			mName = `             ${deviceData.ModelName}`
-		} else if (deviceData && deviceData.ModelName.length === 10) {
-			mName = `            ${deviceData.ModelName}`
-		} else if (deviceData && deviceData.ModelName.length === 11) {
-			mName = `           ${deviceData.ModelName}`
-		} else if (deviceData && deviceData.ModelName.length === 12) {
-			mName = `          ${deviceData.ModelName}`
-		} else if (deviceData && deviceData.ModelName.length === 13) {
-			mName = `         ${deviceData.ModelName}`
-		} else if (deviceData && deviceData.ModelName.length === 14) {
-			mName = `        ${deviceData.ModelName}`
-		} else if (deviceData && deviceData.ModelName.length === 15) {
-			mName = `       ${deviceData.ModelName}`
-		}
-
-		// Device ID
-		let dID = ''
-		if (deviceData && deviceData.MachineID.length === 16) {
-			dID = `       ${deviceData.MachineID}`
-		} else if (deviceData && deviceData.MachineID.length === 17) {
-			dID = `      ${deviceData.MachineID}`
-		} else if (deviceData && deviceData.MachineID.length === 18) {
-			dID = `     ${deviceData.MachineID}`
-		} else if (deviceData && deviceData.MachineID.length === 19) {
-			dID = `    ${deviceData.MachineID}`
-		} else if (deviceData && deviceData.MachineID.length === 20) {
-			dID = `   ${deviceData.MachineID}`
-		}
-
-		// DatePTU
-		let datePTU = ''
-		if (deviceData && deviceData.DatePTU.length === 9) {
-			datePTU = `             ${deviceData.DatePTU}`
-		} else if (deviceData && deviceData.DatePTU.length === 10) {
-			datePTU = `            ${deviceData.DatePTU}`
-		} else if (deviceData && deviceData.DatePTU.length === 11) {
-			datePTU = `           ${deviceData.DatePTU}`
-		} else if (deviceData && deviceData.DatePTU.length === 12) {
-			datePTU = `          ${deviceData.DatePTU}`
-		}
 		try {
 			currentPrinter &&
 				BLEPrinter.printBill(
-					`<C>${configData && configData.Print_Header}</C>\n` +
-						`<C>${configData && configData.COOP_Name}</C>\n` +
-						`<C>${configData && configData.COOP_Address}</C>\n` +
-						`<C>${configData && configData.COOP_TIN}</C>\n` +
+					`<C>Collection Reciept</C>\n\n` +
+						`<C>${
+							headerData && headerData.map((data) => data.ClientName)
+						}</C>\n` +
+						`<C>${headerData && headerData.map((data) => data.Address)}</C>\n` +
+						`<C>CDA_REG_NO.# ${
+							headerData && headerData.map((data) => data['CDA_REG_NO.'])
+						}</C>\n` +
+						`<C>TIN# ${
+							headerData && headerData.map((data) => data.TIN)
+						}</C>\n` +
 						'<C>--------------------------------</C>\n' +
 						`Client No.: ${allData.client_id}\n` +
 						`Client Name: ${getName}\n` +
@@ -424,21 +320,29 @@ const PrintOutScreen = ({ navigation, route }) => {
 						`${renderedText}` +
 						`Total Items: ${rowIndex}\n` +
 						'<C>--------------------------------</C>\n' +
-						`Type of Payment${payment_type}\n` +
-						`Total Paid Amount${finalAmount}\n` +
+						`${payment_type}\n` +
+						`${finalAmount}\n` +
 						'<C>--------------------------------</C>\n' +
-						`Reciept No.: ${refNo}\n` +
-						`Date:${date}\n` +
-						`Collected by ${
-							auth && auth.data ? auth.data.collector_desc : '...'
-						}\n` +
+						`${refNoFormatted}\n` +
+						`${date}\n` +
+						`${collectedBy}\n` +
 						'<C>--------------------------------</C>\n' +
-						`App Version${appV}\n` +
-						`Model Name${mName}\n` +
-						`Device ID${dID}\n` +
-						`Date Issue${datePTU}\n` +
+						'<C>Software Information</C>\n' +
 						'<C>--------------------------------</C>\n' +
-						`<C>${configData && configData.Print_Footer}</C>${space}` +
+						`${softwareName}\n` +
+						`${softwareVersion}\n` +
+						`${softwareProvider}\n` +
+						`${softwareAddress}\n` +
+						`${softwareTIN}\n` +
+						`${softwareAcc_No}\n` +
+						'<C>--------------------------------</C>\n' +
+						'<C>Device Information</C>\n' +
+						'<C>--------------------------------</C>\n' +
+						`${deviceID}\n` +
+						`${serialNo}\n` +
+						`${dateIssued}\n` +
+						'<C>--------------------------------</C>\n' +
+						`<C>Thank you for using our service!</C>${space}` +
 						`<C>${reprentCount}</C>`
 				)
 		} catch (error) {
@@ -474,17 +378,24 @@ const PrintOutScreen = ({ navigation, route }) => {
 						contentContainerStyle={{
 							padding: 10,
 						}}>
-						<View className='space-y-5'>
-							<View className=''>
+						<View className='space-y-2'>
+							<View className='items-center justify-center'>
 								<Text
-									className='text-center text-2xl font-bold'
+									className='text-center text-2xl font-extrabold'
 									style={{ color: '#000' }}>
-									{configData && configData.COOP_Name}
+									{headerData && headerData.map((data) => data.ClientName)}
 								</Text>
 								<Text
-									className='text-center text-xs font-bold'
+									className='text-center text-base font-light'
 									style={{ color: '#000' }}>
-									{configData && configData.COOP_Address}
+									{headerData && headerData.map((data) => data.Address)}
+								</Text>
+								<Text className='text-xs font-light' style={{ color: '#000' }}>
+									CDA_REG_NO.#{' '}
+									{headerData && headerData.map((data) => data['CDA_REG_NO.'])}
+								</Text>
+								<Text className='text-xs font-light' style={{ color: '#000' }}>
+									TIN# {headerData && headerData.map((data) => data.TIN)}
 								</Text>
 							</View>
 							<View className='space-y-2'>
