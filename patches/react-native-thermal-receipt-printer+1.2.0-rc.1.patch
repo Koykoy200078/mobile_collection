@@ -1,0 +1,57 @@
+diff --git a/node_modules/react-native-thermal-receipt-printer/android/.project b/node_modules/react-native-thermal-receipt-printer/android/.project
+index e9ac184..2519faf 100644
+--- a/node_modules/react-native-thermal-receipt-printer/android/.project
++++ b/node_modules/react-native-thermal-receipt-printer/android/.project
+@@ -22,12 +22,12 @@
+ 	</natures>
+ 	<filteredResources>
+ 		<filter>
+-			<id>0</id>
++			<id>1699841977288</id>
+ 			<name></name>
+ 			<type>30</type>
+ 			<matcher>
+ 				<id>org.eclipse.core.resources.regexFilterMatcher</id>
+-				<arguments>node_modules|.git|__CREATED_BY_JAVA_LANGUAGE_SERVER__</arguments>
++				<arguments>node_modules|\.git|__CREATED_BY_JAVA_LANGUAGE_SERVER__</arguments>
+ 			</matcher>
+ 		</filter>
+ 	</filteredResources>
+diff --git a/node_modules/react-native-thermal-receipt-printer/android/build.gradle b/node_modules/react-native-thermal-receipt-printer/android/build.gradle
+index 3bd16c7..4613964 100644
+--- a/node_modules/react-native-thermal-receipt-printer/android/build.gradle
++++ b/node_modules/react-native-thermal-receipt-printer/android/build.gradle
+@@ -1,12 +1,12 @@
+ apply plugin: 'com.android.library'
+ 
+ android {
+-    compileSdkVersion = 29
+-    buildToolsVersion = "29.0.2"
++    compileSdkVersion = 33
++    buildToolsVersion = "33.0.2"
+ 
+     defaultConfig {
+         minSdkVersion 16
+-        targetSdkVersion 29
++        targetSdkVersion 33
+         versionCode 1
+         versionName "1.0"
+ 
+@@ -22,13 +22,13 @@ android {
+ }
+ 
+ dependencies {
+-    api 'com.google.zxing:core:3.3.0'
++    api 'com.google.zxing:core:3.5.2'
+     api fileTree(dir: 'libs', include: ['*.jar'])
+-    androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
++    androidTestImplementation('androidx.test.espresso:espresso-core:3.5.1', {
+         exclude group: 'com.android.support', module: 'support-annotations'
+     })
+-    api 'androidx.appcompat:appcompat:1.0.0'
++    api 'androidx.appcompat:appcompat:1.6.1'
+     api "com.facebook.react:react-native:+"
+ 
+-    testImplementation 'junit:junit:4.12'
++    testImplementation 'junit:junit:4.13.2'
+ }
