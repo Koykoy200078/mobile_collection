@@ -140,7 +140,7 @@ const ClientCollection = ({ navigation }) => {
 							dispatch(
 								getDetails({
 									branchid: auth.data.branchid,
-									collectorid: auth.data.collector,
+									collectorid: auth.data.collectorid,
 								})
 							)
 						}

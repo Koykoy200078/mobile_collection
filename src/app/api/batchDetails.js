@@ -3,7 +3,7 @@ import { BASE_URL } from '../config/url'
 import { select } from 'redux-saga/effects'
 
 export function* getBatchDetails(payload) {
-	const { branchid, collectorid, clientid, slclass = '12,13' } = payload
+	const { branchid, collectorid } = payload
 	const auth = yield select((state) => state.auth.authData.data.token)
 
 	try {
@@ -18,7 +18,7 @@ export function* getBatchDetails(payload) {
 		}
 		const response = yield fetch(
 			BASE_URL +
-				`/dashboard/download/collection/details?branchid=${branchid}&collectorid=${collectorid}`, // &clientid=${clientid}&slclass=${slclass}
+				`/dashboard/download/collection/details?branchid=${branchid}&collectorid=${collectorid}`,
 			options
 		)
 		const data = yield response.json()

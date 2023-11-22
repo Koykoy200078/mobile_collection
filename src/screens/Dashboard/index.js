@@ -203,7 +203,7 @@ const Dashboard = () => {
 					<View>
 						<Text title3>{getGreetings}</Text>
 						<Text body2>
-							{auth && auth.data ? auth.data.collector_desc : '...'}
+							{auth && auth.data ? auth.data.collector_username : '...'}
 						</Text>
 					</View>
 

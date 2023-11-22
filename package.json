@@ -8,7 +8,8 @@
 		"lint": "eslint .",
 		"start": "react-native start",
 		"test": "jest",
-		"clean": "cd android && clear && ./gradlew clean && cd .. && clear"
+		"clean": "cd android && clear && ./gradlew clean && cd .. && clear",
+		"postinstall": "patch-package"
 	},
 	"dependencies": {
 		"@react-native-async-storage/async-storage": "^1.18.2",
@@ -19,6 +20,8 @@
 		"@realm/react": "^0.5.1",
 		"@shopify/flash-list": "^1.4.3",
 		"nativewind": "^2.0.11",
+		"patch-package": "^8.0.0",
+		"postinstall-postinstall": "^2.1.0",
 		"prop-types": "^15.8.1",
 		"react": "18.2.0",
 		"react-native": "0.72.6",

@@ -134,12 +134,6 @@ const PrintOutScreen = ({ navigation, route }) => {
 		}
 	}, [headerData, deviceData, softwareData])
 
-	console.group()
-	console.log('headerData: ', headerData)
-	console.log('deviceData: ', deviceData)
-	console.log('softwareData: ', softwareData)
-	console.groupEnd()
-
 	const _connectPrinter = (printer) => {
 		BLEPrinter.connectPrinter(printer.inner_mac_address)
 			.then(() => {
@@ -268,7 +262,7 @@ const PrintOutScreen = ({ navigation, route }) => {
 		let date = formatString('Date', formattedDate)
 		let collectedBy = formatString(
 			'Collected by',
-			auth && auth.data ? auth.data.collector_desc : '...'
+			auth && auth.data ? auth.data.collector_username : '...'
 		)
 
 		const getSoftware =
@@ -608,7 +602,9 @@ const PrintOutScreen = ({ navigation, route }) => {
 													flexShrink: 1,
 													color: '#000',
 												}}>
-												{auth && auth.data ? auth.data.collector_desc : '...'}
+												{auth && auth.data
+													? auth.data.collector_username
+													: '...'}
 											</Text>
 										</View>
 									</View>
