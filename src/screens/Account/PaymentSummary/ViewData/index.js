@@ -266,12 +266,12 @@ const ViewData = ({ navigation, route }) => {
 					marginHorizontal: 10,
 				}}
 				isStatus={true}
-				status={mapStatusToResult(item.STATUS)}
+				status={mapStatusToResult(myData.status)}
 				textStatusColor={
-					item.STATUS === 1 ? 'green' : item.STATUS === 4 ? 'red' : 'gray'
+					myData.status === 1 ? 'green' : myData.status === 4 ? 'red' : 'gray'
 				}
 				statusOnPress={() => {
-					if (item.STATUS === 4) {
+					if (myData.status === 4) {
 						Alert.alert('Active Account', 'Are you sure?', [
 							{
 								text: 'Cancel',
@@ -294,12 +294,8 @@ const ViewData = ({ navigation, route }) => {
 												return
 											}
 
-											const collection = myData.collections.find(
-												(col) => col.REF_TARGET === item.REF_TARGET
-											)
-
-											if (collection) {
-												collection.STATUS = 1
+											if (existingClient) {
+												existingClient.status = 1
 											} else {
 												Alert.alert('Error', 'Collection not found!')
 											}
@@ -314,7 +310,7 @@ const ViewData = ({ navigation, route }) => {
 								},
 							},
 						])
-					} else if (item.STATUS === 1) {
+					} else if (myData.status === 1) {
 						Alert.alert('Cancel Account', 'Are you sure?', [
 							{
 								text: 'Cancel',
@@ -337,12 +333,8 @@ const ViewData = ({ navigation, route }) => {
 												return
 											}
 
-											const collection = myData.collections.find(
-												(col) => col.REF_TARGET === item.REF_TARGET
-											)
-
-											if (collection) {
-												collection.STATUS = 4
+											if (existingClient) {
+												existingClient.status = 4
 											} else {
 												Alert.alert('Error', 'Collection not found!')
 											}

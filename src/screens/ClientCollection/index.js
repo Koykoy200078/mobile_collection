@@ -150,94 +150,6 @@ const ClientCollection = ({ navigation }) => {
 		)
 	}, [dispatch])
 
-	// const saveData = useCallback(async () => {
-	// 	Alert.alert('Saving Data', 'Are you sure you want to save the data?', [
-	// 		{
-	// 			text: 'NO',
-	// 			onPress: () => Alert.alert('Cancelled', 'Data not saved'),
-	// 			style: 'cancel',
-	// 		},
-	// 		{
-	// 			text: 'YES',
-	// 			onPress: async () => {
-	// 				try {
-	// 					realm.write(() => {
-	// 						batchData.data.forEach((client) => {
-	// 							const collections = client.collections.map((collection) => ({
-	// 								...collection,
-	// 								id: `${client.client_id}-${collection.ID}`,
-	// 							}))
-
-	// 							const clientData = {
-	// 								branch_id: client.branch_id,
-	// 								client_id: client.client_id,
-	// 								FName: client.FName,
-	// 								LName: client.LName,
-	// 								MName: client.MName,
-	// 								SName: client.SName,
-	// 								collections,
-	// 							}
-
-	// 							realm.create(Client, clientData, Realm.UpdateMode.Modified)
-	// 						})
-	// 					})
-
-	// 					realm.write(() => {
-	// 						const headerData = {
-	// 							ClientName: batchData.header.ClientName,
-	// 							BranchName: batchData.header.BranchName,
-	// 							Address: batchData.header.Address,
-	// 							TIN: batchData.header.TIN,
-	// 							CDA_REG_NO: batchData.header['CDA_REG_NO.'],
-	// 						}
-	// 						realm.create(Header, headerData, Realm.UpdateMode.Modified)
-	// 					})
-
-	// 					realm.write(() => {
-	// 						const deviceData = {
-	// 							Device_No: batchData.device.Device_No,
-	// 							Serial_No: batchData.device.Serial_No,
-	// 							Machine_ID_No: batchData.device.Machine_ID_No,
-	// 							Permit_to_Use_No: batchData.device.Permit_to_Use_No,
-	// 							Permit_to_Use_Date_Issued:
-	// 								batchData.device.Permit_to_Use_Date_Issued,
-	// 							Permit_to_Use_Valid_Until:
-	// 								batchData.device.Permit_to_Use_Valid_Until,
-	// 						}
-	// 						realm.create(Device, deviceData, Realm.UpdateMode.Modified)
-	// 					})
-
-	// 					realm.write(() => {
-	// 						const softwareData = {
-	// 							Software: batchData.software.Software,
-	// 							Version: batchData.software.Version,
-	// 							Provider: batchData.software.Provider,
-	// 							Address: batchData.software.Address,
-	// 							TIN: batchData.software.TIN,
-	// 							Acc_No: batchData.software.Acc_No,
-	// 						}
-	// 						realm.create(Software, softwareData, Realm.UpdateMode.Modified)
-	// 					})
-
-	// 					showInfo({
-	// 						message: 'Operation Successful',
-	// 						description: 'Your data has been saved successfully.',
-	// 					})
-	// 					dispatch(resetGetDetails())
-
-	// 					showData()
-	// 				} catch (error) {
-	// 					showError({
-	// 						message: 'Error: Data Save Failed',
-	// 						description:
-	// 							'There was an issue while attempting to save the data. An error occurred in the API.',
-	// 					})
-	// 					console.error(error)
-	// 				}
-	// 			},
-	// 		},
-	// 	])
-	// }, [batchData, showData])
 	const saveData = useCallback(async () => {
 		const handleSave = async () => {
 			try {
@@ -260,6 +172,7 @@ const ClientCollection = ({ navigation }) => {
 						LName: client.LName,
 						MName: client.MName,
 						SName: client.SName,
+						collector: client.collector,
 						collections,
 					}
 

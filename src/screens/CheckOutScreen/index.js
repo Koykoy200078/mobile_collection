@@ -318,6 +318,7 @@ const CheckOutScreen = ({ navigation, route }) => {
 						MName: targetClient.MName,
 						SName: targetClient.SName,
 						REF_NO: lastSavedIncrement ? lastSavedIncrement : referenceNumber,
+						status: 1, // 1 - Active, 4 - Cancelled, 5 - Disapproved
 						collections: [],
 						COCI: [], // Add the COCI field here
 					}
@@ -359,7 +360,7 @@ const CheckOutScreen = ({ navigation, route }) => {
 							// Create a new collection entry in transformedData
 							amount.length > 0 &&
 								existingData.collections.push({
-									ID: collection.ID,
+									// ID: collection.ID,
 									BRCODE: collection.BRCODE,
 									SLC: collection.SLC,
 									SLT: collection.SLT,
@@ -375,7 +376,6 @@ const CheckOutScreen = ({ navigation, route }) => {
 									INSDUE: collection.INSDUE,
 									TOTALDUE: collection.TOTALDUE,
 									ACTUAL_PAY: amount,
-									STATUS: 1, // 1 - Active, 4 - Cancelled, 5 - Disapproved
 									is_default: collection.is_default,
 								})
 						}

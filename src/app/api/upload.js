@@ -67,6 +67,10 @@ export function* uploadDetails(payload) {
 			saveHistory(data)
 			return data
 		} else {
+			showError({
+				message: 'Error!',
+				description: data.message,
+			})
 			throw new Error(data)
 		}
 	} catch (error) {

@@ -274,7 +274,7 @@ const Account = ({ navigation }) => {
 				dispatch(
 					uploadData({
 						service: 'collection',
-						collectorid: auth && auth.data.collector,
+						collectorid: auth && auth.data.collectorid,
 						branchid: auth && auth.data.branchid,
 						trans_date: trans_date[0],
 						data: getUpload,

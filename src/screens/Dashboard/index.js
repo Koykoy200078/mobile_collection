@@ -163,8 +163,11 @@ const Dashboard = () => {
 			if (isDeviceSupported(model)) {
 				BLEPrinter.init().then(() => {
 					BLEPrinter.getDeviceList().then((deviceList) => {
-						if (deviceList.length > 0) {
-							_connectPrinter(deviceList[0])
+						const bluetoothPrinter = deviceList.find(
+							(device) => device.device_name === 'BluetoothPrinter'
+						)
+						if (bluetoothPrinter.length > 0) {
+							_connectPrinter(bluetoothPrinter)
 						}
 					})
 				})

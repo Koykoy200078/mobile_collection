@@ -21,7 +21,10 @@ import {
 	Search,
 } from '../../../../../app/components'
 import { Icons } from '../../../../../app/config/icons'
-import databaseOptions, { Client } from '../../../../../app/database/allSchemas'
+import databaseOptions, {
+	Client,
+	UploadData,
+} from '../../../../../app/database/allSchemas'
 import { FloatingAction } from 'react-native-floating-action'
 import { showInfo } from '../../../../../app/components/AlertMessage'
 import { FlashList } from '@shopify/flash-list'
@@ -155,12 +158,16 @@ const OtherSL = ({ navigation, route }) => {
 				index={index}
 				style={{ flex: 1, width: width, marginVertical: 10, padding: 5 }}
 				isStatus={true}
-				status={mapStatusToResult(item.STATUS)}
+				status={mapStatusToResult(clientData.status)}
 				textStatusColor={
-					item.STATUS === 1 ? 'green' : item.STATUS === 4 ? 'red' : 'gray'
+					clientData.status === 1
+						? 'green'
+						: clientData.status === 4
+						? 'red'
+						: 'gray'
 				}
 				statusOnPress={() => {
-					if (item.STATUS === 4) {
+					if (clientData.status === 4) {
 						Alert.alert('Active Account', 'Are you sure?', [
 							{
 								text: 'Cancel',
@@ -175,7 +182,7 @@ const OtherSL = ({ navigation, route }) => {
 										realm.write(() => {
 											const existingClient = realm.objectForPrimaryKey(
 												UploadData,
-												myData.client_id
+												clientData.client_id
 											)
 
 											if (!existingClient) {
@@ -183,12 +190,8 @@ const OtherSL = ({ navigation, route }) => {
 												return
 											}
 
-											const collection = myData.collections.find(
-												(col) => col.REF_TARGET === item.REF_TARGET
-											)
-
-											if (collection) {
-												collection.STATUS = 1
+											if (existingClient) {
+												existingClient.status = 1
 											} else {
 												Alert.alert('Error', 'Collection not found!')
 											}
@@ -203,7 +206,7 @@ const OtherSL = ({ navigation, route }) => {
 								},
 							},
 						])
-					} else if (item.STATUS === 1) {
+					} else if (clientData.status === 1) {
 						Alert.alert('Cancel Account', 'Are you sure?', [
 							{
 								text: 'Cancel',
@@ -218,7 +221,7 @@ const OtherSL = ({ navigation, route }) => {
 										realm.write(() => {
 											const existingClient = realm.objectForPrimaryKey(
 												UploadData,
-												myData.client_id
+												clientData.client_id
 											)
 
 											if (!existingClient) {
@@ -226,12 +229,8 @@ const OtherSL = ({ navigation, route }) => {
 												return
 											}
 
-											const collection = myData.collections.find(
-												(col) => col.REF_TARGET === item.REF_TARGET
-											)
-
-											if (collection) {
-												collection.STATUS = 4
+											if (existingClient) {
+												existingClient.status = 4
 											} else {
 												Alert.alert('Error', 'Collection not found!')
 											}

@@ -53,6 +53,7 @@ export const ClientSchema = {
 		LName: { type: 'string' },
 		MName: { type: 'string', optional: true },
 		SName: { type: 'string', optional: true },
+		collector: { type: 'int' },
 		isPaid: { type: 'bool', default: false },
 		collections: { type: 'list', objectType: Collection },
 	},
@@ -97,6 +98,7 @@ export const uploadSchema = {
 		MName: { type: 'string', optional: true },
 		SName: { type: 'string', optional: true },
 		REF_NO: { type: 'string' },
+		status: { type: 'int' }, // 1 - Active, 4 - Cancelled, 5 - Disapproved
 		collections: { type: 'list', objectType: UploadDataCollection },
 		COCI: { type: 'list', objectType: UploadTOP },
 	},
@@ -120,7 +122,6 @@ export const uploadDataCollection = {
 		INSDUE: { type: 'string' },
 		TOTALDUE: { type: 'string' },
 		ACTUAL_PAY: { type: 'string' },
-		STATUS: { type: 'int' }, // 1 - Active, 4 - Cancelled, 5 - Disapproved
 		is_default: { type: 'int' },
 	},
 }

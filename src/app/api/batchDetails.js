@@ -22,6 +22,7 @@ export function* getBatchDetails(payload) {
 			options
 		)
 		const data = yield response.json()
+
 		if (response.ok) {
 			return data
 		} else {
